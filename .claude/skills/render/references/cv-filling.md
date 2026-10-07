@@ -23,7 +23,7 @@ If the user pastes an old CV, ingest it first (`/ingest`) and use the source not
 5. **Dates are text.** Use one style throughout: `"2021 - 2026"`, `"Sep 2025 - present"`.
 6. **Plain text only.** No markdown, no emoji, no tables. Avoid `*`, backticks, `~`, `<` and `>`: Quarto reads them as formatting and they vanish. `$ # @ & _ %` are fine.
 7. **Language.** Write in the language of the job advert. For a Dutch CV, ask the user for the headings they want; do not translate facts, only labels.
-8. **Things that vary by country** (photo, date of birth, marital status, a "personal details" line): do not add them unless the user asks. If they ask whether to include them, say you are not sure of local norms, and suggest they ask their career service.
+8. **Things that vary by country** (photo, date of birth, marital status, a "personal details" line): do not add them unless the user asks. They are private facts, so they also need the user's OK for this CV (they go to strangers). If they ask whether to include them, say you are not sure of local norms, and suggest they ask their career service.
 
 ## ATS-plain CV (applicant tracking systems)
 

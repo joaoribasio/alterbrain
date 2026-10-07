@@ -23,7 +23,7 @@ Say at the start: "Let's set up your job search. I'll ask what you want, where, 
 6. **Visa.** "Will you need an employer to sponsor your work permit?" AskUserQuestion: No, I'm free to work here (for example an EU citizen) / Yes, I'll need sponsorship / Not sure (recommended if they hesitate).
    - Explain in one line: "If you need sponsorship, I'll check each employer against the official list of recognised sponsors (the IND register)."
    - Never give legal advice. If "Not sure", add a task `Check whether you need visa sponsorship to work in NL (ask your school's career centre)` (`--tag onboard --priority medium`).
-   - This answer is private by default. Ask before adding it to the fact sheet (visibility `private`).
+   - This answer is private by default. Offer to add it to the fact sheet as visibility `private`; it never goes into a CV or message without the user's OK for that draft.
 7. **Salary (optional).** "Do you have a salary range in mind? You can skip this." Store only if given. Do not quote salary thresholds from memory; `/jobs` reads verified figures from the wiki.
 8. **CV.** If a CV was ingested in M2, confirm it is the latest. Otherwise ask for the file and run `node system/scripts/ingest.mjs "<path>" --kind pdf --origin "CV (career setup)"`.
 

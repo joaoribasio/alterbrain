@@ -15,7 +15,7 @@ Infer first. Ask only what is missing.
 | Seniority | `USER.md`, `career.md` | AskUserQuestion: "Graduate or trainee", "1 to 3 years' experience", "3 to 7 years", "Senior" |
 
 If `needs_sponsorship` is `true`, also check `career.md` for:
-- **age band** (under 30, or 30 and over). Ask only this. Never ask for a date of birth;
+- **age band** (under 30, or 30 and over). The salary rules need only the band, so ask for that, not the exact birth date. Store it as a `private` fact;
 - **graduation date** or orientation-year status (decides whether the reduced salary amount applies, see `salary-thresholds.md`).
 
 Show a 4-line summary of the search brief. After a yes, save to `config/brain.json` (keys under `jobs` only: `needs_sponsorship`, `languages`) and to a `## Search brief` section in `career.md`.

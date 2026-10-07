@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.1.0",
-  "tag": "v0.1.0",
+  "version": "0.1.1",
+  "tag": "v0.1.1",
   "files": [
     {
       "path": ".claude/agents/ghostwriter.md",
       "class": "text",
-      "sha256": "6155dffbcae9615f31d3f45d987749e65ba085e4ea640b8bc33d4c0d7ea79a42"
+      "sha256": "a9e1ccb9faae1338d07a3343fdfe56f1736c6fcbf53627f77c0ad007aeb75737"
     },
     {
       "path": ".claude/agents/lens.md",
@@ -16,7 +16,7 @@
     {
       "path": ".claude/agents/mail-reader.md",
       "class": "text",
-      "sha256": "0bac52affca7000339e81f8d07eaafbc8dd4fb318e3920f7f4dad52b10c696ac"
+      "sha256": "079b514026e94504f609186d3b3997e30aa410ebce0ca7edd6f961d32e2fc4f6"
     },
     {
       "path": ".claude/agents/researcher.md",
@@ -36,12 +36,12 @@
     {
       "path": ".claude/rules/vault.md",
       "class": "text",
-      "sha256": "d0d183a70f7415d9b9cfd051d510ad975b37bba9a39aeb0e38b2417184adc7d7"
+      "sha256": "ea070e8b948839c9f3d91297f1df5f7a38f4e0285d52f570792c2db42d7a57d2"
     },
     {
       "path": ".claude/rules/writing.md",
       "class": "text",
-      "sha256": "1ac14a2a0e465f7144eae1229408116df9ad08edc266f84234456aaea5c25c64"
+      "sha256": "70040d8624dbac61ce4b61d7431806f0ded311fac1fb7e527bf826a1a596565e"
     },
     {
       "path": ".claude/settings.json",
@@ -51,7 +51,7 @@
     {
       "path": ".claude/skills/ask/SKILL.md",
       "class": "text",
-      "sha256": "9bdd4b27b61a6d9bd22422369bbe9be21595b040328658f8c7876e01497ade3d"
+      "sha256": "424bd18ddca6bb8f31280a76d61517b225bcd3001b237ba4955df979c6145cf2"
     },
     {
       "path": ".claude/skills/assignment/SKILL.md",
@@ -111,7 +111,7 @@
     {
       "path": ".claude/skills/capture/SKILL.md",
       "class": "text",
-      "sha256": "f2232a6f36bbebb7a812c62e6ada81c557b0ba0b1507eb3b3f41ed91e24ce573"
+      "sha256": "9769500be129d6b0b06e3975f53761bef2e4724efb12a71a02322360f2307838"
     },
     {
       "path": ".claude/skills/clarify/SKILL.md",
@@ -166,7 +166,7 @@
     {
       "path": ".claude/skills/clarify/checklists/research.md",
       "class": "text",
-      "sha256": "47522d33e3bff24f5893cd5e27d809c551f379529d3dd50e10bb737620bd370c"
+      "sha256": "1a4369032198b4c0297a3d0448e65855548f3ad8582260e4e96cbda534aaa8e6"
     },
     {
       "path": ".claude/skills/clarify/checklists/skill.md",
@@ -236,12 +236,12 @@
     {
       "path": ".claude/skills/ingest/SKILL.md",
       "class": "text",
-      "sha256": "2142eff7b0fa5e8650fadaa33338b79c26a166bda39a0dc68b618f3da775241c"
+      "sha256": "976176c6d9dcc4fc6e1f22047f59521a81641d1ea1a86abca9518d7bd76c374c"
     },
     {
       "path": ".claude/skills/ingest/references/note-formats.md",
       "class": "text",
-      "sha256": "ed5fb4e164b214a292836fd45d6bbe7665fa9472e94dad6fed8daf74cf2b99ef"
+      "sha256": "cab373591c06ff2168e2a1edb0972a3efd035d49957b6d2ade62675f63df4bc6"
     },
     {
       "path": ".claude/skills/ingest/references/wiki-update.md",
@@ -251,17 +251,17 @@
     {
       "path": ".claude/skills/jobs/SKILL.md",
       "class": "text",
-      "sha256": "d7381a36b57239aa3f0b6161d098ee648751598d2f967c0294213bed4b02faf0"
+      "sha256": "5c04a00502706de36a3c2d2a41e6e5dd9e455c22903aee392fc77b9ac90aff16"
     },
     {
       "path": ".claude/skills/jobs/workflows/apply.md",
       "class": "text",
-      "sha256": "181832f184c6d988da2842f683b878a2d3c84fa7e063526f1665e3a01d1a6714"
+      "sha256": "169a6a65be94a47117ae60ae7c992cda9067f3ad1adc9906ab7a8d63f080344f"
     },
     {
       "path": ".claude/skills/jobs/workflows/scan.md",
       "class": "text",
-      "sha256": "60d5e8363b1c960caecaeb530000a2158cdc40ea9948e23fe3087c0d2cd349e0"
+      "sha256": "bc4cf7e11b6043c32eb62d6e95461db5ed1f812166b45d8ed05af3e25ab01bd1"
     },
     {
       "path": ".claude/skills/json-canvas/LICENSE-obsidian-skills",
@@ -281,7 +281,7 @@
     {
       "path": ".claude/skills/learn/SKILL.md",
       "class": "text",
-      "sha256": "3b65ce23363af9f8295733aa08c7c2de942b55387ce462df1d13d8d366ef5f02"
+      "sha256": "8209c9e852560c6026cb6840ef8d3fdb17bdd6f2bba87615aa7d5faed8621e5f"
     },
     {
       "path": ".claude/skills/menu/SKILL.md",
@@ -386,7 +386,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M2-you-and-facts.md",
       "class": "text",
-      "sha256": "88cc9acb62a61705311126c739ad915cf9a40abefbe7ea506e85847f05b2d833"
+      "sha256": "f2f67fd973b25c26338d53dac3f9227d2639852bbcd32f76af8bc052982519b9"
     },
     {
       "path": ".claude/skills/onboard/workflows/M3-programme.md",
@@ -401,12 +401,12 @@
     {
       "path": ".claude/skills/onboard/workflows/M5-voice.md",
       "class": "text",
-      "sha256": "d9b9b702f292f99b75c6a5d2955c5cba6c6a0c5d365b6df90734e8775d0eaa12"
+      "sha256": "a2982841095f76bee4cdaf3a16f35d0e3a71b8159df9d0f9ba93a35ce10ca40d"
     },
     {
       "path": ".claude/skills/onboard/workflows/M6-career.md",
       "class": "text",
-      "sha256": "5027930803825c2d622dca6b44259dc7a8bc23d7b6e7652863d10bc0affebe0f"
+      "sha256": "9bace8c595cc75a17931076c8f431d1e0e24ee60b0903e657d29517309a4ac9a"
     },
     {
       "path": ".claude/skills/onboard/workflows/M7-integrations.md",
@@ -426,12 +426,12 @@
     {
       "path": ".claude/skills/propose/SKILL.md",
       "class": "text",
-      "sha256": "4a6788e781d76168497491de334293ed8c01dca67599bf3f46cd6b1d881480b9"
+      "sha256": "56122e1b2202f0c75b12da41f4dcf8d98e18af3c758ebe67582322fec82bd501"
     },
     {
       "path": ".claude/skills/propose/references/proactive.md",
       "class": "text",
-      "sha256": "2d17bdc72ac827ca29f0f891e26e5c6f1b009941e0c2a247aa63b695a30f6129"
+      "sha256": "3d1955d8609fa4a7a13a0a5a27d6f8e6004bfd75e2027c0b8fb33324ca8548c7"
     },
     {
       "path": ".claude/skills/reconfigure/SKILL.md",
@@ -451,7 +451,7 @@
     {
       "path": ".claude/skills/render/references/cv-filling.md",
       "class": "text",
-      "sha256": "bd21ab8ec4e23e34554f0596dfb014b8f68b8625240d3aa33bb3b93e869874fc"
+      "sha256": "1276da958ecd87a46128351038a599ebab2799cfa908e29858d88f76ad412891"
     },
     {
       "path": ".claude/skills/render/references/page-fit.md",
@@ -471,7 +471,7 @@
     {
       "path": ".claude/skills/reply/SKILL.md",
       "class": "text",
-      "sha256": "5d6cc33a01e0ad8906eb5080d31a84272ac1a9fcde69daca5f0efa806af16d22"
+      "sha256": "02c9755d39a2dd63b09672bd6320ad484c15e7ac94de811ef01e4671da659251"
     },
     {
       "path": ".claude/skills/reply/references/connect-gmail.md",
@@ -481,7 +481,7 @@
     {
       "path": ".claude/skills/reply/references/mail-reader-brief.md",
       "class": "text",
-      "sha256": "9985dbb1cf60f26415bde9b78448f5ee0eebab6b1b63cc7caea38271902d885b"
+      "sha256": "427a0b83cc5c4bf09ba24ec391b10ce1e69c45f224e65cfbace27430d37c483d"
     },
     {
       "path": ".claude/skills/study/SKILL.md",
@@ -541,7 +541,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "2c1440067b097f0403f048a785c0d86ba04d03d275ea898d7e6977ec1ec753de"
+      "sha256": "bf7532301efe6e2b85500eea17532c3d47439008dbbffbca1a4523dcefae8465"
     },
     {
       "path": "CLAUDE.md",
@@ -556,7 +556,7 @@
     {
       "path": "README.md",
       "class": "text",
-      "sha256": "b61d6ef8ad96f4caaec77bf03e1c2d4dee48a232f3c9e7ea104630a7d40ed18b"
+      "sha256": "27731ee4b7f25965d607af6df309aed316c9db71939806952c8392471571a548"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -571,7 +571,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "ec49d27b207be3d3af6c81e220bbc544a83c45335af99144b83fd2ca941ebb3b"
+      "sha256": "aaf80820a10525ebe7b2eec4c43c17b5cd53c84f75e3ccbc26f3a3ee819ef953"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -659,6 +659,11 @@
       "sha256": "b8b81a3011905a2046742508e7e2ba8c7414d654101a31f7cd2c99836b2113e7"
     },
     {
+      "path": "docs/adr/0018-exposure-based-privacy.md",
+      "class": "text",
+      "sha256": "fbc6ce79f3a34af2dbae88f50fbd7687524ec3c7cc06dfd4ca7f8e324de70589"
+    },
+    {
       "path": "docs/critique-panel-prompts.md",
       "class": "text",
       "sha256": "fbd2be4174d7c1c3e3c92e937e294676387dbaf39833a8532bd9230cb77f43a5"
@@ -706,7 +711,7 @@
     {
       "path": "system/blueprints/email-extras.md",
       "class": "text",
-      "sha256": "ea73ff9476a617c1a11f2493bb214aa04e617e1432b568593489a3e2fef0dcd6"
+      "sha256": "1cd72c6ce8e0132a7aa1badcf36a317c4c01c62d964741ba4419dd9aa1fe92cb"
     },
     {
       "path": "system/blueprints/gmail-send-approval.md",
@@ -726,17 +731,17 @@
     {
       "path": "system/blueprints/jobs-extras.md",
       "class": "text",
-      "sha256": "dd6b87f75b8c94cf4bd73428f3245b2f5b3ab81ba9d8aabdf8249af69c5558b9"
+      "sha256": "20bf20ee4948ec27e21ac36b7938e8d13838862e7c6dd2c1585b9195253ec4c5"
     },
     {
       "path": "system/blueprints/linkedin-data-portability.md",
       "class": "text",
-      "sha256": "ce772e72c9df3436cac751e957723410ed53d59acb7ddfcc814644d64f84328e"
+      "sha256": "e8c8c0634f6da227d7b97d71c436b3d4286deb57fd9e26c0440712edca061bf0"
     },
     {
       "path": "system/blueprints/linkedin.md",
       "class": "text",
-      "sha256": "9a4782f68e845c9b2ffa59a834384bd1d960a00762292330a2928d7135c00a16"
+      "sha256": "871eb25959840694a3e3ea39c27843c21298acd083375f379d30e584041c6cae"
     },
     {
       "path": "system/blueprints/linux-vps-oracle.md",
@@ -801,7 +806,7 @@
     {
       "path": "system/core.md",
       "class": "code",
-      "sha256": "f0578df037ad6ead3e261bbf5d8871d160aa1a904921bbe11ccb58430cb1bfb1"
+      "sha256": "6ec6f93f55c71e191d7e102080a8d7722af37bfb080d33522f0fa8b09f332566"
     },
     {
       "path": "system/docs/guides/autonomy-and-safety.md",
@@ -826,7 +831,7 @@
     {
       "path": "system/docs/guides/privacy-and-data.md",
       "class": "text",
-      "sha256": "316866a530afaa80c4afb8529af3cd578873feca5ff1d82a258eb8bc08ee5557"
+      "sha256": "e8a03d972874c36d31b70597c668da0d4075aadd2a5a7b3b531d3c089211e062"
     },
     {
       "path": "system/docs/guides/self-build.md",
@@ -1151,12 +1156,12 @@
     {
       "path": "system/packs/twin/drafting.md",
       "class": "text",
-      "sha256": "d36d28a196c4af8b9f82ff806722540af9b2c2f17289d923fd6fb399cee7c811"
+      "sha256": "4a3d814a56020553f99c4043eb30c04f437779968c151a0c295fe17e7e05bd7f"
     },
     {
       "path": "system/packs/twin/voice-import.md",
       "class": "text",
-      "sha256": "4819cfc0a8838d0021aa241c81bd8569edbe03240ea01fc25259f98ad85ebf6e"
+      "sha256": "626f667c5a4a98a3ba39bd9f5e2131b7970656ac6097860813cdf184a4f8f5a5"
     },
     {
       "path": "system/quarto/NOTICE.md",
@@ -1376,7 +1381,7 @@
     {
       "path": "system/release.json",
       "class": "code",
-      "sha256": "b50d3dd41843a3e6366d4179d3a2289babbb802d5cc8a3b167a3025e90b1e89b"
+      "sha256": "22c703811ff635215f557988cb367bb1a0d464f2d3a6656c63cf14cb076a1437"
     },
     {
       "path": "system/scripts/built.mjs",
@@ -1551,7 +1556,7 @@
     {
       "path": "system/templates/identity/fact-sheet.md",
       "class": "text",
-      "sha256": "37d390f7e1c904cb401b71dfe57565859512327189bf4f347b3c1e691b7235d5"
+      "sha256": "071a2099784e23ec680fb18a1a5694f8c6abedb3f990d52ef1c26bd282325685"
     },
     {
       "path": "system/templates/notes/application.md",
@@ -1611,7 +1616,7 @@
     {
       "path": "system/templates/notes/person.md",
       "class": "text",
-      "sha256": "c6f18940900cf9dd77cdf1c94315ede05d63f2f225efbfd070a27599c4e2a9a4"
+      "sha256": "a5c954a1b9510a1cf83ac381ffb7d02863e3551d37bee18c9a00ecce09ebb1c0"
     },
     {
       "path": "system/templates/notes/proposal.md",

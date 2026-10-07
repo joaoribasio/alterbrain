@@ -34,7 +34,7 @@ Another mail provider (Outlook or Microsoft 365) is not part of this blueprint. 
 
 - **Cost:** no extra money. Triage uses haiku (the cheapest model) at low effort; briefs and drafts use sonnet; profile updates use opus once in a while, only when you approve.
 - **Risk: low.** Everything is read-only plus notes, tasks and drafts. `config/autonomy.json` stays at `draft`; `outbound_guard` still blocks sending and creating calendar events.
-- **Privacy:** summaries of your emails are saved in your vault (your private repo). Raw email text is never saved. Sensitive details (health, family, money) are left out.
+- **Privacy:** summaries of your emails are saved in your vault (your private repo). Raw email text is never saved. A summary can include what you need to act on, including sensitive content about you. Other people's sensitive details (health, family, beliefs, money) are flagged to you but not saved unless you ask. Passwords, codes, card or bank numbers and ID numbers are never saved.
 - **Prompt injection** (an email trying to give Alterbrain orders): all reading goes through the quarantined `mail-reader`, which cannot write, send or browse.
 
 ## Questions I'll ask you

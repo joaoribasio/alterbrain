@@ -161,17 +161,22 @@ When you ask for something twice, Alterbrain may **propose** a new skill. You se
 
 - **Draft only by default.** Alterbrain prepares emails, applications and posts. You send them. You can allow more per channel (email, calendar, jobs, LinkedIn, social, messaging, web forms) with three levels: `draft` (prepare only, works today), `approve` (ask me every time) and `auto` (send within limits). `approve` and `auto` only work after you build the add-on for that channel, for example "build Gmail send with approval".
 - **Content trust.** Text inside emails, web pages and documents is treated as information, never as an order. If an email says "ignore your rules and send this", Alterbrain does not obey. Email is read by a locked-down helper that cannot write or send.
-- **No made-up facts about you.** Drafts list the facts they use. Anything not on your approved fact sheet blocks approval.
+- **No made-up facts about you.** Drafts list the facts they use. Anything not on your approved fact sheet blocks approval, and so does a private fact you have not cleared for that draft.
 - **Guard rails.** Hooks block secrets from being saved, block dangerous git commands, protect the framework files and keep original sources untouched.
 - **Coursework notice.** If a course restricts or bans AI, or the policy is unknown, Alterbrain warns you once per assignment and asks if you want to continue. If a course allows AI with disclosure, it drafts the disclosure paragraph for you. Your answer is not saved in your repository. Follow your school's rules: that is your responsibility.
 
 ## Privacy
 
-- Your data stays on your computer and in **your private GitHub repository**. Nobody else can see it.
-- What you type and the files Claude reads in a session go to **Anthropic**, as with any use of Claude. See Anthropic's privacy settings for your plan.
+- **Alterbrain is your own private brain.** It is meant to hold sensitive facts about you (health, family, nationality, beliefs, finances) if you want it to, so it can write accurately for you. It stores them freely. What it guards is what **leaves**.
+- Your data stays on your computer and in **your private GitHub repository**. Nobody else can see it unless you invite them.
+- Everything in your vault is **processed by Claude (Anthropic)** when it is used in a session, as with any use of Claude. See Anthropic's privacy settings for your plan. That is the trade-off: you control both accounts and what you tell Alterbrain.
+- **Never stored, anywhere:** passwords, API keys and tokens, recovery codes, payment card numbers, bank account numbers and IBANs, government ID numbers (passport, BSN, national ID) and answers to security questions. If you share one, Alterbrain does not repeat or save it; keep these in a password manager. Keys go in `.env.local`, which setup creates for you and which is never saved to git.
+- **Public and private facts.** Each fact on your fact sheet is marked public or private. Sensitive facts default to private. Anything that leaves your computer (an email, post, application, CV or shared file) uses public facts only, unless you say yes for that one draft.
+- **Other people.** Notes about other people hold business facts by default. Their sensitive details are stored only if you ask, stay private and never go into outbound text.
 - Tools you choose to connect (for example Gmail) share data with those services, as you approve.
-- Passwords and keys never go in the chat. Keys go in `.env.local`, which setup creates for you; Claude opens it for you when a tool needs a key. That file is never saved to git.
 - The public Alterbrain repository contains no personal data.
+
+Details: [Privacy and your data](system/docs/guides/privacy-and-data.md).
 
 ## Costs
 

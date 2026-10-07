@@ -34,4 +34,4 @@ Drafts in the user's voice go through the `ghostwriter` agent.
   - No em or en dashes as parenthetical breaks, and no ellipsis for drama. Use a full stop, a comma or brackets.
   - Vary sentence and paragraph length. If a sentence could sit in any LinkedIn post or corporate memo, rewrite it.
 - **Drafts only.** Save to `vault/00_inbox/outbox/` and add a `#ab/<skill>` review task. Sending follows `config/autonomy.json`.
-- Never copy text from a sample word for word into a new draft, and never reuse private details from a sample.
+- Never copy text from a sample word for word into a new draft, and never reuse names, facts or sensitive details from a sample.

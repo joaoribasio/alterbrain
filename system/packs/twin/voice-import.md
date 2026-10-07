@@ -17,8 +17,9 @@ The exact process onboarding module M5 follows to learn how the user writes. The
 - Read `state/onboarding.json` to resume where the user stopped.
 - Work folder for raw material: `state/local/tmp/voice/<lang>/`. It is gitignored and never leaves the machine.
 - Tell the user, in one short message, before touching anything:
-  > "I'll read some of your sent emails and other writing to learn your style. I keep only your own words, never other people's. Raw material stays on this computer and is deleted at the end. You can skip any source."
+  > "I'll read some of your sent emails and other writing to learn your style. I keep only your own words: other people's words would blur your voice. Your own writing is kept as you wrote it, whatever it is about. The finished voice files sync to your private GitHub backup, and I read them in sessions. Raw material stays on this computer and is deleted at the end. You can skip any source."
 - Ask one question at a time. Recommended option first.
+- **Privacy in this step** (policy: `system/docs/guides/privacy-and-data.md`). Your own writing may touch health, family, money, beliefs or anything else, and it is kept as written. Other people's words are removed for voice quality, not for privacy. Apart from signature blocks, the only values removed from your own text are those on the never-store list (§8). The exemplars are used for rhythm and never quoted, so their content never reaches a draft (see `drafting.md` §4 and the outbound gate in §5).
 
 ---
 
@@ -41,14 +42,17 @@ Brief for `mail-reader`:
 3. Drop:
    - messages with fewer than **20 words** of the user's own text;
    - auto-generated mail (calendar accept/decline, "Out of office", form confirmations);
-   - messages that are mostly a pasted template or a forward with one line;
-   - messages about health, family matters, money troubles, legal problems or other sensitive topics.
-4. Return one record per kept message:
+   - messages that are mostly a pasted template or a forward with one line.
+
+   Do not drop a message because of its topic. Health, family, money, legal or belief topics are the user's own business and stay in the corpus.
+4. Replace any value on the never-store list (§8: passwords and codes, card numbers, bank account numbers or IBANs, ID numbers, security-question answers) with `[removed]` and keep the rest of the sentence. Count how many you removed.
+5. Return one record per kept message:
    ```
    id | date (YYYY-MM) | lang | recipient_class guess | word_count | text (user's own words only)
    ```
    where `recipient_class guess` is one of the seven classes in `drafting.md` §3: `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`.
-   with other people's names, emails and phone numbers replaced by `[Name]`, `[Email]`, `[Phone]`.
+   with other people's names, emails and phone numbers replaced by `[Name]`, `[Email]`, `[Phone]`. This keeps the samples about rhythm, not content, so a name from one sample cannot surface in another draft.
+6. End the list with one line: `COUNTS kept=<n> dropped=<n> removed_values=<n>` (`dropped` = too short, automatic or a template; `removed_values` = never-store values replaced in step 4).
 
 Save the returned records to `state/local/tmp/voice/<lang>/gmail.md`, one file per language.
 
@@ -67,7 +71,7 @@ Use only these files:
 - `messages.csv`: keep **only rows where `FROM` is the user**. Use the `CONTENT` column. Ignore every other row: those are other people's words.
 - `Comments.csv` (if present): the `Message` column is the user's comments.
 
-Apply the same cleaning as 1a (drop under 20 words, sensitive topics, replace other people's names). Tag the channel `linkedin`. Never ingest the export into `vault/40_sources/`: it holds other people's messages.
+Apply the same cleaning as 1a (drop under 20 words, replace other people's names, remove never-store values). Tag the channel `linkedin`. Never ingest the export into `vault/40_sources/`: it holds other people's messages, and their words and details are not yours to keep.
 
 Privacy note for the user: "The export contains other people's messages. I read only your own lines and delete the zip at the end."
 
@@ -119,8 +123,10 @@ Selection rules:
 - Aim for **2 to 5 per filled cell**. Do not fill a cell with weak examples just to cover it.
 - Prefer recent ones (last 2 years) and ones where the user wrote freely, not from a template.
 - Mix lengths: some short (2 to 3 lines), some longer.
-- Skip anything you would not want quoted back: sensitive topics, private jokes about others, confidential work details.
-- Replace other people's names, emails, phones and companies that are not public with `[Name]`, `[Email]`, `[Phone]`, `[Company]`.
+- Skip samples that only make sense inside their original thread (inside jokes, one-word replies). They teach nothing about voice.
+- Keep the user's real wording even when it touches health, family, money or beliefs. Exemplars are used for rhythm and are never quoted, so the topic does not matter to the draft.
+- If a sample contains an employer's or client's confidential material, ask the user before keeping it. An NDA may forbid storing it in a personal backup.
+- Replace other people's names, emails, phones and companies that are not public with `[Name]`, `[Email]`, `[Phone]`, `[Company]`. The reason is voice quality: the samples must teach how the user writes, not who they write to.
 
 Write `vault/80_me/voice/<lang>/exemplars.md`:
 
@@ -165,7 +171,7 @@ node system/scripts/voice-stats.mjs "state/local/tmp/voice/<lang>/corpus.md" --l
 
 There is no `--json` flag: the script always prints JSON, and `--out <file>` also writes it to a file. The JSON gives sentence length spread, common openers, punctuation habits, top phrases and watch-list rates.
 
-`vault/80_me/voice/<lang>/stats.json` is the **baseline**. `voice-stats --check <draft>` reads it by default (so `edit-voice` and the draft checks work without extra arguments). It holds numbers about the user's own writing only. Before keeping it, glance at the top phrases and remove any that contain another person's name or a private detail. Only the plain-language summary goes into the profile text.
+`vault/80_me/voice/<lang>/stats.json` is the **baseline**. `voice-stats --check <draft>` reads it by default (so `edit-voice` and the draft checks work without extra arguments). It holds numbers about the user's own writing only. Before keeping it, glance at the top phrases and remove any that contain another person's name (the baseline describes the user's style, not the people they write to). Only the plain-language summary goes into the profile text.
 
 ---
 
@@ -178,7 +184,7 @@ Give the subagent: the exemplars file, the baseline stats (`vault/80_me/voice/<l
 - with **evidence**: each claim points to exemplar IDs or a stat;
 - with a register table per recipient class actually seen in the exemplars;
 - with a short **"You never…"** list (words and habits absent from the corpus but common in AI text);
-- without quoting other people, and without any sensitive detail.
+- without quoting other people, and about how the user writes, not what the messages were about (facts about the user belong in the fact sheet, each with a visibility).
 
 Write the result to `vault/80_me/voice/<lang>/profile.md`.
 
@@ -229,19 +235,28 @@ Checks whether the twin can pass for the user.
 
 ## 8. Store, delete, never store
 
-**Store in the vault (synced to the user's private GitHub repo):**
-- `exemplars.md`, `profile.md` and the baseline `stats.json` per language;
+**Store in the vault (synced to the user's private GitHub repo, and read by Claude in sessions):**
+- `exemplars.md`, `profile.md` and the baseline `stats.json` per language. The exemplars hold the user's own wording as written, including any sensitive topics;
 - the optional `## How I think` bullets in `USER.md`.
 
 **Keep only on this computer, then delete at the end of M5:**
 - everything under `state/local/tmp/voice/` (corpus, exports, zips). Ask: "Shall I delete the raw material now?" Recommended: **Yes**. If the user says no, it stays local and gitignored.
 
-**Never store anywhere:**
+**Never store anywhere git tracks (the never-store list):**
+- passwords, API keys, tokens, recovery codes and 2FA seeds;
+- payment card numbers;
+- bank account numbers and IBANs;
+- government ID numbers (passport, BSN, SSN, national ID, driving licence number);
+- answers to security questions (for example a mother's maiden name).
+
+If a sample holds one of these, replace only that value with `[removed]`, tell the user, and suggest a password manager (and, for a token, replacing it).
+
+**Left out for voice quality, not for privacy:**
 - other people's words: quoted replies, their messages, their posts;
-- health, family, religion, politics, sexuality, money troubles or legal details, about anyone, the user included;
-- passwords, codes, account numbers, addresses, phone numbers;
-- AI assistant replies, or AI-chat text as voice exemplars;
-- confidential employer or client details.
+- AI assistant replies, and AI-chat text as voice exemplars;
+- signature blocks and boilerplate.
+
+**Outbound:** voice files are never sent anywhere. What a draft may say about the user comes from the fact sheet, and only `public` facts leave the computer without the user's OK (`drafting.md` §5).
 
 ---
 

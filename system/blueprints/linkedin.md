@@ -26,7 +26,7 @@ Alterbrain can look up a company, a job post or a public profile on LinkedIn, an
   - Read only a few pages at a time, slowly, and never in bulk.
   - **Never** let it send connection requests, messages, comments or posts. The `linkedin` autonomy channel stays on `draft`.
   - A usage guard is built in (the rate guard, nothing to build). It counts every LinkedIn action after it ran and stops one that is over a limit. Standard limits per day: 15 connection requests (60 a week, Monday to Thursday only, 30 seconds apart), 15 messages (60 a week, a minute apart), 40 profile views, 20 company pages, 8 searches, 5 employee lists, 30 inbox or feed reads. They are deliberately cautious for student accounts; lower them further if you like (see below). Raising one needs "accept_risk". A CAPTCHA, security check or similar warning pauses LinkedIn for 24 hours and halves the limits for 14 days; a second one switches it to draft-only. An action whose result is unknown is never repeated for 24 hours.
-  - Keep business facts only about people: role, employer, source and date. Nothing private.
+  - Keep business facts about other people: role, employer, source and date. Their sensitive details are not stored unless you explicitly ask.
 - The helper is `mcp-server-linkedin` (stickerdaniel, Apache-2.0). Its login is a saved browser session on your computer. Treat that folder like a password.
 - Safer substitute for many tasks: download your own data from LinkedIn's settings page and let Alterbrain ingest the files. No risk to the account.
 - For your own data without scraping, see `linkedin-data-portability`.

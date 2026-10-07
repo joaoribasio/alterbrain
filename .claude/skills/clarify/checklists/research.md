@@ -24,7 +24,7 @@
 - **Scope.** Company, industry, country, time period. Narrow it: "Dutch grocery delivery, 2022–now" beats "e-commerce".
 - **Depth.** Quick scan (15 minutes) or deep dive (more sources, more usage). Default: quick scan.
 - **Citations.** `[Source: [[note]] | YYYY-MM-DD | confidence: high|medium|low]`; guesses labelled `[Inference]`.
-- **People.** Business facts only, each with a source and date. No private details.
+- **People.** Business facts by default, each with a source and date. Another person's sensitive details only if the user explicitly asks.
 - **Usage.** On Pro, a deep dive with several helpers in parallel uses more of the plan. Say so.
 
 ## Ready when

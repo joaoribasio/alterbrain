@@ -64,7 +64,14 @@ Always take dates from the session digest ("Today is …") or from `node system/
 - Tick (`- [x]`) tasks you complete. Never delete the user's tasks.
 
 ## Special notes
-- **People** (`60_people/`): business information only (role, organisation, how you met, topics). Every fact has a source and date. Respect `dnc: true` (do not contact). No health, family, religion, politics or home address.
+- **People** (`60_people/`): business facts by default (role, organisation, how you met, topics). Every fact has a source and date. Respect `dnc: true` (do not contact). Another person's sensitive details (health, family, beliefs, politics, home address) are stored only if the user explicitly asks, go under a `## Private` heading, and never go into outbound text.
 - **Decisions** (`70_journal/decisions/`): write the options and evidence; never fill in the Decision field yourself.
 - **Drafts** (`00_inbox/outbox/`): `status` is `draft` until the user approves. Never mark a draft `sent` unless it really was sent.
-- **Identity** (`80_me/`): change `USER.md`, `fact-sheet.md` or voice files only with the user's confirmation. `MEMORY.md` is append-only through `/learn`.
+- **Identity** (`80_me/`): change `USER.md`, `fact-sheet.md` or voice files only with the user's confirmation. `MEMORY.md` is append-only through `/learn`. These files may hold the user's sensitive facts (nationality, health, family, beliefs, finances); store them when the user gives them. Every fact-sheet row has a visibility, `public` or `private`; special-category facts default to `private`.
+
+## Privacy: store freely, guard what leaves
+The vault is the user's private brain (private GitHub repo, read by Claude in sessions). Policy: `system/docs/guides/privacy-and-data.md`.
+- **Store** the user's own facts and writing as given, including special-category data. Do not strip, soften or skip it in notes, the journal, ingested sources or the voice corpus.
+- **Never write** into any vault file, whoever asks: passwords, API keys, tokens, recovery codes, 2FA seeds, payment card numbers, bank account numbers or IBANs, government ID numbers (passport, BSN, SSN, national ID, driving licence number), or answers to security questions. Leave the value out, say so, and point to a password manager. Keys the tools need go in `.env.local`.
+- **Outbound** (email, post, message, application, form, shared export, presentation): only `public` facts. A `private` fact needs the user's explicit OK for that draft.
+- **Other people**: business facts by default. Their sensitive details only if the user explicitly asks; they stay private and never go outbound.

@@ -68,5 +68,5 @@ Nothing is built here. Building is `/build`, and only after a yes.
 - Never propose changes to protected files: `system/**`, `.claude/settings.json`, `system/core.md`, the catalogue, or framework skills. If a need can only be met that way, say so and suggest `/update-alterbrain` or telling the Alterbrain maintainers.
   - One exception: the quarterly model check (`.claude/skills/health-check/references/model-check.md`) writes "Update model routing" cards. They may change only the `model:` and `effort:` lines of skills and agents, and `/health-check` applies them after approval, not `/build`.
 - Proactive mode: at most one suggestion per session, never mid-task, never a rejected idea, never above `max_open_proposals`. See `references/proactive.md`.
-- Evidence in cards and signals is described in plain words without other people's names or private details.
+- Evidence in cards and signals is described in plain words without other people's names or personal details.
 - Don't oversell. If the gain is small, say so.

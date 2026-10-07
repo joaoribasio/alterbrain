@@ -56,4 +56,4 @@ Three lines at most, after their request is fully handled:
 ## Privacy
 
 - `state/proposals.json` is part of the user's private backup. Keep examples generic: what kind of job, not whose email or which grade.
-- Never record email content, people's names, health, money or anything from a restricted course.
+- Never record email content, other people's names or personal details, or anything from a restricted course. Describe the kind of job, not its content.

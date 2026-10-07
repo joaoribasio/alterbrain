@@ -93,4 +93,4 @@ Add `family: "strategy"` and `when_to_use: "one plain sentence"` to the frontmat
 
 ## Company page (30_wiki/companies)
 
-Frontmatter: `type: "company"`, `created`, `status`, `sources`. Body: `## What it does`, `## Facts` (each with a citation and a date, because facts go stale), `## Related`. Never write rumours or personal details about staff.
+Frontmatter: `type: "company"`, `created`, `status`, `sources`. Body: `## What it does`, `## Facts` (each with a citation and a date, because facts go stale), `## Related`. Never write rumours about staff. Business facts only about named people (role, employer, source, date); their personal details are not recorded unless the user explicitly asks.

@@ -40,7 +40,7 @@ Six optional upgrades:
 | 2 Pipeline view | Free | Low | A view over your own notes. |
 | 3 LinkedIn read-only | Free | **High** | LinkedIn's User Agreement (section 8.2) forbids using scripts, robots or crawlers to scrape or copy the service, and forbids bots. Your account could be restricted. [Source: https://www.linkedin.com/legal/user-agreement, fetched 2026-10-07] |
 | 4 JobSpy | Free | **High** | It scrapes job sites. Indeed's terms are widely reported to forbid scraping (**[Unverified]**: clause not read). JobSpy's own README warns about blocks (HTTP 429) on Indeed, LinkedIn and Glassdoor. You may be blocked. Alterbrain will not use its LinkedIn option. |
-| 5 Networking messages | Free | Medium | Contact details are personal data. Business facts only, with source and date. A badly judged message can harm a relationship. You send it, never Alterbrain. |
+| 5 Networking messages | Free | Medium | Contact details are personal data. Business facts by default, with source and date. A message is outbound, so it uses public facts only. A badly judged message can harm a relationship. You send it, never Alterbrain. |
 | 6 Fill the form | Free | Medium | The browser touches a real application form. It may fill a wrong field. It stops before Submit. You do the final click. |
 
 Never accepted, whatever you ask: solving CAPTCHAs, typing your passwords, creating accounts on job sites, or pressing Submit for you.

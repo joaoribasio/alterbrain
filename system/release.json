@@ -1,7 +1,7 @@
 {
   "name": "alterbrain",
-  "version": "0.1.0",
-  "tag": "v0.1.0",
+  "version": "0.1.1",
+  "tag": "v0.1.1",
   "repo": "joaoribasio/alterbrain",
   "min_claude_code": "2.1.283",
   "min_node": "20.0.0",

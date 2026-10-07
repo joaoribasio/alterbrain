@@ -14,6 +14,10 @@ Say at the start: "This one teaches me how you write: your openings, sign-offs, 
 
 Follow **`system/packs/twin/voice-import.md`** step by step. It is the single source of truth for sources, cleaning, exemplars, stats, the profile, the read-back and the blind test. This file only adds the onboarding wrapper. If that file is missing, stop, add a task `Voice setup is missing a framework file. Run /health-check` (`--tag onboard --priority medium`) and mark this module `later`.
 
+## Privacy in this module
+
+Say it once, in plain words, before reading anything: "I keep your own writing as you wrote it, even when it's about health, family or money. I leave out other people's words, because they would blur your voice, not for privacy. The one thing I strip from your own text is a password, card or bank number, ID number or security answer, which I never store. The finished voice files sync to your private GitHub backup, and Claude reads them in sessions." Details: `voice-import.md` §0 and §8, and `system/docs/guides/privacy-and-data.md`.
+
 ## Inference sources
 
 - `config/brain.json` `user.languages` (which languages to cover).

@@ -86,7 +86,7 @@ When the user says they applied, got an interview, an offer or a rejection, upda
 - **A register match is a hint.** The IND lists legal entities. Show the KvK number and say to confirm the employing company.
 - **Respect site rules.** Adzuna through its API only, with the "Jobs by Adzuna" credit shown. Do not copy full advert text into the vault; keep the link, title, company and your own notes. Never scrape LinkedIn, Indeed, Magnet.me, Nationale Vacaturebank or IamExpat. Give the user the link instead (`system/packs/mba/jobs-nl/sources.md`).
 - **Keys stay in `.env.local`.** Never print them or ask the user to paste them in chat.
-- **Personal data.** Keep only business facts about people named in adverts (name, role, employer, source, date).
+- **People named in adverts.** Keep business facts by default (name, role, employer, source, date). Their sensitive details are stored only if the user explicitly asks. The user's own private facts follow the outbound gate: a CV or letter uses public facts only unless the user says yes for that document.
 - **Plain words.** Write every message to the user in short, friendly UK English. Explain terms such as "recognised sponsor" in one line.
 
 ## Extend this
