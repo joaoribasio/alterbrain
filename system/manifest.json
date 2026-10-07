@@ -381,7 +381,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M1-identity.md",
       "class": "text",
-      "sha256": "63293b6d65cf4ff171359aee6886269d6f4619632ae067ce7dd45ee476774617"
+      "sha256": "7b477fa560f7701f33e14e7309f9180687f2e38dd8cbf2a9d72f490e1cae198c"
     },
     {
       "path": ".claude/skills/onboard/workflows/M2-you-and-facts.md",
@@ -911,7 +911,7 @@
     {
       "path": "system/lib/hookio.mjs",
       "class": "code",
-      "sha256": "216e8570b0b3778c22612d79efc7518b4c35b171d156123380409f005b071a92"
+      "sha256": "ee216233113eaa3d14a5bdab58aa29ea478418056cf2f05869d1806725413bdf"
     },
     {
       "path": "system/lib/manifest.mjs",
@@ -1531,7 +1531,7 @@
     {
       "path": "system/templates/identity/IDENTITY.md",
       "class": "text",
-      "sha256": "47f29249acef4f8dad9beb08cd6e0d99a93def560b4320e40739358a8594f03d"
+      "sha256": "a8ae86297d389566f5725cfa120bd2c12d2271ec0ef4a7f89a105ed760d92104"
     },
     {
       "path": "system/templates/identity/MEMORY.md",
@@ -2246,7 +2246,7 @@
     {
       "path": "tests/hooks/block_dangerous_git.test.mjs",
       "class": "code",
-      "sha256": "b911eced655f5db56fa8a0ced8c20be0a62e77ecf3f8e44a9fb7747cec96ebd5"
+      "sha256": "4a3203ead716398ed55ea4419e723afa12a65902ca70e1ab3ac90020128d2f02"
     },
     {
       "path": "tests/hooks/block_secrets.test.mjs",

@@ -15,9 +15,10 @@ Say at the start: "Step 2 of 5: let's give me a name and a personality. Two quic
 
 ## Questions (one at a time)
 
-1. **Name.** "What would you like to call me?" AskUserQuestion:
-   - Alterbrain (recommended)
-   - a short name that fits their tone (suggest one, for example "Atlas" or "Juno")
+1. **Name.** "What would you like to call me?" AskUserQuestion (short names only; "Alterbrain" is the framework's name, too long to use in chat):
+   - Twin (recommended): says what I am, your digital twin; one syllable, easy to type.
+   - Juno: warm and personal; does not say what I do.
+   - Atlas: suggests a map of your knowledge that carries the load; a common product name.
    - Something else (free text)
 2. **Vibe.** "How should I talk to you?" AskUserQuestion:
    - Calm and direct, brief by default (recommended)
@@ -34,7 +35,7 @@ Do not ask about language, form of address, emoji or pet peeves. Infer them:
 
 Show a 3-line summary, with what you inferred marked as such:
 
-> Name: Juno · Vibe: calm and direct, brief by default
+> Name: Twin · Vibe: calm and direct, brief by default
 > I'll answer in English and call you Alex (I picked these up from our chat; tell me if either is wrong).
 
 Ask "Save this?" (Save (recommended) / Change something). Then write:
@@ -42,7 +43,7 @@ Ask "Save this?" (Save (recommended) / Change something). Then write:
 - `vault/80_me/IDENTITY.md`: fill **Name**, **Vibe**, **I call you** (if known), **I answer in**. Keep the frontmatter and the attribution comment. Set `created` to today if empty.
 - `vault/80_me/SOUL.md`: replace only the text of the **Vibe** section with one or two sentences in the user's own words. Do **not** touch Core truths, **Boundaries**, Continuity or the attribution comment.
 
-Then reply once in the new voice, without emoji, to show it worked ("Hi Alex, Juno here. Next: a few facts about you.").
+Then reply once in the new voice, without emoji, to show it worked ("Hi Alex, Twin here. Next: a few facts about you.").
 
 ## Files written
 

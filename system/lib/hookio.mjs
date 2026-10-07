@@ -616,9 +616,27 @@ export function isGit(seg) {
   return Array.isArray(seg) && seg.length > 0 && programName(seg[0]) === 'git';
 }
 
-/** Split a git segment into { sub, args }: global options such as -C <dir> or -c k=v are skipped. */
+// A shell redirection token: > file, >> file, 2> file, 2>$null, *> $null, 2>&1 (split at & by the tokenizer), < file.
+// Quoted text with spaces is never a redirection, so tokens holding whitespace are left alone.
+const REDIRECT_TOKEN = /^(?:\d*|&|\*)?(?:>{1,2}|<)\|?(\S*)$/;
+
+/** Drop redirections and their targets: "git push 2>&1" pushes to origin, not to a remote called "2>". */
+export function stripRedirects(list) {
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    const m = REDIRECT_TOKEN.exec(list[i]);
+    if (m) {
+      if (!m[1]) i++; // "2>" then "$null": the target is the next token
+      continue;
+    }
+    out.push(list[i]);
+  }
+  return out;
+}
+
+/** Split a git segment into { sub, args }: global options such as -C <dir> or -c k=v are skipped, redirections dropped. */
 export function parseGit(seg) {
-  const args = seg.slice(1);
+  const args = stripRedirects(seg.slice(1));
   let i = 0;
   while (i < args.length && args[i].startsWith('-')) {
     i += GIT_VALUE_OPTIONS.has(args[i]) ? 2 : 1;

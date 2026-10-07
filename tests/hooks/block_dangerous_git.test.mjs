@@ -225,6 +225,15 @@ test('heredoc commit messages are text, but a heredoc fed to a shell still runs'
   allowed('$text = @\'\ngit push --force\n\'@\nSet-Content notes.md $text', 'powershell');
 });
 
+test('output redirections are not git arguments (git push 2>&1 pushes to origin)', () => {
+  for (const cmd of ['git push 2>&1', 'git push -q 2>&1', 'git push origin main 2>&1', 'git push > out.txt', 'git pull --rebase 2>/dev/null']) allowed(cmd);
+  for (const cmd of ['git push -q 2>&1', 'git push 2>$null', 'git push -q *> $null', 'git push origin main 2>&1 | Out-Null']) allowed(cmd, 'powershell');
+  // Redirections never hide a real problem.
+  denied('git push --force 2>&1');
+  denied('git push -f 2>$null', 'powershell');
+  denied('git checkout -b side 2>&1');
+});
+
 test('hook answers with a deny decision and the plain reason', (t) => {
   const p = makeProject();
   t.after(p.cleanup);
