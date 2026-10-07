@@ -35,6 +35,7 @@ Ask in your own words. These examples show the range. Type `/menu` for the live 
 
 ## Your notes and files
 - "Add this PDF to my sources." (Drag the file into the chat.)
+- "Here is the zip of my Strategy course files. Add it to my sources." (See [Bringing in your course material](bringing-in-course-material.md).)
 - "What do my notes say about network effects? Show the sources."
 - "Remind me to email my group on Friday."
 - "Run my weekly review."

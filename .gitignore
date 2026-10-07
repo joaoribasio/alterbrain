@@ -15,6 +15,11 @@ id_ed25519*
 credentials*.json
 client_secret*.json
 
+# Vault key copies (encryption of private notes, ADR 0019). vault-key.mjs saves them outside the project and refuses
+# to write them here; this is the safety net in case one is copied in by hand.
+*.abkey
+vault-key-*.key
+
 # Generated per computer (it holds absolute folder paths): rebuilt by system/scripts/mcp-gen.mjs
 .mcp.json
 

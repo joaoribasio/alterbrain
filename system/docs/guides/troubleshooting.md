@@ -13,7 +13,23 @@ Alterbrain saves and uploads your work after each session. If that fails, it add
 - **No internet:** nothing to do. It retries next time.
 - **Signed out of GitHub:** say "sign me in to GitHub again". It shows you a code to paste on the GitHub page.
 - **Changes on two computers at once:** say "fix the backup". Alterbrain combines them; it never throws work away.
+- **"Your private notes are locked" or "stopped the online backup" (only if you turned on encryption):** see [Encrypting your private notes](encrypting-private-notes.md).
+- **"Big files were left out" or "A very big file was saved as an ordinary file":** see "Big files" below.
+
 See [Git is automatic](git-is-automatic.md).
+
+## Big files
+
+Files of 50 MB or more are stored with Git LFS, a free add-on for very large files. Everything smaller is saved as a normal file. A task tagged `#ab/git` says what happened. Nothing is lost in any of these cases: the file is still on your computer.
+
+- **"Git LFS … is not installed":** run the command in the task (on Windows `winget install --id GitHub.GitLFS -e`, on a Mac `brew install git-lfs`). The files are saved at the next save.
+- **"A very large private file is kept only on this computer":** you turned on encryption, and a private file of 50 MB or more cannot be both scrambled and stored with Git LFS. Keep your own copy somewhere else, or move the file out of the private folders (it is then stored unscrambled).
+- **A file of 2 GB or more:** too big to back up safely. Make a smaller version, or keep your own copy elsewhere.
+- **A big file outside your `vault` folder:** move it into the vault.
+- **"A very big file was saved as an ordinary file" (the backup is paused):** usually Obsidian Git on a phone, or on a computer without Alterbrain's check. GitHub refuses ordinary files of about 100 MB. Ask Claude to run `/health-check`; it explains the fix and asks before it changes anything.
+- **Health check warns "Big-file check for Obsidian Git":** run `node system/scripts/git-auto.mjs hook`. If it says another tool already has a check before saves, Alterbrain leaves that tool alone: keep big files out of the vault, or switch Obsidian Git off, until you decide.
+- **Health check warns about the size of your backup:** your saved history is getting large. Deleting a file does not shrink the history, because old versions stay in it. Put new big files you do not need backed up in `vault/40_sources/raw/_local/`, which stays on your computer only.
+- **"A big upload is running in the background":** nothing to do. A big upload carries on after you close Claude and finishes by itself.
 
 ## Gmail doesn't work
 

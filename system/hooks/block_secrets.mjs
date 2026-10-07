@@ -8,7 +8,12 @@
 //   - Shell: denies `git commit` commands that carry such text (for example in -m), shell commands that WRITE such
 //     text into a file (echo sk-... >> note.md), `git add` / `git stage` of .env files (or `git add --force`, which
 //     skips the safety list in .gitignore), and commands that read or copy a .env file (cat .env.local, cp .env x).
+//   - Vault key files (ADR 0019): the backup copies that vault-key.mjs makes (*.abkey, vault-key-*.key) and git-crypt's own
+//     key must never be written into the project folder (it is backed up to GitHub), read into the chat or copied. Denied
+//     in file edits and in shell commands, including `git-crypt export-key` to a place inside the project or to the screen.
 // Fails open on malformed input. Never prints the secret it found.
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import {
   commandSegments, deny, ask, isGit, isMainModule, parseGit, programName, projectRels, readInput, runHook, toolInfo,
 } from '../lib/hookio.mjs';
@@ -25,6 +30,10 @@ const ENV_ADD_REASON =
 const ENV_READ_REASON =
   'Files named .env hold passwords and keys. Alterbrain does not read or copy them, so a key never reaches the chat or your notes. ' +
   'If a key needs changing, edit .env.local yourself.';
+const KEY_FILE_REASON =
+  'This is a vault key file. It unlocks your encrypted notes, so it must never sit inside your project folder (which is backed up to GitHub), ' +
+  'and Alterbrain does not read, copy or print it. To save a copy outside the project, type this yourself in a terminal: ' +
+  'node system/scripts/vault-key.mjs export --out <a folder outside this project>';
 const FORCE_ADD_REASON =
   'Forcing a file into your saved history skips the safety list that keeps secrets out. Alterbrain does not do that.';
 
@@ -154,6 +163,36 @@ export function isEnvFileArg(arg) {
   return /^\.env(\..+|\*.*)?$/i.test(base) || /\.env$/i.test(base);
 }
 
+/* ------------------------------ vault key files ------------------------------ */
+
+const KEY_NAME = /(?:^|[\\/])(?:vault-key-[^\\/]*\.key|[^\\/]*\.abkey)$/i;
+const GIT_CRYPT_DIR = /(?:^|[\\/])\.git[\\/]git-crypt(?:[\\/]|$)/i;
+
+/** A vault key copy by name (vault-key-*.key, *.abkey) or anything in git-crypt's own folder inside .git. */
+export function isKeyFileArg(arg) {
+  const a = String(arg).replace(/[\\/]+$/, '');
+  return KEY_NAME.test(a) || GIT_CRYPT_DIR.test(a);
+}
+
+/** "~/x" the way a shell would expand it (a quoted ~ reaches the hook unexpanded). */
+const expandTilde = (p) => (/^~(?:[\\/]|$)/.test(p) ? join(homedir(), p.slice(1)) : p);
+
+/** Is this path inside the project folder? A variable that is not expanded yet cannot be judged, so it counts as outside. */
+function insideProject(rawPath) {
+  const p = String(rawPath);
+  if (!p || /^[$%]/.test(p)) return false;
+  return projectRels(expandTilde(p)).length > 0;
+}
+
+/** git-crypt export-key writes the key where it is told: into the project, or ("-") to the screen, is not allowed. */
+function exportsKeyUnsafely(seg) {
+  if (programName(seg[0]) !== 'git-crypt') return false;
+  const args = seg.slice(1).filter((a) => !a.startsWith('-') || a === '-');
+  if (args[0] !== 'export-key') return false;
+  const dest = args[1];
+  return dest === undefined || dest === '-' || insideProject(dest);
+}
+
 /** Paths where secret-like text is allowed: the project's own .env.local and synthetic test fixtures. */
 function pathIsExempt(rawPath) {
   const rels = projectRels(String(rawPath));
@@ -187,6 +226,10 @@ export function checkCommandDecision(command, shell) {
   for (const seg of commandSegments(command, shell)) {
     if (!isGit(seg)) {
       const prog = programName(seg[0]);
+      if (exportsKeyUnsafely(seg)) return { decision: 'deny', reason: KEY_FILE_REASON };
+      if (ENV_READERS.has(prog) && seg.slice(1).some((a) => !a.startsWith('-') && isKeyFileArg(a.replace(/^[<@]+/, '')))) {
+        return { decision: 'deny', reason: KEY_FILE_REASON };
+      }
       if (ENV_READERS.has(prog)) {
         let args = seg.slice(1);
         if (COPY_PROGRAMS.has(prog)) {
@@ -208,9 +251,11 @@ export function checkCommandDecision(command, shell) {
         }
         if (!afterDashes && (a === '--force' || /^-[a-zA-Z]*f[a-zA-Z]*$/.test(a))) return { decision: 'deny', reason: FORCE_ADD_REASON };
         if ((afterDashes || !a.startsWith('-')) && isEnvFileArg(a)) return { decision: 'deny', reason: ENV_ADD_REASON };
+        if ((afterDashes || !a.startsWith('-')) && isKeyFileArg(a)) return { decision: 'deny', reason: KEY_FILE_REASON };
       }
     } else if (sub === 'update-index') {
       if (args.some((a) => !a.startsWith('-') && isEnvFileArg(a))) return { decision: 'deny', reason: ENV_ADD_REASON };
+      if (args.some((a) => !a.startsWith('-') && isKeyFileArg(a))) return { decision: 'deny', reason: KEY_FILE_REASON };
     } else if (sub === 'commit') {
       const hit = findSecret(command);
       if (hit) return decisionFor(hit);
@@ -218,6 +263,7 @@ export function checkCommandDecision(command, shell) {
   }
   // A command that writes a file (echo sk-... >> note.md, Set-Content, tee ...) carrying a secret.
   const targets = shellWriteTargets(command, shell);
+  if (targets.some((t) => isKeyFileArg(t.value) && insideProject(t.value))) return { decision: 'deny', reason: KEY_FILE_REASON };
   if (targets.length && !targets.every((t) => pathIsExempt(t.value))) {
     const hit = findSecret(command);
     if (hit) return decisionFor(hit);
@@ -237,6 +283,10 @@ async function main() {
   const info = toolInfo(input);
 
   if (info.isEdit) {
+    if (info.filePaths.some((p) => isKeyFileArg(p) && insideProject(p))) {
+      deny(KEY_FILE_REASON);
+      return;
+    }
     // Exempt when every target path is exempt (normally there is exactly one).
     if (info.filePaths.length && info.filePaths.every(pathIsExempt)) return;
     for (const text of info.contents) {

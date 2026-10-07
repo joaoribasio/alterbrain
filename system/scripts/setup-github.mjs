@@ -13,7 +13,7 @@ import { projectRoot, rootPath, isDevMode, isMainModule } from '../lib/paths.mjs
 import { readJson, writeJson, today } from '../lib/fsx.mjs';
 import { has, run } from '../lib/proc.mjs';
 import {
-  git, gitInstalled, lfsInstalled, isRepo, hasCommits, remoteUrl, parseRepoUrl, commitAll,
+  git, gitInstalled, lfsInstalled, isRepo, hasCommits, remoteUrl, parseRepoUrl, commitAll, ensurePreCommitHook, PRE_COMMIT_HOOK_TEXT,
 } from '../lib/git.mjs';
 import { findSecret } from '../hooks/block_secrets.mjs';
 
@@ -131,7 +131,7 @@ export function setupGithub(opts) {
   // Large-file support must exist before anything is changed.
   const lfsOk = lfsInstalled();
   if (!lfsOk) {
-    fail('lfs', 'Git LFS is not installed (it stores big files such as PDFs).', 'Install it with: winget install --id GitHub.GitLFS -e (Windows) or brew install git-lfs (Mac).');
+    fail('lfs', 'Git LFS is not installed (it stores files of 50 MB or more, such as long videos and big datasets; everyday notes and documents do not need it).', 'Install it with: winget install --id GitHub.GitLFS -e (Windows) or brew install git-lfs (Mac).');
   }
 
   // Change nothing until every check above has passed.
@@ -174,8 +174,18 @@ export function setupGithub(opts) {
 
   // 4. Large-file support.
   if (lfsOk) {
-    step('lfs', 'Switch on Git LFS (it keeps big PDFs and slides out of the way).');
+    step('lfs', 'Switch on Git LFS (it stores files of 50 MB or more, so a long video or a big dataset does not slow your backup down).');
     if (!dry) git(['lfs', 'install', '--local'], { cwd: root });
+  }
+
+  // 4b. Obsidian Git saves by itself and never goes through the automatic save, so Git runs the same big-file check for it.
+  const check = step('big-file-check', 'Switch on the check that sends big files to Git LFS before any Git tool, Obsidian Git included, saves them as ordinary files.');
+  if (!dry) {
+    const hook = ensurePreCommitHook(root);
+    if (hook.state !== 'active') {
+      check.status = 'skipped';
+      check.text = hook.message || PRE_COMMIT_HOOK_TEXT[hook.state] || PRE_COMMIT_HOOK_TEXT.error;
+    }
   }
 
   // 5. GitHub needs at least one saved version to upload.
@@ -185,8 +195,15 @@ export function setupGithub(opts) {
       // Everything is about to be uploaded for the first time: leave out any file that looks like it holds a password or key.
       const c = commitAll(root, 'auto: first version', {}, { scan: (text) => { const h = findSecret(text); return h && h.level === 'high' ? h : null; } });
       if (!c.ok) fail('first-commit', 'The first version could not be saved.', c.error || 'Check that Git has your name set.');
-      else if (c.held && c.held.length) {
-        step('held-back', `Left out of the first upload because they look like they hold a password or key: ${c.held.map((h) => h.file).join(', ')}. Take the secret out of them (keys belong in .env.local); they are saved with the next save.`, 'done');
+      else {
+        if (c.held && c.held.length) {
+          step('held-back', `Left out of the first upload because they look like they hold a password or key: ${c.held.map((h) => h.file).join(', ')}. Take the secret out of them (keys belong in .env.local); they are saved with the next save.`, 'done');
+        }
+        // Big files are stored through Git LFS; the ones that cannot be (see prepareBigFiles) stay on this computer.
+        const leftOut = (c.big && c.big.left_out) || [];
+        if (leftOut.length) {
+          step('held-back-big', `Left out of the first upload because they are too big to store safely: ${leftOut.map((l) => (l.reason === 'private' ? 'a very large private file' : l.path)).join(', ')}. They stay on this computer, and the next automatic save adds a task that explains what to do.`, 'done');
+        }
       }
     }
   }

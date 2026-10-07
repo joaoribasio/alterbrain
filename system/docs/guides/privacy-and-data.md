@@ -14,20 +14,22 @@ Alterbrain is **your own private brain**. It is meant to hold sensitive facts ab
 - **Claude (Anthropic) processes what is in your vault.** Whenever a note, your fact sheet or your voice samples are used in a session, their text goes to Claude to produce an answer. Check your Claude privacy settings at claude.ai → **Settings** → **Privacy**.
 - **Your vault is stored in your private GitHub repository.** That is the automatic backup. Only you can see it, unless you invite someone.
 - **You control both.** You choose what to tell Alterbrain, you can delete any note, and you own both accounts. If you would rather not have a fact in the system, don't give it, or tell me to remove it.
+- **You can encrypt your most private notes on GitHub (optional).** Facts about you, writing samples, people notes and your journal, and the PDFs and pictures you keep with them, are then stored scrambled in your repository. See [Encrypting your private notes](encrypting-private-notes.md).
 
 ## Where your data lives
 
 | Place | What's there | Who can see it |
 |---|---|---|
 | Your computer | The Alterbrain folder: notes, sources, settings | You |
-| Your private GitHub repository | A backup copy of the same folder (except the local-only bits below) | Only you, unless you invite someone |
+| Your private GitHub repository | A backup copy of the same folder (except the local-only bits below). Your most private notes are scrambled in it if you turned on [encryption](encrypting-private-notes.md) | Only you, unless you invite someone |
 | Claude (Anthropic) | What you and Alterbrain discuss, and the notes it reads in a session | Handled under your Claude account's privacy settings |
 
 ## What stays only on your computer
 
 - `state/local/`: logs, temporary files, and your answers about restricted course AI rules.
 - `.env.local`: keys for tools (you type them in yourself).
-- Very large files (over 100 MB): kept in `vault/40_sources/raw/_local/`, not uploaded.
+- Sources you import that are over 100 MB: kept in `vault/40_sources/raw/_local/`, not uploaded. You can put any file there on purpose to keep it off GitHub.
+- Files that cannot be backed up safely, each with a task: a file of 2 GB or more, a very large private file (if you encrypt your private notes), and a big file kept outside your vault folder. Files of 50 MB or more that can be uploaded are stored with Git LFS, an add-on for very large files. Everything smaller is saved as a normal file.
 - Obsidian's per-device files (window layout, cache).
 
 ## What Alterbrain stores
@@ -81,6 +83,10 @@ Alterbrain reads an email only when you ask (for example "draft a reply to …")
 ## People in your notes
 
 Notes about other people (`vault/60_people/`) hold **business facts** by default: role, organisation, how you met, each with a source and date. Their sensitive details (health, family, beliefs) are stored only if you explicitly ask. If you do, they stay private and never go into anything that leaves your computer. Mark anyone you don't want contacted with `dnc: true` ("do not contact").
+
+## Encrypting your most private notes (optional)
+
+Your repository is private, but anyone who got into your GitHub account could read it. If that worries you, Alterbrain can scramble the notes that matter most before they are uploaded: `fact-sheet.md`, `USER.md`, `MEMORY.md`, your voice files, people notes and the journal, and the PDFs, Word files and pictures you keep in those folders. On your computer they stay normal files and I still read them in every session. A small check that Git runs before every upload also stops Obsidian Git on a computer from sending a private note unscrambled; a phone is not covered. What it does not hide: file names and sizes, notes saved before you turned it on (they stay readable in old versions), audio and video, files outside those folders, and private files of 50 MB or more (those are kept off GitHub altogether). It needs a key file that you must keep safe: lose it and the laptop together and those notes cannot be recovered. Full explanation: [Encrypting your private notes](encrypting-private-notes.md).
 
 ## Removing things
 

@@ -34,7 +34,7 @@ Skills: `render`, `edit-voice`
 
 ## 6. Knowledge
 Skills: `ingest`, `ask`, `capture`, `weekly-review`, `learn`
-- "Add this PDF to my sources and tell me what's in it."
+- "Add this PDF, or the zip I downloaded from my course site, to my sources and tell me what's in it."
 - "What do my notes say about network effects? Show the sources."
 - "Remind me to email my study group on Friday."
 
@@ -60,10 +60,18 @@ Use the blueprint `title` and `kind` to place each "available to build" item und
 
 | Words in title | Group |
 |---|---|
-| flashcard, study, Anki, Canvas, Zotero, reading | Study or Knowledge |
+| flashcard, study, Anki, Zotero, reading | Study or Knowledge |
 | email, Gmail, Outlook, calendar | Email |
 | LinkedIn, job | Jobs |
 | Instagram, Telegram, WhatsApp | Build something new (channels) |
 | always-on, schedule, server, morning brief, cost | Settings & help (automations) |
 
 When unsure, put it under "Build something new".
+
+## Words that point to a group
+
+When the user's own words (a request, or a "how do I" question) include one of these, show the group on the right.
+
+| Words | Group |
+|---|---|
+| Canvas, Brightspace, Moodle, learning platform, course site, course files, download everything, zip | Knowledge: importing course material (`ingest`). There is no connection to the learning platform. The user downloads the files from the course site and gives me the folder or zip. For "how do I download them?" give the steps in `.claude/skills/onboard/workflows/M3-programme.md` ("Bring your course material"); the import itself is in `.claude/skills/ingest/references/course-material.md`. |

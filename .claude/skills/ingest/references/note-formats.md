@@ -15,10 +15,10 @@ created: "2026-10-07"
 status: "active"
 raw: "40_sources/raw/2026/2026-10-07 Porter 1979 How Competitive Forces Shape Strategy.pdf"
 sha256: "<full sha256 from the manifest>"
-origin: "<original path or web address>"
+origin: "<file name, web address, or zip name and path inside the zip>"
 ingested: "<ISO date-time from the manifest>"
 kind: "pdf"
-course: "[[Strategy]]"        # optional, only if known
+course: "[[20_areas/courses/strategy/course|Strategy]]"   # optional, only if known
 ---
 ```
 
@@ -48,6 +48,8 @@ Text status: done | pending
 ```
 
 Rules:
+- **`origin`** is copied from the manifest. For a file that came out of a zip it reads `<zip name>/<path inside the zip>`, for example `Strategy files.zip/Week 1/Porter 1979.pdf`.
+- **`course`** is optional. Every course note is called `course.md`, so link to it by its path and give the course title as the label, as shown. Take the course from the manifest entry's `course` field when it has one (it is the course title; find the folder in `vault/20_areas/courses/`). If no course note exists yet, leave the field out rather than link to a note that is not there.
 - **Key points** each carry a page, slide, section or timestamp. If there is none, write `(location not known)`.
 - **Quotes**: at most five, each under 40 words, exact. Leave the section out if there are none.
 - Anything you worked out yourself rather than read gets `[Inference]`.

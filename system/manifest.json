@@ -36,7 +36,7 @@
     {
       "path": ".claude/rules/vault.md",
       "class": "text",
-      "sha256": "ea070e8b948839c9f3d91297f1df5f7a38f4e0285d52f570792c2db42d7a57d2"
+      "sha256": "4650b9565ae528db367576bb1faa8b351c114943e78d5b86344763a0a25e426e"
     },
     {
       "path": ".claude/rules/writing.md",
@@ -46,7 +46,7 @@
     {
       "path": ".claude/settings.json",
       "class": "code",
-      "sha256": "67bc3c189783072af7d7093ad299007ed678f33efb0519cc402565b86c71c0d8"
+      "sha256": "1ac438137bd858dfc45ff9b75b627397f5a8e52ae189ec329227731a8fbf7bd7"
     },
     {
       "path": ".claude/skills/ask/SKILL.md",
@@ -161,7 +161,7 @@
     {
       "path": ".claude/skills/clarify/checklists/mcp.md",
       "class": "text",
-      "sha256": "85864a93c915595c8f3d184960210171ef1d0e5712c18508c646b143f3cb2f56"
+      "sha256": "4b0a3a03b055705cd657dab8d4a452c3b93c345c3dcb02a2c69d95d3514f4137"
     },
     {
       "path": ".claude/skills/clarify/checklists/research.md",
@@ -226,7 +226,7 @@
     {
       "path": ".claude/skills/health-check/references/fixes.md",
       "class": "text",
-      "sha256": "d1547c1ea7a0a36110f9f729b9b527bb54999359e15c6c1493fe5ef366baca66"
+      "sha256": "586ae7993c4e4682bd893240686e4891f05755875337e5bf12a3b140f626dcb3"
     },
     {
       "path": ".claude/skills/health-check/references/model-check.md",
@@ -236,12 +236,17 @@
     {
       "path": ".claude/skills/ingest/SKILL.md",
       "class": "text",
-      "sha256": "976176c6d9dcc4fc6e1f22047f59521a81641d1ea1a86abca9518d7bd76c374c"
+      "sha256": "665811cdb27813cb8273cdb6c842e5c51f1ffc53b5de00edf575016ed0a34bf0"
+    },
+    {
+      "path": ".claude/skills/ingest/references/course-material.md",
+      "class": "text",
+      "sha256": "544137c1d2228d91615e9a4c2d4459a6572421f6ddf5372143522d15f39792d4"
     },
     {
       "path": ".claude/skills/ingest/references/note-formats.md",
       "class": "text",
-      "sha256": "cab373591c06ff2168e2a1edb0972a3efd035d49957b6d2ade62675f63df4bc6"
+      "sha256": "47576c78a0cd670a91daea805b261d1b7ea0be8ba00f180db99126f980ddb4b4"
     },
     {
       "path": ".claude/skills/ingest/references/wiki-update.md",
@@ -291,7 +296,7 @@
     {
       "path": ".claude/skills/menu/references/groups.md",
       "class": "text",
-      "sha256": "aaf90502b53196267001d9af0a088e50e9522b74e8547d3eba1c4e0d7e8925d0"
+      "sha256": "d40954191caddbfa384f7f859cc2a9a8ddace74e8c2dcc5ed4712400ab192227"
     },
     {
       "path": ".claude/skills/obsidian-bases/LICENSE-obsidian-skills",
@@ -366,7 +371,7 @@
     {
       "path": ".claude/skills/onboard/SKILL.md",
       "class": "text",
-      "sha256": "78e2b137b52c31d9f65349c3ab8449434552d4358ed4f0b7655ecb9500e229e6"
+      "sha256": "e0884db7c684f24670c2a0febd36bb0d7650a04b3e9159dec5676681f6ae9916"
     },
     {
       "path": ".claude/skills/onboard/references/state.md",
@@ -376,7 +381,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M0-setup.md",
       "class": "text",
-      "sha256": "91f54638352c1550dbf8aa3934aa10ecbcf1b0063e810d625fc7f58a2add76ea"
+      "sha256": "4ccd2b7b30727437ef79c001f9ea5b12bc2ea1b6a5e9897a859bf13fd861d839"
     },
     {
       "path": ".claude/skills/onboard/workflows/M1-identity.md",
@@ -391,7 +396,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M3-programme.md",
       "class": "text",
-      "sha256": "9a4c33e9bb3f5fdf6e65678edc37daecdb746fbf1020896ad6c98e74e5efc728"
+      "sha256": "7726257723596a7e5f362aa4cca1a98f324313a06a71ef44c0ead641e82eb988"
     },
     {
       "path": ".claude/skills/onboard/workflows/M4-autonomy.md",
@@ -411,7 +416,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M7-integrations.md",
       "class": "text",
-      "sha256": "b581412021ca8fbf1798d9bbbe9804f534c8e7449fcbb695f43b30284a29bf09"
+      "sha256": "4f4f7c25779dfec77f7996ac7ac040e9ac30469863bfcae6506f2b2ad7a705e1"
     },
     {
       "path": ".claude/skills/onboard/workflows/M8-brand.md",
@@ -421,7 +426,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M9-import.md",
       "class": "text",
-      "sha256": "8dcf7128e8e366ff7d725e9ddac2a1c1ee5934b7889d158211c0be9d912e7f50"
+      "sha256": "aef590ff9263cf4426771ea82feacf7a5cd800ec67b6b4c6d16c2939089767e3"
     },
     {
       "path": ".claude/skills/propose/SKILL.md",
@@ -436,7 +441,7 @@
     {
       "path": ".claude/skills/reconfigure/SKILL.md",
       "class": "text",
-      "sha256": "5d5dfc5daec44bfeca2449ce559ddd03f3eb128c626554c2b590faed87d45496"
+      "sha256": "649e654871b66bb276d0d51d3d9fa9d96e0dc771dee27589c36fe18514e67591"
     },
     {
       "path": ".claude/skills/remove-skill/SKILL.md",
@@ -486,7 +491,7 @@
     {
       "path": ".claude/skills/study/SKILL.md",
       "class": "text",
-      "sha256": "7bac75c4ac2f37762df836062a6e2dd70867168e5dc9184315aa957891bf03d8"
+      "sha256": "4efa528786f1a854d4541026499708b9cb87cf45b02bb753de2e9f1516c2b24f"
     },
     {
       "path": ".claude/skills/study/workflows/learn.md",
@@ -526,7 +531,7 @@
     {
       "path": ".gitattributes",
       "class": "text",
-      "sha256": "2ab3f1783173b1e13135ef0993db28a07a159269b62ccfd9ae70ab801824f96b"
+      "sha256": "cb10f515e11340a471c8969d343e031e5820808c553653dd0c9ff7fb4e93c774"
     },
     {
       "path": ".github/workflows/ci.yml",
@@ -536,12 +541,12 @@
     {
       "path": ".gitignore",
       "class": "text",
-      "sha256": "d7cfda61b4ab9032dda772a0d68cd93fbc43923c8f194aef96e4c61ab582ac1d"
+      "sha256": "68fab271daf903fc92b33f4064e71fd8272535bb2b543c91464b0d6c5be5fac9"
     },
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "bf7532301efe6e2b85500eea17532c3d47439008dbbffbca1a4523dcefae8465"
+      "sha256": "65f43dffb1eb8804d33673de27d04cbc86bbf525719494e7157804573dcfd16f"
     },
     {
       "path": "CLAUDE.md",
@@ -556,7 +561,7 @@
     {
       "path": "README.md",
       "class": "text",
-      "sha256": "27731ee4b7f25965d607af6df309aed316c9db71939806952c8392471571a548"
+      "sha256": "a142d853c3b3c792baf012d152189e1cc2f4a3ca19a4eaeb1bd14d94762d5fd7"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -571,7 +576,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "aaf80820a10525ebe7b2eec4c43c17b5cd53c84f75e3ccbc26f3a3ee819ef953"
+      "sha256": "4760ed9ede97946f8c438ccaef6c3693fcfd6494c3446fe0cd80a672af9b80c1"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -591,7 +596,7 @@
     {
       "path": "docs/adr/0004-automatic-git-single-branch.md",
       "class": "text",
-      "sha256": "9dc46ccaa29bf1d20ea21844d60591c1764d9c520c6f5e3bc05322fb19f33435"
+      "sha256": "f08c4290a709a8f253a38f3e4301b72f2b93588a3f8e315c2b304514e100c60c"
     },
     {
       "path": "docs/adr/0005-copy-once-reference-updates.md",
@@ -606,7 +611,7 @@
     {
       "path": "docs/adr/0007-vault-layout-raw-first-lfs.md",
       "class": "text",
-      "sha256": "a659be51395f92fac55e17e6cfcf5a26997f47a05c43611f3ba52cae1e01dbef"
+      "sha256": "2f5a8fd7046376dada725ac99d0faeee19969bc7967ae6dd7c5f637e6cdd2629"
     },
     {
       "path": "docs/adr/0008-draft-only-autonomy.md",
@@ -664,6 +669,21 @@
       "sha256": "fbc6ce79f3a34af2dbae88f50fbd7687524ec3c7cc06dfd4ca7f8e324de70589"
     },
     {
+      "path": "docs/adr/0019-optional-encryption-at-rest.md",
+      "class": "text",
+      "sha256": "0f5bfe11728a1cdb34dcf2eeb59a3c5c8f4dfd1cfa934e1bb72edec5a7ce6c9f"
+    },
+    {
+      "path": "docs/adr/0020-git-lfs-for-large-files-only.md",
+      "class": "text",
+      "sha256": "14f396bcf232e0c4724b784d4fe26224f030fcd8b9cb2d4005a01176e31b2daa"
+    },
+    {
+      "path": "docs/adr/0021-course-material-by-download.md",
+      "class": "text",
+      "sha256": "d400b7995e8bf1c8a51f86be42ab4c799abef67021f6b047b1a980f61137829f"
+    },
+    {
       "path": "docs/critique-panel-prompts.md",
       "class": "text",
       "sha256": "fbd2be4174d7c1c3e3c92e937e294676387dbaf39833a8532bd9230cb77f43a5"
@@ -697,11 +717,6 @@
       "path": "system/blueprints/assignment-extras.md",
       "class": "text",
       "sha256": "e8d7e91e8e53a38ee3fd7589d73fa41b1d67b6ec193fc209b46030bb807e55f0"
-    },
-    {
-      "path": "system/blueprints/canvas-sync.md",
-      "class": "text",
-      "sha256": "3d83b479b9481072a4fd32c2188d5859f29475693af4b24a344090474feec011"
     },
     {
       "path": "system/blueprints/cost-report.md",
@@ -761,7 +776,7 @@
     {
       "path": "system/blueprints/study-extras.md",
       "class": "text",
-      "sha256": "495598bb0b03644367c021d9b51023f7c5db9adb9336817f50ee544d0f1aa57d"
+      "sha256": "2dcafa1834a331d48600e1bd53d6410e99c1b7121c51948946683bec4f22678c"
     },
     {
       "path": "system/blueprints/telegram-channel.md",
@@ -781,7 +796,7 @@
     {
       "path": "system/catalogue/MCP-CATALOGUE.md",
       "class": "text",
-      "sha256": "b470d51dddfcd0c7bb0874b41ccf74f3e0d0c7863418ebbf19dda560f0114f2f"
+      "sha256": "f15c15dd681cca5ec7b2c694ba46cfeeea53a4214a57a33af3161dc731e921e4"
     },
     {
       "path": "system/catalogue/limits.json",
@@ -791,7 +806,7 @@
     {
       "path": "system/catalogue/mcp.json",
       "class": "code",
-      "sha256": "e00a0fcf869972b84bb08222f92ffb7d94f065a0700984c255d2c961296a0191"
+      "sha256": "3fb226eb8fb5cc7964c819f96712f5e9a37f39f07fe27c9d2a3b13cf01dd6653"
     },
     {
       "path": "system/catalogue/obsidian-plugins.json",
@@ -814,14 +829,24 @@
       "sha256": "1d10c1f8806dd775cb7416ddb92b2b6310acb260d6566193bbe9702bd2f74443"
     },
     {
+      "path": "system/docs/guides/bringing-in-course-material.md",
+      "class": "text",
+      "sha256": "2d4c5b0fa7145e077d47d65354da1d1415f10448c7f48d9fb885b9fbeccfe3d9"
+    },
+    {
+      "path": "system/docs/guides/encrypting-private-notes.md",
+      "class": "text",
+      "sha256": "711973b5c2473df889379b94dbf79a3305eb7566d20fb11a6c83d96e6a505199"
+    },
+    {
       "path": "system/docs/guides/getting-started.md",
       "class": "text",
-      "sha256": "6db8db42dcdc53ccf6bfec1373ef22729d93c9145fbeb0f0b0473fa87c82f740"
+      "sha256": "a1db3187b2243118725c3d52156c82f019646330e5b777fe572f821e38d3ba31"
     },
     {
       "path": "system/docs/guides/git-is-automatic.md",
       "class": "text",
-      "sha256": "f2c6a8d1070e687a6872067c2626ca1bd0f7df4af5f64bc32ca6d1816688f616"
+      "sha256": "1a763772c155e45e6c3dc361f73f2cd65b6d38d86ec7d3185d98e8eb9367097d"
     },
     {
       "path": "system/docs/guides/models-and-costs.md",
@@ -831,7 +856,7 @@
     {
       "path": "system/docs/guides/privacy-and-data.md",
       "class": "text",
-      "sha256": "e8a03d972874c36d31b70597c668da0d4075aadd2a5a7b3b531d3c089211e062"
+      "sha256": "6c086e71059fe063ceb1c327d51806ddf0ff89b2e72f15d97356c078ba4f6fef"
     },
     {
       "path": "system/docs/guides/self-build.md",
@@ -846,7 +871,7 @@
     {
       "path": "system/docs/guides/troubleshooting.md",
       "class": "text",
-      "sha256": "fb952bbc07c033b1c05d05faed77f0cece916c9a1e62ab22bced9fa2d5a2123f"
+      "sha256": "ac7498c185e605b50334e56971319734ff93af69dac5ecc7aba1141582639dc5"
     },
     {
       "path": "system/docs/guides/updating.md",
@@ -856,12 +881,12 @@
     {
       "path": "system/docs/guides/using-obsidian.md",
       "class": "text",
-      "sha256": "464fc680e4f84c692d99a9683467563935693d15555e72d56819718db1a58fb5"
+      "sha256": "c33dca38d3d2e293d17763f0a6fa540bc40f31b28ea2f19d64a70a41e317e4d2"
     },
     {
       "path": "system/docs/guides/what-can-i-ask.md",
       "class": "text",
-      "sha256": "3fb8eb52f8c537693136653b38c58d5e2174875bdd8ec911abbeb9c34ed74170"
+      "sha256": "0c87413f60a9334fcb377f0be23d30fa60433a416482de77a3f80091541841fc"
     },
     {
       "path": "system/hooks/block_dangerous_git.mjs",
@@ -871,7 +896,7 @@
     {
       "path": "system/hooks/block_secrets.mjs",
       "class": "code",
-      "sha256": "51e393bd945ac80a4bcd3375a70112400bc9251a19e47e30d5f0380d4b34838b"
+      "sha256": "23fbaef167910e082be89ceaadd508cfd7c540b7f6ef0776d1df575fcacbc44c"
     },
     {
       "path": "system/hooks/outbound_guard.mjs",
@@ -891,12 +916,12 @@
     {
       "path": "system/hooks/session_end.mjs",
       "class": "code",
-      "sha256": "1d58fb8723329bd0448fd3bbccdbd643a9cd7cc97577290faaf277fdc54c37db"
+      "sha256": "28e8dcf4e4ed1ebfef0ec02d17a3ac9e7bb36df855a742b276f2b6b68715ae57"
     },
     {
       "path": "system/hooks/session_start.mjs",
       "class": "code",
-      "sha256": "711d053c802a2fcdc20a9b49b9bdcc4b6d3f2a60d4fb5e599cf0654976a23458"
+      "sha256": "5732df66a4f792cf11198e27afba131826b2d639b8e2026fe1d43232463481e5"
     },
     {
       "path": "system/lib/frontmatter.mjs",
@@ -911,7 +936,7 @@
     {
       "path": "system/lib/git.mjs",
       "class": "code",
-      "sha256": "f0489e3446a4883ee23f529fa81f71d0ee66914c8f8c507153851880793f4c12"
+      "sha256": "0e5c47a7d7749150664e9558a3fba875cdd257915a11d991b8fa6c289e3bd0c1"
     },
     {
       "path": "system/lib/hookio.mjs",
@@ -947,6 +972,11 @@
       "path": "system/lib/tasks.mjs",
       "class": "code",
       "sha256": "f4016747a73cd86bac16b694f39097fc765e7ff406b71760ba77590edeff4d02"
+    },
+    {
+      "path": "system/lib/vaultkey.mjs",
+      "class": "code",
+      "sha256": "0264c2681aa98a262f4acd1b691320edee512bdbb2e79cc9372292387dcd2c6f"
     },
     {
       "path": "system/packs/mba/README.md",
@@ -1401,12 +1431,17 @@
     {
       "path": "system/scripts/doctor.mjs",
       "class": "code",
-      "sha256": "2d1a59204d9ae9e441f5438dfe3aa388c3dd9b21669bf885a81aaaa568dcd17c"
+      "sha256": "4be3cb488d32d0ee32d70c2b45d68ee7197b91b75a2e89e5efcc109c887adb80"
     },
     {
       "path": "system/scripts/git-auto.mjs",
       "class": "code",
-      "sha256": "c13a62b3d2c297c4c83e32aa33a6234f72a655d376efc87411e280363214355c"
+      "sha256": "f7bf100c3735e0e32349266317a315e2eb7a2ca8e0e8697d8cce7950fc2f579d"
+    },
+    {
+      "path": "system/scripts/git-hooks/pre-push.mjs",
+      "class": "code",
+      "sha256": "43945e6de1c3acaf41a63299aebea5f7d8a65509900f583dc4f7fda8af38e96d"
     },
     {
       "path": "system/scripts/ingest-pending.mjs",
@@ -1416,17 +1451,17 @@
     {
       "path": "system/scripts/ingest.mjs",
       "class": "code",
-      "sha256": "706647c9c9951d1453f8835cb7b64b4bfff79f84796498b4a98a8ac2d32e8c4f"
+      "sha256": "fa6d0bb722766b2879825fb0695a92df85363399e546a3d989e771bcd403e1a3"
     },
     {
       "path": "system/scripts/install.ps1",
       "class": "code",
-      "sha256": "8213f31769fb22a3047c0c41a13aedd85eb98e38ec0b6115ad4607441cd20f4d"
+      "sha256": "ccea02ac128b5ca322807f70196e4c7fef921f77d0f8170522636a74fe19566b"
     },
     {
       "path": "system/scripts/install.sh",
       "class": "code",
-      "sha256": "1754615a95af729fedc17676420ea5d1861efaf682c14bbce428568898d986c1"
+      "sha256": "d6e9a5149477a1ff8a1e5924f713bd7c51370386213ff440df5122b962240a89"
     },
     {
       "path": "system/scripts/jobs/adzuna.mjs",
@@ -1476,7 +1511,7 @@
     {
       "path": "system/scripts/setup-github.mjs",
       "class": "code",
-      "sha256": "5cce8f7a695d7810c937caaed17915e7db8444e62580c358e2afa9adaadecc94"
+      "sha256": "f243ac37d475388143e84fc0e5509319172b0c27c5fa815e6f92d61dbedfeb37"
     },
     {
       "path": "system/scripts/slop-check.mjs",
@@ -1499,6 +1534,11 @@
       "sha256": "c23c97868e6147e881fbe0a2d9f1fb340521d74da8977f948522874ab25f5a04"
     },
     {
+      "path": "system/scripts/vault-key.mjs",
+      "class": "code",
+      "sha256": "7e8b28ca1840f090fd37a47aec5abd7be215363bfc2b54453cf9e6bbb076833a"
+    },
+    {
       "path": "system/scripts/voice-stats.mjs",
       "class": "code",
       "sha256": "329a6620e6bb38acfe74b4bbc7d738f6596a251fe1f77c53d78a8cded18d5ed6"
@@ -1511,7 +1551,7 @@
     {
       "path": "system/templates/claude-settings.json",
       "class": "text",
-      "sha256": "67bc3c189783072af7d7093ad299007ed678f33efb0519cc402565b86c71c0d8"
+      "sha256": "1ac438137bd858dfc45ff9b75b627397f5a8e52ae189ec329227731a8fbf7bd7"
     },
     {
       "path": "system/templates/config/autonomy.json",
@@ -1521,7 +1561,7 @@
     {
       "path": "system/templates/config/brain.json",
       "class": "text",
-      "sha256": "8938583df026b0326c04b9fd503c8143f62296822acf1ba7073b328402b8327a"
+      "sha256": "f3caf155c81066f05967339db23fea992af7bfb7862eb08685d8c4cc23bb2ae8"
     },
     {
       "path": "system/templates/config/limits.json",
@@ -2039,6 +2079,11 @@
       "sha256": "5761a55dd26e6f4a5a1cc2fbc476f60fea5309ba59057c5d0fc15d7739fbb11c"
     },
     {
+      "path": "tests/fixtures/scripts/fake-git-crypt.mjs",
+      "class": "code",
+      "sha256": "c5dc8a1688903942a888385ea0a628f1ec701b4ec4c553be5fd1a68d6be1bd0f"
+    },
+    {
       "path": "tests/fixtures/scripts/helpers.mjs",
       "class": "code",
       "sha256": "8875eef11cf21d264e0a9d8f49b18c9e587fda31a2518beb23a886cb4afa7b50"
@@ -2104,6 +2149,11 @@
       "sha256": "33d8f5a038108982fdff186ae742276dda672afa6b99441f0aec7622f96d1307"
     },
     {
+      "path": "tests/fixtures/scripts/lfs-helpers.mjs",
+      "class": "code",
+      "sha256": "c5f951956b164767d5d525f4bbc358f8bb938d2a8e6b27187a8577b9f0e61433"
+    },
+    {
       "path": "tests/fixtures/scripts/mcp-gen/catalogue.json",
       "class": "code",
       "sha256": "38f05f642afb964a122c5643aaffb8b3904e5bea2f66ce4c1d1e295922df1793"
@@ -2147,6 +2197,16 @@
       "path": "tests/fixtures/scripts/validate/good/system/catalogue/routing.json",
       "class": "code",
       "sha256": "5d78a786ab465e5720fc1e5b8f713269e995ff52744045d43496b7a37d8e46fb"
+    },
+    {
+      "path": "tests/fixtures/scripts/vaultkey-helpers.mjs",
+      "class": "code",
+      "sha256": "05d60ac692c02878d53990a01bdf5e76538cdebbf5ead657dec94737637edc38"
+    },
+    {
+      "path": "tests/fixtures/scripts/zip-helpers.mjs",
+      "class": "code",
+      "sha256": "24b07cd2cefc32ac1a22e87006ba19026a1cabea3980f68767c1a43d133d51d1"
     },
     {
       "path": "tests/fixtures/text/draft-formal.md",
@@ -2256,7 +2316,7 @@
     {
       "path": "tests/hooks/block_secrets.test.mjs",
       "class": "code",
-      "sha256": "f03dcc770d4c94c602b79662f20f64f8597fe36cd5fc1e8047734275b4ce614e"
+      "sha256": "2c499084aacadce8139935490ee8424fef17b9540f159b2ec3c5d9d33534c977"
     },
     {
       "path": "tests/hooks/hookio.test.mjs",
@@ -2289,14 +2349,34 @@
       "sha256": "40d8fdfef4716324a115634dceeeb0698d7bdbab42d1cc0a9481cd3b899f9023"
     },
     {
+      "path": "tests/hooks/session_end_background.test.mjs",
+      "class": "code",
+      "sha256": "b2208a68606274532dc41787a3cb7e517729423d8c6824c38ea221c5ff080c30"
+    },
+    {
+      "path": "tests/hooks/session_end_encryption.test.mjs",
+      "class": "code",
+      "sha256": "583863f62ee5d08177b4f5b2dea831ddcbbce2139c97f163e19cb895bf1f46e5"
+    },
+    {
+      "path": "tests/hooks/session_end_lfs.test.mjs",
+      "class": "code",
+      "sha256": "916fc03aafae6eda75e43b2afea1fd7226334874053c5f3ae653af69969b75d0"
+    },
+    {
       "path": "tests/hooks/session_start.test.mjs",
       "class": "code",
       "sha256": "a6ba49555ab95dc29271ebec466be9075dcad976aaa11d4c05a6f685a9c84b49"
     },
     {
+      "path": "tests/hooks/session_start_encryption.test.mjs",
+      "class": "code",
+      "sha256": "91a7d83fd9121bc9e132e5c5af9232ee05e4c31be1cffaa809ffaca9979d71a8"
+    },
+    {
       "path": "tests/hooks/settings_template.test.mjs",
       "class": "code",
-      "sha256": "e92e6aa4f8ec888a38c5e72988d5b6f0b52ca2b33c9431e529cc6dff80322c70"
+      "sha256": "a0e730abadc38e4a928e08f3d4b0ae2fe22aecb57503608260d63d3db451f2d9"
     },
     {
       "path": "tests/quarto/quarto.test.mjs",
@@ -2309,14 +2389,69 @@
       "sha256": "9d96541a4663a60ae499e1a43e4cdd4274bb63c62f4fe4ab8df2a0a0ab5e052e"
     },
     {
+      "path": "tests/scripts/doctor-bigfiles.test.mjs",
+      "class": "code",
+      "sha256": "256066f380344997485413fa641f0fbb4dd20a1abfe00a5dd0bc19b94826deb8"
+    },
+    {
+      "path": "tests/scripts/doctor-encryption.test.mjs",
+      "class": "code",
+      "sha256": "1d3e42b684c28fbb7df001303d59aafc3229cec68d4ccd2a5a0a1bcfce545cbb"
+    },
+    {
+      "path": "tests/scripts/doctor-lfs.test.mjs",
+      "class": "code",
+      "sha256": "c2a28de6e09de5b88e2969b8989bda86640d9eae56bf0c94878379b05f1aa4e5"
+    },
+    {
       "path": "tests/scripts/doctor.test.mjs",
       "class": "code",
       "sha256": "445d6273958174632e16545b70f8e4404cd463ee4694424ff34f3a484385b001"
     },
     {
+      "path": "tests/scripts/git-auto-background.test.mjs",
+      "class": "code",
+      "sha256": "268e1ff8a3ffc741b49863b53f36767da1bb17731517f7ad6ada150c9a2974d2"
+    },
+    {
+      "path": "tests/scripts/git-auto-lfs-flows.test.mjs",
+      "class": "code",
+      "sha256": "55c0a98118f39d39363f0865b9685cf30c19e8345ad7e622420493c4a18d6f82"
+    },
+    {
+      "path": "tests/scripts/git-auto-lfs.test.mjs",
+      "class": "code",
+      "sha256": "953aa8d36f144f029d5d863b529bd582a13ed17cf29a2041f169644bff600df0"
+    },
+    {
+      "path": "tests/scripts/git-auto-obsidian.test.mjs",
+      "class": "code",
+      "sha256": "a9906e03d9ab96b434d7dd939bff73e3e6841e1e3cc039d43e1b27e5cb22cd09"
+    },
+    {
+      "path": "tests/scripts/git-auto-oversized.test.mjs",
+      "class": "code",
+      "sha256": "1c9f86478bd356946b4a72bea0a34ab5d211d888ca2736cb96e95a323b3ffaff"
+    },
+    {
       "path": "tests/scripts/git-auto.test.mjs",
       "class": "code",
       "sha256": "b0417cabf007684935f77f9f705f4f39e1bd70d64b95d53fbd8a565c2fb2d31c"
+    },
+    {
+      "path": "tests/scripts/git-bigfiles-lib.test.mjs",
+      "class": "code",
+      "sha256": "ad4aca5eecac68de6a3f77a2b3f3d097d38e221f083ec605b4427bbb7aae847a"
+    },
+    {
+      "path": "tests/scripts/git-lfs-rules.test.mjs",
+      "class": "code",
+      "sha256": "540b8a0a4af1df86b6bc3f19cf1fa4dcd23d137cc616909fc761eb61fe7a6985"
+    },
+    {
+      "path": "tests/scripts/ingest-zip.test.mjs",
+      "class": "code",
+      "sha256": "0e54f6b9cc81cd5bdc86da0e373045d557a1707594816c0ac60de8fba4db9006"
     },
     {
       "path": "tests/scripts/ingest.test.mjs",
@@ -2347,6 +2482,11 @@
       "path": "tests/scripts/onboard-helpers.test.mjs",
       "class": "code",
       "sha256": "44bb93249f259babea01dc51c6ad2afb25ec046b5929999e78ee980592608d50"
+    },
+    {
+      "path": "tests/scripts/pre-push-hook.test.mjs",
+      "class": "code",
+      "sha256": "edf55e9a88349a5f91cbc682ed7a8a7b355ccf8036247014c21575b6221ef2b5"
     },
     {
       "path": "tests/scripts/proposals.test.mjs",
@@ -2392,6 +2532,21 @@
       "path": "tests/scripts/validate.test.mjs",
       "class": "code",
       "sha256": "fe0c8fde6398e15c12262f9caaba47eca823d960db460e7d86df1f122e615c41"
+    },
+    {
+      "path": "tests/scripts/vault-key.test.mjs",
+      "class": "code",
+      "sha256": "0e86c8a0aadd1e888aa0ca8c2f1e6ad11a46276b4df225e589fa6003b5b89d96"
+    },
+    {
+      "path": "tests/scripts/vaultkey-audit.test.mjs",
+      "class": "code",
+      "sha256": "8e55c58fb9a4aecbb75131911bbe54c8d9c287faf62225dfb4c7c3685d76c023"
+    },
+    {
+      "path": "tests/scripts/vaultkey-lib.test.mjs",
+      "class": "code",
+      "sha256": "7de884a1080ebeed6013b6dedbfa802e2d1f381c4732e4a7249b0398c178d3c2"
     },
     {
       "path": "tests/scripts/voice-stats.test.mjs",

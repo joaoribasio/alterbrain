@@ -187,32 +187,6 @@
       "verified": "2026-10-07"
     },
     {
-      "id": "canvas-mcp",
-      "name": "Canvas LMS (Vishal Sachdev)",
-      "url": "https://github.com/vishalsachdev/canvas-mcp",
-      "licence": "MIT",
-      "tier": "optional",
-      "what": "Reads your Canvas courses, deadlines, announcements and grades.",
-      "transport": "stdio",
-      "command": "uvx",
-      "args": [
-        "--from",
-        "canvas-mcp==1.13.0",
-        "canvas-mcp-server"
-      ],
-      "env": {
-        "CANVAS_API_TOKEN": "${CANVAS_API_TOKEN}",
-        "CANVAS_API_URL": "${CANVAS_API_URL}"
-      },
-      "auth": "api-key",
-      "cost": "free",
-      "tos_risk": "medium",
-      "writes": true,
-      "channel": "messaging",
-      "notes": "Needs a Canvas access token you create in your Canvas profile. Some schools switch tokens off or forbid automated access: check your school rules first. Some tools can post messages or submit work, and the outbound guard does not recognise this server as messaging (it decides from the server name), so the canvas-sync blueprint limits the sync skill to read-only tools. The command name canvas-mcp-server comes from the README install steps [Unverified until first run].",
-      "verified": "2026-10-07"
-    },
-    {
       "id": "zotero-mcp",
       "name": "Zotero (54yyyu)",
       "url": "https://github.com/54yyyu/zotero-mcp",

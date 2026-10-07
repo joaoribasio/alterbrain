@@ -21,7 +21,7 @@ Type `/onboard`. Alterbrain asks one question at a time:
 
 | Step | What it's for | Time |
 |---|---|---|
-| Setup | Checks your computer, makes your folders, sets up the online backup | 8 min |
+| Setup | Checks your computer, makes your folders, sets up the online backup (and offers to scramble your most private notes there) | 8 min |
 | Identity | Gives your assistant a name and a tone you like | 2 min |
 | You | A short profile and the facts drafts may use (a CV makes it quicker) | 5 min |
 | Courses | Your programme, courses, AI rules and deadlines | 6 min |
@@ -31,7 +31,7 @@ Have these ready if you can: your CV as a PDF and your course syllabi.
 
 You can stop any time. Say "later" and it saves your progress and adds a reminder to your task list. Say `/onboard` again to carry on.
 
-Later, when you have time, there are optional steps: your writing voice, your job search, Gmail and extra tools, the look of your documents, and importing your existing files.
+Later, when you have time, there are optional steps: your writing voice, your job search, Gmail and extra tools, the look of your documents, and importing your existing files. Your course material counts too: download it from your school's course website and Alterbrain reads it (see [Bringing in your course material](bringing-in-course-material.md)).
 
 ## 3. Try your first requests
 

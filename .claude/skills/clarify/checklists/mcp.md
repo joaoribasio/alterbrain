@@ -1,6 +1,6 @@
 # Clarify checklist: mcp (a new tool)
 
-**Use for:** turning on a tool from the catalogue (`system/catalogue/mcp.json`), such as Zotero, Canvas or a finance data source. Explain once: "A tool is a connection that gives me a new ability, like reading your Zotero library."
+**Use for:** turning on a tool from the catalogue (`system/catalogue/mcp.json`), such as Zotero or a finance data source. Explain once: "A tool is a connection that gives me a new ability, like reading your Zotero library."
 
 ## Infer first
 
@@ -30,7 +30,8 @@
   - `avoid`: do not install. Explain why and offer the alternative from the notes.
 - **Sign-in or key.** `auth: "api-key"`: the user types the key into `.env.local` themselves (never in chat). Where to get it comes from `notes`. `auth: "oauth"`: a browser sign-in will appear on first use.
 - **Writes and channel.** If `writes: true`, which channel, and confirm its autonomy level stays as is (default `draft`).
-- **Permission from school or employer** for school systems (Canvas, Brightspace): "Does your school allow this kind of access?" Must be yes.
+- **Permission from school or employer** when the tool reads a school or employer system (a university mailbox, a company drive): "Does your school (or employer) allow this kind of access?" Must be yes.
+- **Course files are not a tool.** A school's learning platform is not in the catalogue and is not offered as a connection. If the user asks for one, do not suggest `/propose`: tell them to download their course files and give Alterbrain the folder or zip (`/ingest`).
 
 ## Ready when
 

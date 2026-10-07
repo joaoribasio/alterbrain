@@ -17,7 +17,11 @@
       "Read(./**/.env.*.local)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
-      "Read(~/.gnupg/**)"
+      "Read(~/.gnupg/**)",
+      "Read(./**/*.abkey)",
+      "Read(./**/vault-key-*.key)",
+      "Read(./.git/git-crypt/**)",
+      "Read(~/Documents/Alterbrain/**)"
     ],
     "ask": [
       "mcp__claude_ai_Gmail__send_message",

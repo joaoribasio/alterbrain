@@ -93,6 +93,13 @@ test('keys files are denied for reading, including the other .env names and the 
   for (const rule of ['Read(./.env.production)', 'Read(./.env.development)', 'Read(./**/.env.*.local)', 'Read(~/.ssh/**)', 'Read(~/.aws/**)']) assert.ok(deny.includes(rule), rule);
 });
 
+test('vault key files (encryption of private notes, ADR 0019) are denied for reading', () => {
+  const { deny } = settings.permissions;
+  for (const rule of ['Read(./**/*.abkey)', 'Read(./**/vault-key-*.key)', 'Read(./.git/git-crypt/**)', 'Read(~/Documents/Alterbrain/**)']) assert.ok(deny.includes(rule), rule);
+  const live = JSON.parse(readFileSync(join(REPO, '.claude', 'settings.json'), 'utf8'));
+  assert.deepEqual(live.permissions.deny, deny, 'the live settings and the template agree');
+});
+
 test('every hook is in exec form and points at a file that exists', () => {
   const all = Object.keys(settings.hooks).flatMap(entries);
   assert.ok(all.length >= 8);

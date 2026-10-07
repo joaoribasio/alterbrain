@@ -3,25 +3,58 @@
 
 # Framework binaries (system/) are NOT in LFS: release downloads and the update tool read raw files.
 
-# User binaries inside the vault go through Git LFS
-vault/**/*.pdf  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.docx filter=lfs diff=lfs merge=lfs -text
-vault/**/*.doc  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.xlsx filter=lfs diff=lfs merge=lfs -text
-vault/**/*.xls  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.pptx filter=lfs diff=lfs merge=lfs -text
-vault/**/*.ppt  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.png  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.jpg  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
-vault/**/*.gif  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.webp filter=lfs diff=lfs merge=lfs -text
-vault/**/*.mp3  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.m4a  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.mp4  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.mov  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.zip  filter=lfs diff=lfs merge=lfs -text
-vault/**/*.mbox filter=lfs diff=lfs merge=lfs -text
+# Binary documents, images, audio, video and archives: git must never change their bytes (no line-ending conversion).
+# They are stored like any other file. Only files of 50 MB or more go through Git LFS (the limit is git.lfs_min_mb in
+# config/brain.json). For each of those, the automatic save adds an exact-path rule to vault/.gitattributes, which is
+# yours and is never replaced by an update. Do NOT add LFS rules to this file: an update replaces it (ADR 0020).
+# Obsidian Git and other Git tools are covered too: a small check that Git runs before every save (git-auto installs it as
+# .git/hooks/pre-commit) adds the same rule and stores the file through Git LFS.
+*.pdf  binary
+*.doc  binary
+*.docx binary
+*.xls  binary
+*.xlsx binary
+*.xlsm binary
+*.xlsb binary
+*.docm binary
+*.ppt  binary
+*.pptx binary
+*.pptm binary
+*.odt  binary
+*.ods  binary
+*.odp  binary
+*.pages   binary
+*.numbers binary
+*.epub binary
+*.pbix binary
+*.sav  binary
+*.dta  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.heic binary
+*.tif  binary
+*.tiff binary
+*.bmp  binary
+*.ico  binary
+*.mp3  binary
+*.m4a  binary
+*.wav  binary
+*.flac binary
+*.mp4  binary
+*.m4v  binary
+*.mov  binary
+*.avi  binary
+*.mkv  binary
+*.webm binary
+*.zip  binary
+*.7z   binary
+*.rar  binary
+*.gz   binary
+*.tgz  binary
+*.mbox binary
 
 # Obsidian plugin files must stay byte-identical to their pinned sha256 (no line-ending changes)
 vault/.obsidian/plugins/** -text
@@ -29,3 +62,5 @@ vault/.obsidian/plugins/** -text
 # Append-only logs: concatenate on the rare merge instead of conflicting
 vault/40_sources/manifest.jsonl merge=union
 vault/30_wiki/log.md            merge=union
+# The big-file rules are independent lines that two computers may each add: keep both sets
+vault/.gitattributes            merge=union

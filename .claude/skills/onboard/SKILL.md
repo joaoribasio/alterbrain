@@ -55,7 +55,7 @@ It is a ritual, not a gate. Never block another skill because onboarding is unfi
 
    | id | Module | File | Essential? |
    |---|---|---|---|
-   | M0 | Setup (checks, folders, GitHub backup, Obsidian) | `workflows/M0-setup.md` | yes |
+   | M0 | Setup (checks, folders, GitHub backup, optional encryption of private notes, Obsidian) | `workflows/M0-setup.md` | yes |
    | M1 | Identity and tone | `workflows/M1-identity.md` | yes |
    | M2 | You and your facts | `workflows/M2-you-and-facts.md` | yes |
    | M3 | Programme and courses | `workflows/M3-programme.md` | yes |

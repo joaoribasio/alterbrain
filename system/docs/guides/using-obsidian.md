@@ -14,7 +14,7 @@ Obsidian is a free app for reading and editing your notes. Alterbrain writes the
 3. Choose the **`vault`** folder inside your Alterbrain folder. (Not the Alterbrain folder itself.)
 4. If Obsidian asks about community plugins, choose **Turn on community plugins**. Alterbrain's setup already placed two:
    - **Tasks**: shows your task lists on the Home page;
-   - **Git**: an extra backup for edits you make in Obsidian.
+   - **Git**: an extra backup for edits you make in Obsidian. On a computer it works with Alterbrain's own safety checks (big files go to Git LFS, and private notes are never uploaded unscrambled if you turned on [encryption](encrypting-private-notes.md)).
 5. Open **Home** from the file list on the left.
 
 ## Find your way around
@@ -65,4 +65,4 @@ That's fine. If both change the same note at the same moment, the backup keeps b
 
 ## On your phone
 
-Optional. You can use the Obsidian mobile app with Obsidian Sync (paid) or another sync method. Alterbrain itself runs on your computer.
+Optional. You can use the Obsidian mobile app with Obsidian Sync (paid) or another sync method. Alterbrain itself runs on your computer. Do not use the Git plugin on a phone or tablet: Git there cannot run those safety checks, so a very big file or a private note could be saved without them.

@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   REPO, bash, decisionOf, edit, fakeSecrets, makeProject, multiEdit, notebookEdit, powershell, reasonOf, runHook, write,
@@ -214,4 +215,100 @@ test('the framework sources and tests do not trip the secret check themselves', 
     }
     assert.equal(findSecret(text), null, file);
   }
+});
+
+/* ------------------------------ vault key files (ADR 0019) ------------------------------ */
+
+const outsideDir = join(tmpdir(), 'ab-key-copies').replace(/\\/g, '/');
+
+test('a vault key file is never written into the project, whatever it contains', (t) => {
+  const p = makeProject();
+  t.after(p.cleanup);
+  // A password-protected key copy is JSON with base64 fields: no secret pattern would catch it, the name does.
+  const body = JSON.stringify({ format: 'alterbrain-vault-key', v: 1, ct: Buffer.alloc(40, 3).toString('base64') });
+  for (const file of [
+    p.path('vault-key-alterbrain.key'),
+    p.path('vault', '80_me', 'backup.abkey'),
+    p.path('keys', 'My Notes.ABKEY'),
+    'backup.abkey', // relative paths count from the project folder
+    p.path('.git', 'git-crypt', 'keys', 'default'),
+  ]) {
+    for (const input of [write(file, body), edit(file, body), multiEdit(file, [body])]) {
+      const r = ask(p, input);
+      assert.equal(decisionOf(r), 'deny', file);
+      assert.match(reasonOf(r), /vault key file/, file);
+      assert.match(reasonOf(r), /node system\/scripts\/vault-key\.mjs export --out/, 'it says what to do instead');
+      assert.ok(!r.stdout.includes(body), 'the reason does not repeat the content');
+    }
+  }
+  // Outside the project, and ordinary files that merely end in .key, are not touched by this rule.
+  assert.equal(ask(p, write(`${outsideDir}/vault-key-x.abkey`, body)).stdout, '');
+  assert.equal(ask(p, write(p.path('Slides', 'talk.key'), 'Keynote file')).stdout, '');
+  assert.equal(ask(p, write(p.path('vault', 'keys-notes.md'), 'about keys')).stdout, '');
+});
+
+test('shell commands cannot write, read, copy or add a vault key file', (t) => {
+  const p = makeProject();
+  t.after(p.cleanup);
+  const denied = [
+    bash('echo hello > backup.abkey'),
+    bash('echo hello >> vault/80_me/vault-key-x.key'),
+    bash(`cp ${outsideDir}/k.txt vault-key-a.key`),
+    bash('mv something.txt backup.abkey'),
+    powershell('Set-Content -Path vault-key-a.key -Value x'),
+    powershell('Copy-Item C:/temp/x.bin ./backup.abkey'),
+    bash(`cat ${outsideDir}/vault-key-a.abkey`),
+    bash('cat .git/git-crypt/keys/default'),
+    bash('base64 backup.abkey'),
+    bash('grep ct backup.abkey'),
+    powershell('Get-Content .git/git-crypt/keys/default'),
+    powershell('type vault-key-a.key'),
+    bash('git add vault-key-a.key'),
+    bash('git add -- backup.abkey'),
+    bash('git update-index --add backup.abkey'),
+  ];
+  for (const input of denied) {
+    const r = ask(p, input);
+    assert.equal(decisionOf(r), 'deny', JSON.stringify(input.tool_input));
+    assert.match(reasonOf(r), /vault key file/);
+  }
+});
+
+test('git-crypt export-key is allowed only to a place outside the project, never to the screen', (t) => {
+  const p = makeProject();
+  t.after(p.cleanup);
+  const inside = p.root.replace(/\\/g, '/');
+  for (const command of [
+    'git-crypt export-key keys/out.bin',
+    'git-crypt export-key ./out.bin',
+    'git-crypt export-key -',
+    'git-crypt export-key',
+    'git-crypt export-key - > somewhere.txt',
+    'cd .. && git-crypt export-key out/x', // relative paths count from the project folder, as for every hook
+    'sudo git-crypt export-key out.bin',
+    `git-crypt export-key ${inside}/vault/x.bin`,
+  ]) {
+    const r = ask(p, bash(command));
+    assert.equal(decisionOf(r), 'deny', command);
+  }
+  assert.equal(decisionOf(ask(p, powershell('git-crypt export-key ./out.bin'))), 'deny');
+  assert.equal(decisionOf(ask(p, powershell('& git-crypt export-key -'))), 'deny');
+  for (const command of [
+    `git-crypt export-key ${outsideDir}/vault-key-x.key`,
+    'git-crypt export-key ~/Documents/Alterbrain/k.key',
+    'git-crypt export-key ../outside/k.key',
+    'git-crypt status',
+    'git-crypt --version',
+    'node system/scripts/vault-key.mjs export --out ~/Documents/Alterbrain/vault-key-x.abkey',
+    'node system/scripts/vault-key.mjs check --key ~/Documents/Alterbrain/vault-key-x.abkey',
+    'node system/scripts/vault-key.mjs status',
+  ]) {
+    assert.equal(ask(p, bash(command)).stdout, '', command);
+  }
+});
+
+test('the project ignores vault key copies, so a stray one cannot be saved by mistake', () => {
+  const ignore = readFileSync(join(REPO, '.gitignore'), 'utf8').split(/\r?\n/);
+  assert.ok(ignore.includes('*.abkey'));
+  assert.ok(ignore.includes('vault-key-*.key'));
 });

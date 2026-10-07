@@ -36,7 +36,8 @@ Please set up Alterbrain in this folder. Go step by step, explain each step in p
 English, and ask me before you install anything.
 
 1. Check which of these tools are already installed, and tell me what is missing:
-   Git (with Git LFS), GitHub CLI (gh), Node.js LTS, Obsidian and Quarto.
+   Git (with Git LFS, which is only used for files of 50 MB or more), GitHub CLI (gh),
+   Node.js LTS, Obsidian and Quarto.
 2. Install only the missing ones, one at a time, and ask me before each install.
    On Windows use winget, one package id at a time. On macOS use Homebrew.
    If something fails, explain what happened and what I can do. Do not retry in a loop.
@@ -85,13 +86,13 @@ The minimum path takes about 25 minutes. The rest can wait (they will appear in 
 | M0 | Health check, GitHub sign-in, your private repository, automatic backup |
 | M1 | Identity and tone: a name for your assistant and how it talks to you |
 | M2 | You and your facts: CV or LinkedIn export (optional) fills in the basics |
-| M3 | Your programme, your courses (with each course's AI rules) and your goals |
+| M3 | Your programme, your courses (with each course's AI rules), your goals, and how to bring in your course files |
 | M4 | Autonomy and self-build: what Claude may do alone (default: nothing is sent) |
 | M5 | Your voice: you share writing samples, Claude writes a profile, you read it back |
 | M6 | Career in the Netherlands: target roles, languages, whether you need sponsorship |
 | M7 | Integrations: for example Gmail, and extra tools from the catalogue |
 | M8 | Brand for documents: colours and fonts for CVs, reports and decks |
-| M9 | Import existing material: courses, notes, case files (originals are kept, duplicates skipped) |
+| M9 | Import existing material: courses, notes, case files, folders and zips (originals are kept, duplicates skipped) |
 
 ---
 
@@ -108,6 +109,7 @@ Example prompts:
 
 - "What do I already know about Porter's Five Forces? Cite your sources."
 - "Add this PDF to my brain." (then drag the file in)
+- "Here is the zip of my Strategy course files. Add it to my brain." (the zip you get from your school's course website)
 - "Remind me to email Prof. Smith on Friday."
 - "Start an assignment for my Strategy course."
 - "Draft a reply to the latest email from the programme office."
@@ -124,7 +126,7 @@ Example prompts:
 | `/reconfigure` | Change a setting or redo a setup step |
 | `/health-check` | Check that everything is healthy |
 | `/capture` | Save a quick note or a reminder |
-| `/ingest` | Add files to your brain (originals are kept) |
+| `/ingest` | Add files, folders or a zip of course files to your brain (originals are kept) |
 | `/ask` | Ask a question, answered from your own notes with sources |
 | `/framework` | Apply a business framework (for example SWOT, Porter) to a case |
 | `/render` | Make a PDF, CV, cover letter or deck with Quarto |
@@ -147,7 +149,7 @@ Each add-on has **one working case** that you can use today. Each also has a **b
 | **Assignments** (`/assignment`) | Set up an assignment, write a brief, draft it, get blind critiques from several "lenses" (devil's advocate, pre-mortem, board, specialists, grader), then ship a PDF within the page limit | Page budget, fact-check, Excel model, class prep, team review |
 | **Email replies** (`/reply`) | Reads a thread safely, drafts a reply in your voice, saves it as a draft and adds a task. Nothing is sent. | Inbox triage, meeting briefs, calendar, learning from your edits, Outlook |
 | **Jobs in the Netherlands** (`/jobs`) | `scan` finds roles and flags sponsor register, Dutch-language and visa points. `apply` prepares a tailored CV and cover letter in your outbox. | Weekly scan, pipeline view, LinkedIn (read-only), networking messages |
-| **Study** (`/study`) | Explains a topic from your own sources and makes cards. Due reviews appear in your task list. `/study quiz` runs them. | Course set-up from a syllabus, lecture transcripts, Anki, Canvas |
+| **Study** (`/study`) | Explains a topic from your own sources and makes cards. Due reviews appear in your task list. `/study quiz` runs them. | Course set-up from a syllabus, lecture transcripts, Anki |
 
 More blueprints (always-on options, Instagram, Zotero, morning brief, cost report) are listed in `/menu` as "available to build". Just say "build the morning brief" and Claude will start with some questions.
 
@@ -168,11 +170,12 @@ When you ask for something twice, Alterbrain may **propose** a new skill. You se
 ## Privacy
 
 - **Alterbrain is your own private brain.** It is meant to hold sensitive facts about you (health, family, nationality, beliefs, finances) if you want it to, so it can write accurately for you. It stores them freely. What it guards is what **leaves**.
-- Your data stays on your computer and in **your private GitHub repository**. Nobody else can see it unless you invite them.
+- Your data stays on your computer and in **your private GitHub repository**. Nobody else can see it unless you invite them. Documents are saved like any other file; only files of 50 MB or more use Git LFS, an add-on for big files.
 - Everything in your vault is **processed by Claude (Anthropic)** when it is used in a session, as with any use of Claude. See Anthropic's privacy settings for your plan. That is the trade-off: you control both accounts and what you tell Alterbrain.
 - **Never stored, anywhere:** passwords, API keys and tokens, recovery codes, payment card numbers, bank account numbers and IBANs, government ID numbers (passport, BSN, national ID) and answers to security questions. If you share one, Alterbrain does not repeat or save it; keep these in a password manager. Keys go in `.env.local`, which setup creates for you and which is never saved to git.
 - **Public and private facts.** Each fact on your fact sheet is marked public or private. Sensitive facts default to private. Anything that leaves your computer (an email, post, application, CV or shared file) uses public facts only, unless you say yes for that one draft.
 - **Other people.** Notes about other people hold business facts by default. Their sensitive details are stored only if you ask, stay private and never go into outbound text.
+- **Optional encryption.** During setup (or later in `/reconfigure`) you can have your most private notes scrambled before they reach GitHub, so a leak of your GitHub account does not expose them. That covers the PDFs and pictures you keep in those folders too. On your computer they stay normal files. It needs a key file that you must keep safe. See [Encrypting your private notes](system/docs/guides/encrypting-private-notes.md).
 - Tools you choose to connect (for example Gmail) share data with those services, as you approve.
 - The public Alterbrain repository contains no personal data.
 

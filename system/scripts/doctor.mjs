@@ -12,7 +12,11 @@ import { spawnSync } from 'node:child_process';
 import { projectRoot, rootPath, vaultPath, isDevMode, isMainModule } from '../lib/paths.mjs';
 import { readJson } from '../lib/fsx.mjs';
 import { has, run, cmpVersion, IS_WINDOWS } from '../lib/proc.mjs';
-import { git, gitInstalled, lfsInstalled, isRepo, remoteUrl, parseRepoUrl } from '../lib/git.mjs';
+import {
+  PRE_COMMIT_HOOK_TEXT, git, gitInstalled, hasCommits, isRepo, lfsInstalled, lfsMinBytes, parseRepoUrl, preCommitHookStatus, remoteUrl,
+  unpushedOversizedBlobs,
+} from '../lib/git.mjs';
+import { getStatus } from '../lib/vaultkey.mjs';
 import { normaliseManifest, fileMatchesSha } from './update.mjs';
 
 const IS_MAC = process.platform === 'darwin';
@@ -24,12 +28,13 @@ const installHint = (win, mac) => (IS_WINDOWS ? `Run: ${win}` : IS_MAC ? `Run: $
 /** Collect results. `machine` checks are skipped in --ci mode. */
 function makeReporter(ci) {
   const checks = [];
-  const add = (id, label, status, detail, fix = null, { machine = false } = {}) => {
+  // `tip` is advice on a check that is still ok (printed as "Tip:"). It is not a problem and never counts as one.
+  const add = (id, label, status, detail, fix = null, { machine = false, tip = null } = {}) => {
     if (machine && ci) {
       checks.push({ id, label, status: 'skip', detail: 'Skipped in CI (this checks one computer, not the repository).', fix: null });
       return;
     }
-    checks.push({ id, label, status, detail, fix: status === 'ok' || status === 'skip' ? null : fix });
+    checks.push({ id, label, status, detail, fix: status === 'ok' || status === 'skip' ? null : fix, ...(tip && status === 'ok' ? { tip } : {}) });
   };
   return { checks, add };
 }
@@ -52,14 +57,124 @@ function checkGit(r, root, dev) {
   else r.add('git-repo', 'Version control', dev ? 'ok' : 'warn', 'This folder is not under Git, so nothing is saved automatically.', 'Run: git init -b main   (then node system/scripts/setup-github.mjs)', { machine: true });
 }
 
-function checkLfs(r) {
+/** "50 MB" for the size limit of big files (a whole number of megabytes when it is one). */
+export function describeLimit(bytes) {
+  const mb = bytes / (1024 * 1024);
+  return `${Number.isInteger(mb) ? mb : mb.toFixed(1)} MB`;
+}
+
+/**
+ * Git LFS stores only files at or above the size limit (50 MB by default, ADR 0020). Ordinary documents, slides and
+ * PDFs are saved as normal files, so a missing Git LFS matters only for files that big.
+ */
+function checkLfs(r, root) {
   if (!gitInstalled()) {
     r.add('git-lfs', 'Git LFS (big files)', 'skip', 'Needs Git first.', null, { machine: true });
     return;
   }
   const ok = lfsInstalled();
-  r.add('git-lfs', 'Git LFS (big files)', ok ? 'ok' : 'warn', ok ? 'Installed.' : 'Not installed, so PDFs and slides cannot be stored properly.',
+  const limit = describeLimit(lfsMinBytes(root));
+  r.add('git-lfs', 'Git LFS (big files)', ok ? 'ok' : 'warn',
+    ok ? `Installed. It stores files of ${limit} or more; everything else is saved as a normal file.`
+      : `Not installed. Only files of ${limit} or more need it, so your notes and documents are saved normally, but bigger files are left out of your backup until it is installed.`,
     installHint('winget install --id GitHub.GitLFS -e', 'brew install git-lfs'), { machine: true });
+}
+
+/**
+ * Obsidian Git saves and uploads on its own and never goes through git-auto, so a small check that Git runs before every
+ * save (a pre-commit hook) sends big files to Git LFS for it (ADR 0020). git-auto installs the check on its first run.
+ */
+function checkBigFileHook(r, root, dev) {
+  if (!gitInstalled() || !isRepo(root)) {
+    r.add('big-file-hook', 'Big-file check for Obsidian Git', 'skip', 'Needs a Git folder.', null, { machine: true });
+    return;
+  }
+  const hook = preCommitHookStatus(root);
+  const limit = describeLimit(lfsMinBytes(root));
+  if (hook.state === 'active' && !hook.outdated) {
+    r.add('big-file-hook', 'Big-file check for Obsidian Git', 'ok', `In place, so Obsidian Git and other Git tools send files of ${limit} or more to Git LFS before saving them.`, null, { machine: true });
+    return;
+  }
+  const fix = hook.state === 'foreign' || hook.state === 'hooks-path'
+    ? 'Keep Obsidian Git switched off for big files, or ask Claude to run /health-check for the options.'
+    : 'Run: node system/scripts/git-auto.mjs hook';
+  const detail = hook.state === 'active' ? 'Installed, but out of date.' : hook.state === 'missing' ? PRE_COMMIT_HOOK_TEXT.missing : hook.message || PRE_COMMIT_HOOK_TEXT[hook.state] || PRE_COMMIT_HOOK_TEXT.error;
+  r.add('big-file-hook', 'Big-file check for Obsidian Git', dev && hook.state === 'missing' ? 'ok' : 'warn', detail, fix, { machine: true });
+}
+
+/** Saved ordinary files that GitHub would refuse (about 100 MB): the online backup cannot go through until they are dealt with. */
+function checkOversizedFiles(r, root) {
+  if (!gitInstalled() || !isRepo(root) || !hasCommits(root) || !remoteUrl(root)) {
+    r.add('big-blobs', 'Files too big to upload', 'skip', 'Needs a saved version and an online copy.', null, { machine: true });
+    return;
+  }
+  const found = unpushedOversizedBlobs(root);
+  if (found.error) {
+    r.add('big-blobs', 'Files too big to upload', 'skip', 'Could not be checked.', null, { machine: true });
+    return;
+  }
+  if (!found.files.length) {
+    r.add('big-blobs', 'Files too big to upload', 'ok', 'No saved file is too big for the online backup.', null, { machine: true });
+    return;
+  }
+  const n = found.files.length;
+  r.add('big-blobs', 'Files too big to upload', 'fail',
+    `${n === 1 ? 'One saved file is' : `${n} saved files are`} stored as an ordinary file and too big for GitHub (about 100 MB), so the online backup cannot go through. Your work is safe on this computer.`,
+    'Open Claude and type /health-check. It can fix this without touching anything that is already online, with your OK.', { machine: true });
+}
+
+// The saved history, as git reports it: loose objects plus packs, in KiB. GitHub recommends keeping a repository small;
+// the figures it names are [Unverified] (from memory), so the two levels below are Alterbrain's own: a gentle note
+// from 1 GB and a warning from 4 GB. Git LFS files are stored elsewhere and are not counted here.
+export const REPO_NOTE_KIB = 1024 * 1024;
+export const REPO_WARN_KIB = 4 * 1024 * 1024;
+
+/** Read `git count-objects -v`: { loose_kib, pack_kib }, or null when the text has no sizes. */
+export function parseCountObjects(text) {
+  const num = (key) => {
+    const m = new RegExp(`^${key}:\\s*(\\d+)\\s*$`, 'm').exec(String(text || ''));
+    return m ? Number(m[1]) : null;
+  };
+  const loose = num('size');
+  const pack = num('size-pack');
+  return loose === null && pack === null ? null : { loose_kib: loose || 0, pack_kib: pack || 0 };
+}
+
+/** "420 MB" or "1.3 GB" for a size in KiB. */
+export function describeSize(kib) {
+  return kib >= 1024 * 1024 ? `${(kib / (1024 * 1024)).toFixed(1)} GB` : `${Math.max(1, Math.round(kib / 1024))} MB`;
+}
+
+/** The verdict for a repository of this size: { level: 'ok'|'note'|'warn', status, detail, tip, fix }. */
+export function repoSizeVerdict(kib) {
+  const size = describeSize(kib);
+  const advice = 'Put new big files you do not need to back up in vault/40_sources/raw/_local/ (it stays on this computer only).';
+  if (kib >= REPO_WARN_KIB) {
+    return {
+      level: 'warn', status: 'warn', tip: null,
+      detail: `The saved history of your notes is ${size}, which is large for an online backup and will get slower to save and join.`,
+      fix: `${advice} Files already saved stay in the history, so ask Claude to run /health-check for the options.`,
+    };
+  }
+  if (kib >= REPO_NOTE_KIB) {
+    return { level: 'note', status: 'ok', fix: null, detail: `The saved history of your notes is ${size}. That is fine, but it is getting big.`, tip: `GitHub recommends keeping repositories small. ${advice}` };
+  }
+  return { level: 'ok', status: 'ok', fix: null, tip: null, detail: `The saved history of your notes is ${size}.` };
+}
+
+function checkRepoSize(r, root) {
+  if (!gitInstalled() || !isRepo(root)) {
+    r.add('repo-size', 'Backup size', 'skip', 'Needs a Git folder.', null, { machine: true });
+    return;
+  }
+  const res = git(['count-objects', '-v'], { cwd: root });
+  const sizes = res.ok ? parseCountObjects(res.stdout) : null;
+  if (!sizes) {
+    r.add('repo-size', 'Backup size', 'skip', 'Could not be read.', null, { machine: true });
+    return;
+  }
+  const v = repoSizeVerdict(sizes.loose_kib + sizes.pack_kib);
+  r.add('repo-size', 'Backup size', v.status, v.detail, v.fix, { machine: true, tip: v.tip });
 }
 
 function checkGh(r) {
@@ -89,6 +204,39 @@ function checkOrigin(r, root, release, dev) {
     return;
   }
   r.add('origin', 'Online backup', 'ok', `Backed up to ${parsed ? `${parsed.owner}/${parsed.name}` : 'a remote'}.`, null, { machine: true });
+}
+
+/**
+ * Optional encryption of private notes (ADR 0019). Quiet when it is off. When it is on: is the tool here, is this
+ * computer unlocked, is anything stored as plain text, has the key backup been tested.
+ */
+function checkEncryption(r, root) {
+  if (!isRepo(root) || !gitInstalled()) return;
+  const st = getStatus(root);
+  if (!st.enabled) return;
+  const fixOf = (id) => (st.problems.find((p) => p.id === id) || {}).fix || null;
+  r.add('encryption-tool', 'Encryption tool (git-crypt)', st.git_crypt_installed ? 'ok' : 'warn',
+    st.git_crypt_installed ? `Installed${st.git_crypt_version ? ` (version ${st.git_crypt_version})` : ''}.` : 'Not installed, so changes to your private notes cannot be saved.',
+    fixOf('tool-missing'), { machine: true });
+  r.add('encryption-unlocked', 'Private notes unlocked', st.unlocked ? 'ok' : 'warn',
+    st.unlocked ? 'This computer holds the key.' : 'This computer is locked, so private notes are unreadable here and changes to them are not saved.',
+    fixOf('locked'), { machine: true });
+  const plain = st.plain.length;
+  const gaps = st.attribute_files_missing.length + st.not_covered.length;
+  const checkFailed = st.problems.some((p) => p.id === 'check-failed');
+  r.add('encryption-files', 'Private notes encrypted online', plain || gaps || checkFailed ? 'fail' : 'ok',
+    checkFailed ? 'The saved notes could not be checked.' : plain ? `${plain} saved private note(s) are stored without encryption.` : gaps ? 'The settings that choose which notes are encrypted are incomplete.' : `${st.encrypted} of ${st.tracked_in_scope} saved private notes are encrypted.`,
+    fixOf('plain-files') || fixOf('attributes-missing') || fixOf('not-covered') || fixOf('check-failed'), { machine: true });
+  // The upload check inside git (ADR 0019): it stops Obsidian Git and other Git tools from uploading a plain private note.
+  if (st.pre_push_hook) {
+    const hookProblem = st.problems.find((p) => String(p.id).startsWith('push-hook-'));
+    r.add('encryption-push-hook', 'Upload check for private notes', st.pre_push_hook === 'active' ? 'ok' : 'warn',
+      st.pre_push_hook === 'active' ? 'In place, so Obsidian Git and other Git tools cannot upload a private note without encryption.' : (hookProblem && hookProblem.message) || 'Not in place.',
+      (hookProblem && hookProblem.fix) || 'Run: node system/scripts/vault-key.mjs setup', { machine: true });
+  }
+  r.add('encryption-backup', 'Vault key backup tested', st.key_backup_checked ? 'ok' : 'warn',
+    st.key_backup_checked ? `Last tested on ${st.key_backup_checked}.` : 'The backup copy of your key file has never been tested. If you lose this computer, an untested copy may not save your notes.',
+    'Run: node system/scripts/vault-key.mjs export --out <a folder outside this project>   then: node system/scripts/vault-key.mjs check --key <that file>', { machine: true });
 }
 
 function checkQuarto(r, release) {
@@ -340,9 +488,13 @@ export function runDoctor({ ci = false } = {}) {
 
   checkNode(r, release);
   checkGit(r, root, dev);
-  checkLfs(r);
+  checkLfs(r, root);
+  checkRepoSize(r, root);
+  checkBigFileHook(r, root, dev);
+  checkOversizedFiles(r, root);
   checkGh(r);
   checkOrigin(r, root, release, dev);
+  if (!ci) checkEncryption(r, root);
   checkQuarto(r, release);
   checkObsidian(r, root);
   checkClaudeCode(r, release);
@@ -362,6 +514,15 @@ export function runDoctor({ ci = false } = {}) {
   return { ok: summary.fail === 0, ci, dev_mode: dev, version: release.version || null, summary, checks: r.checks };
 }
 
+/** The printed lines for one check: the result line, then its "Fix:" (a problem) or "Tip:" (advice on a check that is fine). */
+export function renderCheck(c) {
+  const mark = { ok: '[ok]  ', warn: '[!]   ', fail: '[FAIL]', skip: '[skip]' };
+  const lines = [`${mark[c.status]} ${c.label}${c.detail ? `: ${c.detail}` : ''}`];
+  if (c.fix) lines.push(`       Fix: ${c.fix}`);
+  else if (c.tip) lines.push(`       Tip: ${c.tip}`);
+  return lines;
+}
+
 function main(argv) {
   const json = argv.includes('--json');
   const ci = argv.includes('--ci');
@@ -374,13 +535,9 @@ function main(argv) {
     console.log(JSON.stringify(res));
     return res.ok ? 0 : 1;
   }
-  const mark = { ok: '[ok]  ', warn: '[!]   ', fail: '[FAIL]', skip: '[skip]' };
   console.log(`Alterbrain health check${ci ? ' (CI mode)' : ''}${res.dev_mode ? ' - developer mode' : ''}`);
   console.log('');
-  for (const c of res.checks) {
-    console.log(`${mark[c.status]} ${c.label}${c.detail ? `: ${c.detail}` : ''}`);
-    if (c.fix) console.log(`       Fix: ${c.fix}`);
-  }
+  for (const c of res.checks) for (const line of renderCheck(c)) console.log(line);
   console.log('');
   const { fail, warn } = res.summary;
   if (fail) console.log(`${fail} problem(s) need fixing. Start with the [FAIL] lines above, or open Claude and type /health-check to be walked through them.`);

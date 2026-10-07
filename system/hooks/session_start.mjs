@@ -2,7 +2,9 @@
 // SessionStart: sync from git (5 s budget), then hand Claude a short digest as extra context.
 //
 // The digest (at most 25 lines) holds the date and weekday, onboarding status, task / outbox /
-// proposal counts and warnings (model, Claude Code version, git, dev mode). It never throws:
+// proposal counts and warnings (model, Claude Code version, git, dev mode, and, when encryption of private notes is on,
+// a locked or tool-missing copy and an untested key backup; it also keeps git's upload check for private notes in place,
+// quietly, and only speaks when another tool's hook stops it). It never throws:
 // a part that fails is simply left out. Fails open on malformed input (no output).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,6 +14,7 @@ import { readJson, today } from '../lib/fsx.mjs';
 import { splitFrontmatter } from '../lib/frontmatter.mjs';
 import { listTasks } from '../lib/tasks.mjs';
 import { cmpVersion, run } from '../lib/proc.mjs';
+import { PUSH_HOOK_TEXT, UNLOCK_COMMAND, encryptionContext, ensurePrePushHook, installCommand } from '../lib/vaultkey.mjs';
 
 const MAX_LINES = 25;
 const PULL_TIMEOUT_MS = 5000;
@@ -139,7 +142,28 @@ export function buildDigest(input = {}) {
   const proposals = safe(() => countByStatus(vaultPath('00_inbox', 'proposals'), 'open'), 0);
   if (proposals) lines.push(`Proposals: ${proposals} open, waiting for approval.`);
 
+  // Optional encryption of private notes (ADR 0019): say so when this copy cannot save them, and once when the key copy is untested.
+  const enc = safe(() => encryptionContext(projectRoot()), null);
+  if (enc && enc.enabled && enc.safe && !enc.cfg.key_backup_checked) {
+    lines.push(`Your vault key backup has not been tested. After handling the user's request, remind them once to run the key check: node system/scripts/vault-key.mjs check --key <their key file>`);
+  }
+
   const warnings = [];
+  // Obsidian Git uploads on its own, outside the automatic save. Git's own upload check covers it, so keep that check in place
+  // (cheap: one small file is read when it is already right). Only a hook that belongs to another tool needs the user's attention.
+  if (enc && enc.enabled) {
+    const hook = safe(() => ensurePrePushHook(projectRoot()), null);
+    if (hook && (hook.state === 'foreign' || hook.state === 'hooks-path')) {
+      warnings.push(`${PUSH_HOOK_TEXT[hook.state]} Tell the user once, after handling their request, and suggest /health-check.`);
+    }
+  }
+  if (enc && enc.enabled && !enc.safe) {
+    warnings.push(
+      enc.lock.installed
+        ? `Private notes are locked on this computer, so changes to them are not being saved and their text is unreadable. Unlock: ${UNLOCK_COMMAND}`
+        : `The encryption tool (git-crypt) is missing on this computer, so changes to private notes are not being saved. Install it: ${installCommand()}`,
+    );
+  }
   const model = modelName(input);
   if (model && !/sonnet/i.test(model)) {
     warnings.push(`Main model is ${model}; Alterbrain recommends Sonnet to save your usage — /model sonnet`);

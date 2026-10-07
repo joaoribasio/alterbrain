@@ -13,7 +13,8 @@
 #   1. Looks for the programs Alterbrain needs and lists any that are missing.
 #   2. Asks you ONCE whether it may install them (using winget, which is part of Windows).
 #   3. Installs the missing ones, one at a time: Git, GitHub CLI, Node.js (LTS),
-#      Obsidian and Quarto. (Git for Windows already includes Git LFS.)
+#      Obsidian and Quarto. (Git for Windows already includes Git LFS, which Alterbrain
+#      uses only for files of 50 MB or more. Everyday documents are saved as normal files.)
 #   4. Copies Alterbrain from https://github.com/joaoribasio/alterbrain into your folder.
 #   5. Runs a health check and tells you what to do next.
 #
@@ -54,7 +55,7 @@ function Test-ObsidianInstalled {
 
 # Each item: a plain name, the winget id, and how to tell it is already there.
 $Packages = @(
-    @{ Name = 'Git (with Git LFS for big files)'; Id = 'Git.Git';            Present = { Test-Command 'git' } },
+    @{ Name = 'Git (with Git LFS, for files of 50 MB or more)'; Id = 'Git.Git'; Present = { Test-Command 'git' } },
     @{ Name = 'GitHub CLI';                       Id = 'GitHub.cli';         Present = { Test-Command 'gh' } },
     @{ Name = 'Node.js (LTS)';                    Id = 'OpenJS.NodeJS.LTS';  Present = { Test-Command 'node' } },
     @{ Name = 'Obsidian';                         Id = 'Obsidian.Obsidian';  Present = { Test-ObsidianInstalled } },
@@ -159,6 +160,10 @@ else {
 }
 
 & git -C $Folder lfs install --local 2>$null | Out-Null
+
+# Obsidian Git saves by itself and never goes through Alterbrain's own save. Git runs this small check before every save,
+# whichever tool starts it, and sends files of 50 MB or more to Git LFS so that the online backup never gets stuck on one.
+& node (Join-Path $Folder 'system\scripts\git-auto.mjs') hook 2>$null | Out-Null
 
 # --- 5. Health check ----------------------------------------------------------
 Say ''

@@ -4,10 +4,21 @@
 //   node system/hooks/session_end.mjs          SessionEnd: always tries
 //   node system/hooks/session_end.mjs --stop   Stop: at most once every 10 minutes
 //
+// When encryption of private notes is on (ADR 0019), the safeguards live in git-auto, not here: a copy that cannot
+// encrypt stages no private notes, plain private notes are left out of the save, and a push that would upload one is
+// refused (that check fails closed). git-auto exits 1 for these, which this hook treats like any reported failure.
+//
+// Big files (ADR 0020) are stored with Git LFS by git-auto. Uploading one can need far more time than a hook may wait, and
+// Git LFS cannot resume a stopped upload. So the push step asks git-auto (ALTERBRAIN_PUSH_BACKGROUND=1) to start a big
+// upload as a separate process that carries on after this hook has finished. A push that still runs out of time here is
+// not a crash: it is logged (not turned into a task), then handed to the same kind of background process
+// (ALTERBRAIN_PUSH_BACKGROUND=now), so that it can finish instead of being stopped half way every time. A commit that
+// runs out of time is still reported, because nothing was saved. Nothing on disk is touched by any of this.
+//
 // Does nothing in dev mode, when config/brain.json says git.auto_commit is false, or when
 // system/scripts/git-auto.mjs does not exist. git-auto logs its own failures and adds the
 // "#ab/git" task; this hook only adds a line and a task when git-auto itself could not run
-// (crash, timeout). Never throws, never prints, always exits 0.
+// (a crash, or a commit that timed out). Never throws, never prints, always exits 0.
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { isMainModule, readInput, runHook } from '../lib/hookio.mjs';
 import { isDevMode, projectRoot, rootPath } from '../lib/paths.mjs';
@@ -16,8 +27,14 @@ import { addTask } from '../lib/tasks.mjs';
 import { run } from '../lib/proc.mjs';
 
 export const THROTTLE_MS = 10 * 60 * 1000;
-const COMMIT_TIMEOUT_MS = 12_000;
-const PUSH_TIMEOUT_MS = 15_000; // 12 + 15 stays inside the 30 s SessionEnd timeout
+// The limits can be changed with ALTERBRAIN_HOOK_COMMIT_TIMEOUT_MS and ALTERBRAIN_HOOK_PUSH_TIMEOUT_MS (the tests use this).
+const envMs = (name, fallback) => {
+  const n = Number(process.env[name]);
+  return process.env[name] && Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+};
+const COMMIT_TIMEOUT_MS = envMs('ALTERBRAIN_HOOK_COMMIT_TIMEOUT_MS', 12_000);
+const PUSH_TIMEOUT_MS = envMs('ALTERBRAIN_HOOK_PUSH_TIMEOUT_MS', 13_000);
+const HANDOFF_TIMEOUT_MS = 4_000; // 12 + 13 + 4 stays inside the 30 s SessionEnd timeout
 
 const STAMP_FILE = () => rootPath('state', 'local', 'last-auto-commit');
 const LOG_FILE = () => rootPath('state', 'local', 'git.log');
@@ -61,10 +78,32 @@ function reportCrash(step, res) {
   }
 }
 
-/** One git-auto step. Exit 0 = fine. Exit 1 = git-auto already told the user. Anything else = crash. */
-function step(script, name, timeout) {
-  const res = run(process.execPath, [script, name], { cwd: projectRoot(), timeout, env: { CLAUDE_PROJECT_DIR: projectRoot() } });
-  if (res.code !== 0 && res.code !== 1) reportCrash(name, res);
+/**
+ * Did the step run out of time? proc.run reports a process that was stopped as code -1, with node's ETIMEDOUT message when
+ * it had printed nothing itself; the time it took is the second witness. A process that could not start fails at once.
+ */
+const ranOutOfTime = (res, timeout, tookMs) => res.code === -1 && (/ETIMEDOUT/i.test(String(res.stderr || '')) || tookMs >= timeout * 0.9);
+
+function logLine(text) {
+  try {
+    appendLine(LOG_FILE(), `${new Date().toISOString()} ${text}`);
+  } catch {
+    /* logging must never break the hook */
+  }
+}
+
+/**
+ * One git-auto step. Exit 0 = fine. Exit 1 = git-auto already told the user. Anything else = crash.
+ * With patientOnTimeout, running out of time is logged and returned as `timedOut` instead of being reported as a crash.
+ */
+function step(script, args, timeout, { patientOnTimeout = false, env = {} } = {}) {
+  const started = Date.now();
+  const res = run(process.execPath, [script, ...args], { cwd: projectRoot(), timeout, env: { CLAUDE_PROJECT_DIR: projectRoot(), ...env } });
+  if (patientOnTimeout && ranOutOfTime(res, timeout, Date.now() - started)) {
+    logLine(`${args[0]} hook-timeout the step needed more than ${Math.round(timeout / 1000)} s; it is tried again, and a push carries on in the background`);
+    return { ...res, timedOut: true };
+  }
+  if (res.code !== 0 && res.code !== 1) reportCrash(args[0], res);
   return res;
 }
 
@@ -85,9 +124,10 @@ async function main() {
     /* no stamp means no throttle, which is fine */
   }
 
-  const commit = step(script, 'commit', COMMIT_TIMEOUT_MS);
+  const commit = step(script, ['commit'], COMMIT_TIMEOUT_MS);
   if (commit.code === -1) return; // timed out or could not start: pushing now would just hang again
-  step(script, 'push', PUSH_TIMEOUT_MS);
+  const push = step(script, ['push'], PUSH_TIMEOUT_MS, { patientOnTimeout: true, env: { ALTERBRAIN_PUSH_BACKGROUND: '1' } });
+  if (push.timedOut) step(script, ['push'], HANDOFF_TIMEOUT_MS, { patientOnTimeout: true, env: { ALTERBRAIN_PUSH_BACKGROUND: 'now' } });
 }
 
 if (isMainModule(import.meta.url)) await runHook(main);

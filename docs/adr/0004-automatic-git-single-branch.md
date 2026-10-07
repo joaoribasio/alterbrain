@@ -7,9 +7,9 @@ Users should never type a git command. Branches, worktrees and merges confuse no
 
 ## Decision
 - One `main` branch. No branches and no worktrees.
-- Session start pulls with `git pull --rebase --autostash`.
+- Session start pulls with `git pull --rebase`. *Amended: it first saves local changes as a commit and never stashes (`--no-autostash`), because a stash that cannot be put back leaves conflict markers inside a note.*
 - Session end commits (`auto: <date> · N files`) and pushes. A throttled Stop hook does the same.
-- Obsidian Git makes interval backups for edits made in Obsidian.
+- Obsidian Git makes interval backups for edits made in Obsidian. *Amended: Obsidian Git does not go through `git-auto`, so on a computer two small checks that Git itself runs cover it: a `pre-commit` hook for big files (ADR 0020) and a `pre-push` hook for private notes (ADR 0019). A phone is not covered.*
 - Never force. Any failure is explained in plain English and becomes a `#ab/git` task.
 - `block_dangerous_git` denies force-push, hard reset, deleting `.git`, branch creation and worktrees.
 - In dev mode (`state/local/dev-mode`) auto-git is off, so the framework developer controls commits.

@@ -3,9 +3,10 @@
   "user": { "name": "", "timezone": "Europe/Amsterdam", "languages": ["en"] },
   "plan_tier": "pro",
   "packs": ["core", "mba"],
-  "school": { "name": "", "programme": "", "lms": "canvas" },
+  "school": { "name": "", "programme": "" },
   "self_build": { "mode": "propose", "proactive": true, "max_open_proposals": 3 },
   "evidence_mode": "light",
-  "git": { "auto_commit": true, "auto_push": true },
+  "git": { "auto_commit": true, "auto_push": true, "lfs_min_mb": 50 },
+  "privacy": { "encryption": { "enabled": false, "tool": "git-crypt", "scope": [], "key_backup_checked": null } },
   "jobs": { "country": "NL", "needs_sponsorship": null, "languages": ["en"], "sources": ["adzuna", "career-pages"] }
 }

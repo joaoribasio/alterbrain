@@ -13,8 +13,8 @@
 # What it does, in order:
 #   1. Looks for the programs Alterbrain needs and lists any that are missing.
 #   2. Asks you ONCE whether it may install them (using Homebrew).
-#   3. Installs the missing ones, one at a time: Git, Git LFS, GitHub CLI, Node.js (LTS),
-#      Obsidian and Quarto.
+#   3. Installs the missing ones, one at a time: Git, Git LFS (used only for files of 50 MB
+#      or more), GitHub CLI, Node.js (LTS), Obsidian and Quarto.
 #   4. Copies Alterbrain from https://github.com/joaoribasio/alterbrain into your folder.
 #   5. Runs a health check and tells you what to do next.
 #
@@ -68,7 +68,7 @@ if [ "$(uname -s)" != "Darwin" ]; then
 fi
 
 # name | how to test | brew install command
-NAMES=("Git" "Git LFS (big files)" "GitHub CLI" "Node.js (LTS)" "Obsidian" "Quarto")
+NAMES=("Git" "Git LFS (for files of 50 MB or more)" "GitHub CLI" "Node.js (LTS)" "Obsidian" "Quarto")
 MISSING=()
 
 check() {
@@ -183,6 +183,10 @@ else
 fi
 
 git -C "$FOLDER" lfs install --local >/dev/null 2>&1 || true
+
+# Obsidian Git saves by itself and never goes through Alterbrain's own save. Git runs this small check before every save,
+# whichever tool starts it, and sends files of 50 MB or more to Git LFS so that the online backup never gets stuck on one.
+node "${FOLDER}/system/scripts/git-auto.mjs" hook >/dev/null 2>&1 || true
 
 # --- Health check -------------------------------------------------------------
 say ""

@@ -18,7 +18,7 @@ Every note starts with YAML frontmatter holding at least `type`, `created` (YYYY
 
 | type | where | extra fields |
 |---|---|---|
-| `source` | `40_sources/notes/` | `raw`, `sha256`, `origin`, `ingested`, `kind` |
+| `source` | `40_sources/notes/` | `raw`, `sha256`, `origin`, `ingested`, `kind`; optional `course` (a link to the course note) |
 | `concept` | `30_wiki/concepts/` | `sources: []` |
 | `framework` | `30_wiki/frameworks/` | `family`, `when_to_use`, `sources: []` |
 | `company` | `30_wiki/companies/` | `sources: []` |
@@ -56,7 +56,12 @@ Always take dates from the session digest ("Today is …") or from `node system/
 
 ## Sources
 - `40_sources/raw/` is immutable. Never edit, move, rename or delete anything there.
-- New material goes in through `/ingest` (`node system/scripts/ingest.mjs <path> [--origin "<text>"]`), which copies it raw, extracts text and logs it in `manifest.jsonl`. Then write one source note per new file and update `30_wiki/index.md` and `30_wiki/log.md`.
+- New material goes in through `/ingest` (`node system/scripts/ingest.mjs <file, folder or zip> [--origin "<text>"] [--course "<Course title>"]`), which copies it raw, extracts text and logs it in `manifest.jsonl`. A zip is opened and its files are copied one by one (the zip itself is not stored). Then write one source note per new file and update `30_wiki/index.md` and `30_wiki/log.md`. For a folder or zip of course material follow `.claude/skills/ingest/references/course-material.md`. There is no connection to any learning platform: the user downloads the files.
+- A source over 100 MB is kept in `40_sources/raw/_local/`, on this computer only; ingest does that, never you.
+
+## Git rules inside the vault
+- `vault/.gitattributes` (one Git LFS line per big file, written by the automatic save) and the `.gitattributes` files in `80_me/`, `60_people/` and `70_journal/` (written by `vault-key.mjs` when encryption is on) belong to the git setup. Do not edit, move, delete or add lines to them by hand. `vault/.gitattributes` is the user's file: an update never replaces it. Never add Git LFS rules to the root `.gitattributes`, which an update replaces (ADR 0020).
+- Files of 50 MB or more are stored with Git LFS by the automatic save; everything smaller is a normal file. Never write a file of 50 MB or more into the vault yourself (a downloaded video, a large export): tell the user and let them decide.
 
 ## Tasks
 - Agent tasks go to `## Inbox` in `00_inbox/Tasks.md` via `node system/scripts/tasks.mjs add …` with `--tag <skill>`. Don't hand-edit other sections.
@@ -75,3 +80,4 @@ The vault is the user's private brain (private GitHub repo, read by Claude in se
 - **Never write** into any vault file, whoever asks: passwords, API keys, tokens, recovery codes, 2FA seeds, payment card numbers, bank account numbers or IBANs, government ID numbers (passport, BSN, SSN, national ID, driving licence number), or answers to security questions. Leave the value out, say so, and point to a password manager. Keys the tools need go in `.env.local`.
 - **Outbound** (email, post, message, application, form, shared export, presentation): only `public` facts. A `private` fact needs the user's explicit OK for that draft.
 - **Other people**: business facts by default. Their sensitive details only if the user explicitly asks; they stay private and never go outbound.
+- **Encryption on** (`config/brain.json` → `privacy.encryption.enabled`, guide `system/docs/guides/encrypting-private-notes.md`): file and folder names stay readable on GitHub, so keep sensitive details inside notes, not in note names, and never name a private note in a task. Never open, print, copy or write a key file (`*.abkey`, `vault-key-*.key`, `.git/git-crypt/`), and never ask for its password in chat.

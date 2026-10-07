@@ -1,6 +1,6 @@
 # M9 Import your existing files
 
-**Goal:** the user's existing course material (slides, readings, notes, cases) is copied into the vault with a source record, so `/ask` and `/study` can use it.
+**Goal:** the user's existing course material (slides, readings, notes, cases) is copied into the vault with a source record, so `/ask` and `/study` can use it. This covers files already on the computer, including a zip downloaded from the school's course website (how to get one is in M3, "Bring your course material").
 **Time:** about 10 minutes of the user's time; processing can continue in the background or later.
 **Optional.**
 **Model / effort:** copying and text extraction: `system/scripts/ingest.mjs` (script). Source notes and wiki updates: the `/ingest` skill (sonnet / medium; batches can use haiku / low for summaries).
@@ -15,25 +15,26 @@ Say at the start: "Let's bring in the files you already have. I keep an untouche
 
 ## Questions (one at a time)
 
-1. **Where are the files?** "Which folders hold your course material? For example a 'MBA' folder in Documents, or a synced OneDrive folder." Free text; accept several paths. Tip for finding a path: "In File Explorer (Windows) or Finder (Mac), right-click the folder and choose **Copy as path** (Windows) or hold **Option** and choose **Copy as Pathname** (Mac)."
+1. **Where are the files?** "Which folders or zip files hold your course material? For example a 'MBA' folder in Documents, a synced OneDrive folder, or a zip you downloaded from your course website." Free text; accept several paths. Tip for finding a path: "In File Explorer (Windows) or Finder (Mac), right-click the folder and choose **Copy as path** (Windows) or hold **Option** and choose **Copy as Pathname** (Mac)."
 2. **Versions.** "If you have several versions of a file, like `Report_v1` and `Report_v3`, should I keep only the latest?" Only the latest (recommended) / Keep all versions.
 3. **Anything to leave out?** "Any subfolders that are private or not for school (photos, personal admin)?" Free text, or "no". Never import a folder the user calls private.
 
 ## Steps
 
-1. **Preview first.** For each folder, count files and total size with a quick read-only listing (Glob). Say: "That folder has 312 files (1.8 GB). Big videos over 100 MB stay on this computer only and are not uploaded to your backup." Ask "Go ahead?" (Yes (recommended) / Choose fewer folders).
-2. **Copy.** Run:
-   `node system/scripts/ingest.mjs "<folder 1>" "<folder 2>" --latest-only --origin "Onboarding import" --json`
-   (drop `--latest-only` if they chose "keep all"). Large imports can take a while; run in the background and keep chatting.
-3. **Report in plain words** from the JSON: "Imported 240 files, skipped 31 duplicates, 12 need text extraction later, 3 kept local-only because they're very large."
-4. **Queue the notes.** Each new file needs a short source note and wiki updates. That is what `/ingest pending` does: it finds every manifest entry that has no source note yet (no note in `vault/40_sources/notes/` with the same `sha256`) and writes the notes in batches, about 50 files per run.
+1. **Preview first.** For each folder, count files and total size with a quick read-only listing (Glob). Say: "That folder has 312 files (1.8 GB). Big videos over 100 MB stay on this computer only and are not uploaded to your backup." For a zip you cannot count the files this way: say its size and "I unpack it in a temporary folder and delete that folder afterwards. The zip itself is not changed." A zip that is far too big (many thousands of files or several GB) is refused with a plain message; then ask the user to unzip it and give you one course folder at a time. Ask "Go ahead?" (Yes (recommended) / Choose fewer folders).
+2. **Match to courses.** If a folder or zip name matches a course in `vault/20_areas/courses/`, ask one question before you copy: "Is the 'Corporate Finance' folder for your Corporate Finance course?" (Yes (recommended): the files are linked to that course when the notes are written. / Another course / Not a course). Use the answer as `--course` in step 3. If the zip also holds the course's syllabus or assignment sheets, `/ingest` offers to pull the deadlines into the course note and the task list.
+3. **Copy.** Folders and zips go in separate runs, one run per course when a folder or zip belongs to one:
+   - Folders: `node system/scripts/ingest.mjs "<folder 1>" "<folder 2>" --latest-only --origin "Onboarding import" [--course "<Course name>"] --json`
+   - A zip: `node system/scripts/ingest.mjs "<zip>" --latest-only [--course "<Course name>"] --json`. Leave `--origin` out: each file then keeps "<zip name>/<path inside>" as its origin. The zip itself is not stored.
+   - Drop `--latest-only` if they chose "keep all". Large imports can take a while; run in the background and keep chatting.
+4. **Report in plain words** from the JSON: "Imported 240 files, skipped 31 duplicates, 12 need text extraction later, 3 kept local-only because they're very large." If a zip was refused, give the reason from the JSON in your own words and what to do next (for example: unzip it yourself and give me the folder).
+5. **Queue the notes.** Each new file needs a short source note and wiki updates. That is what `/ingest pending` does: it finds every manifest entry that has no source note yet (no note in `vault/40_sources/notes/` with the same `sha256`) and writes the notes in batches, about 50 files per run.
    - **20 new files or fewer:** offer to run `/ingest pending` now.
    - **More than 20:** add one task, so the work can be done when the user has time:
      `node system/scripts/tasks.mjs add "Turn imported files into notes. Say: /ingest pending (about 50 files each time)" --tag ingest --priority low`
      Say: "I'll turn them into notes when you ask. Type `/ingest pending`; each run takes a few minutes and does about 50 files."
    - Do not run `ingest.mjs` again on the same folders to "restart": it would only report duplicates.
-5. **Text pending.** If files show `text_status: "pending"` (no text extractor available), say: "I can still read those when needed. If you want faster search, the markitdown tool helps (see `/menu` → Settings & help)."
-6. **Match to courses.** If folder names match a course in `vault/20_areas/courses/`, mention it: "Your 'Corporate Finance' folder will be linked to that course when the notes are written."
+6. **Text pending.** If files show `text_status: "pending"` (no text extractor available), say: "I can still read those when needed. If you want faster search, the markitdown tool helps (see `/menu` → Settings & help)."
 
 ## Files written
 
@@ -52,3 +53,4 @@ Then: `node system/scripts/onboard-progress.mjs done M9`.
 - Raw files are never edited, moved or deleted after import.
 - Never import a folder the user marked private, or system folders (Program Files, AppData, Library).
 - Files over 100 MB are kept local-only by the script. Do not work around this.
+- Only `ingest.mjs` opens a zip (it checks the paths, the number of files and the size first, and deletes its temporary folder afterwards). Never unpack a zip yourself with another tool. If a zip is refused, the user unzips it themselves and gives you the folder.

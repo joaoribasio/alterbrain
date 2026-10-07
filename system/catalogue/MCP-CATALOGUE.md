@@ -16,7 +16,7 @@ To turn one off, say "turn off `<name>`".
 - **Medium**: uses an account of yours, or unofficial data. Check your school or employer rules first.
 - **High**: can break a website's rules or act as you in public. Your account could be limited or banned.
 
-Anything that sends, posts or submits is held back by the **outbound guard** unless you have allowed that channel in `config/autonomy.json`. The default is "draft": Alterbrain writes the draft and you send it. The guard works out the channel from the helper's name. A helper it does not recognise (for example `google_workspace_mcp`, `ms-365` or `canvas-mcp`) counts as "other", where the default also applies.
+Anything that sends, posts or submits is held back by the **outbound guard** unless you have allowed that channel in `config/autonomy.json`. The default is "draft": Alterbrain writes the draft and you send it. The guard works out the channel from the helper's name. A helper it does not recognise (for example `google_workspace_mcp` or `ms-365`) counts as "other", where the default also applies.
 
 ## Core tier: the basics
 
@@ -44,7 +44,6 @@ Anything that sends, posts or submits is held back by the **outbound guard** unl
 | Name | What it does | Risk | How you sign in |
 |---|---|---|---|
 | `google_workspace_mcp` | Reads Gmail, Calendar and Drive (read-only to start) | Low | Your own Google sign-in |
-| `canvas-mcp` | Reads Canvas courses, deadlines and announcements | Medium | A token from your Canvas profile |
 | `zotero-mcp` | Searches your Zotero library | Low | Zotero app open on your computer |
 | `qmd` | Fast search of your notes by meaning | Low | None. Windows can be awkward |
 | `obsidian-local-rest` | Talks to Obsidian while it is open | Low | Key from the Obsidian plugin |
@@ -78,5 +77,6 @@ For your own LinkedIn data without scraping, so the ban risk above does not appl
 
 - Pinned versions: every server that has a package is fixed to an exact version (or, for two of them, a fixed commit or tag) so an update cannot surprise you. Entries in the avoid tier and guide-only entries have nothing to pin. `/health-check` tells you when newer ones are worth testing.
 - Keys and tokens live in `.env.local` on your computer. Never paste one into a chat.
+- There is no helper for your school's learning platform. Some schools do not allow automated access, so course files arrive by download instead: save everything from the course site, then give Alterbrain the folder or the zip (`/ingest`).
 - Some items carry the label `[Unverified]` in the machine-readable file. That means a detail was not confirmed yet. Alterbrain checks it the first time you turn that tool on.
 - Related how-to guides are in `system/blueprints/`.
