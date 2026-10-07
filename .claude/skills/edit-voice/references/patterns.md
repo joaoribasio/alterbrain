@@ -24,6 +24,8 @@ The rules for `/edit-voice`. The SKILL.md says when to use them. Quoted example 
 
 ## Words to cut
 
+The framework default anti-AI rules live in `.claude/rules/writing.md` §2 and `slop-check.mjs` enforces them for English. The lists below add to those defaults. A voice profile may add rules but never removes a default.
+
 **Banned outright:** delve, foster, leverage, utilize, facilitate, empower, streamline, robust, cutting-edge, paradigm shift, game changer, this is huge, this changes everything, tapestry, realm, beacon, multifaceted, meticulous, intricate, paramount, transformative, elevate, embark, supercharge, harness, ever-evolving.
 
 **Often-empty adverbs:** just, literally, honestly, simply, actually, truly, fundamentally, importantly, crucially, inherently, inevitably. Cut when they add nothing. Keep when they carry emphasis, doubt, contrast or the writer's spoken rhythm.

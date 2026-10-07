@@ -20,7 +20,7 @@ The calling skill gives you:
 - Optional: `summary` or other `context` paths (a `mail-reader` summary, a job ad note, an application note), `length` (short, medium, long), `in_reply_to` or `thread_id`.
 
 ## Method
-Follow `system/packs/twin/drafting.md`. It is the single source for language, register, exemplars, the facts allowlist, the quality bar and the note format. In short:
+Follow `system/packs/twin/drafting.md`. It is the single source for language, register, exemplars, the facts allowlist, the quality bar and the note format. Also follow the default anti-AI rules in `.claude/rules/writing.md` §2 (banned words, phrases, openers, dashes and ellipsis; the voice profile may add rules, never remove them). In short:
 1. Read `vault/80_me/voice/<lang>/profile.md`. Find the register row for this channel and recipient class; if there is none, use the closest row and note it. If the profile is missing, draft in a neutral register and set `voice: "missing"`.
 2. Read `vault/80_me/voice/<lang>/exemplars.md`. Pick 3-5 samples with the same channel, recipient class and language (closest matches if fewer exist, in the order of `drafting.md` §4). Learn rhythm, openers, sign-offs and length; never copy their sentences or private details.
 3. Read `vault/80_me/fact-sheet.md` and `vault/80_me/USER.md`. The fact sheet, the thread itself (for facts about the other person) and what the user said in chat are the only facts you may state. Respect `private` facts: use them only if the intent asks for them. Respect the "Never say" list. A commitment (accepting, agreeing a date, promising, money) needs the user's intent in this chat.

@@ -432,7 +432,8 @@
       "transport": "stdio",
       "command": "uvx",
       "args": [
-        "mcp-server-linkedin==4.26.2"
+        "mcp-server-linkedin==4.26.2",
+        "--no-auto-import"
       ],
       "env": {
         "UV_HTTP_TIMEOUT": "300"
@@ -442,7 +443,7 @@
       "tos_risk": "high",
       "writes": true,
       "channel": "linkedin",
-      "notes": "LinkedIn forbids automated access, so your account could be limited or banned. It uses your own logged-in session. Read only a little, slowly, and never send messages or connection requests through it. The PyPI package is mcp-server-linkedin (the older name linkedin-scraper-mcp is an older release line). See the linkedin blueprint.",
+      "notes": "LinkedIn forbids automated access, so your account could be limited or banned. It uses your own logged-in session. Read only a little, slowly, and never send messages or connection requests through it. The PyPI package is mcp-server-linkedin (the older name linkedin-scraper-mcp is an older release line). The --no-auto-import flag stops it copying a login from your everyday browser, so you sign in once on its own browser profile. On Windows, if the first sign-in stops with a PrivateStateError, create an empty folder inside your user folder (for example C:/Users/<you>/.linkedin-mcp-installer) and set the INSTALLER_TEMP_DIR environment variable to it, for the sign-in and for normal runs; the catalogue cannot fill in a per-user path for you. See the linkedin blueprint. For your own LinkedIn data without scraping, see the linkedin-data-portability blueprint.",
       "verified": "2026-10-07"
     },
     {

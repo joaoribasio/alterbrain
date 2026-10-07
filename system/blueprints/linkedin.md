@@ -28,6 +28,7 @@ Alterbrain can look up a company, a job post or a public profile on LinkedIn, an
   - Keep business facts only about people: role, employer, source and date. Nothing private.
 - The helper is `mcp-server-linkedin` (stickerdaniel, Apache-2.0). Its login is a saved browser session on your computer. Treat that folder like a password.
 - Safer substitute for many tasks: download your own data from LinkedIn's settings page and let Alterbrain ingest the files. No risk to the account.
+- For your own data without scraping, see `linkedin-data-portability`.
 
 ## Questions I'll ask you
 
@@ -42,7 +43,7 @@ Alterbrain can look up a company, a job post or a public profile on LinkedIn, an
 1. **Verify first.** Open the project README at https://github.com/stickerdaniel/linkedin-mcp-server and confirm the install command, the pinned version in `system/catalogue/mcp.json`, and the login steps still match. Also re-read LinkedIn's current rules on automated access and say what you found.
 2. Run `/clarify` (type `mcp`). Make sure the user has said yes to the ban risk in their own words in chat.
 3. Add `linkedin` to `config/mcp.selected.json` and run `node system/scripts/mcp-gen.mjs`.
-4. Guide the user through the one-time login (the helper opens a browser). They type their own password. You never see it. If LinkedIn shows a captcha, the user solves it. You must not.
+4. Guide the user through the one-time login (the helper opens a browser). They type their own password. You never see it. If LinkedIn shows a captcha, the user solves it. You must not. The catalogue entry carries `--no-auto-import`, so the helper does not copy a session from the user's everyday browser. On Windows, if the sign-in stops with a `PrivateStateError`, the user creates an empty folder in their user folder and sets the `INSTALLER_TEMP_DIR` environment variable to it, then signs in again.
 5. Confirm `config/autonomy.json` has `linkedin` on `draft`. Do not change it.
 6. Create the working rules in a note in `vault/20_areas/career/`:
    - one lookup at a time, no loops;

@@ -6,7 +6,7 @@
     {
       "path": ".claude/agents/ghostwriter.md",
       "class": "text",
-      "sha256": "b87db43f1aab30f04098a8ceb3b256a1aa590ec80b9aea2079d62a8b5befe46b"
+      "sha256": "6155dffbcae9615f31d3f45d987749e65ba085e4ea640b8bc33d4c0d7ea79a42"
     },
     {
       "path": ".claude/agents/lens.md",
@@ -41,7 +41,7 @@
     {
       "path": ".claude/rules/writing.md",
       "class": "text",
-      "sha256": "2513b29ff43aa2ae5ad08d0e9b8081f8b57835be3a75da0de207ce2cff5e1a0d"
+      "sha256": "1ac14a2a0e465f7144eae1229408116df9ad08edc266f84234456aaea5c25c64"
     },
     {
       "path": ".claude/settings.json",
@@ -206,7 +206,7 @@
     {
       "path": ".claude/skills/edit-voice/references/patterns.md",
       "class": "text",
-      "sha256": "3c87ec8c28471e9c6acbade7ac3a1917bd5090e3fd7c2423b9813c1d1e051fd3"
+      "sha256": "67643ebbde807a32de1c0b678e3397f79e2e6d8e65c07c6c80936c00f1d702c0"
     },
     {
       "path": ".claude/skills/framework/SKILL.md",
@@ -724,9 +724,14 @@
       "sha256": "dd6b87f75b8c94cf4bd73428f3245b2f5b3ab81ba9d8aabdf8249af69c5558b9"
     },
     {
+      "path": "system/blueprints/linkedin-data-portability.md",
+      "class": "text",
+      "sha256": "ce772e72c9df3436cac751e957723410ed53d59acb7ddfcc814644d64f84328e"
+    },
+    {
       "path": "system/blueprints/linkedin.md",
       "class": "text",
-      "sha256": "3fb3598458873b5ef1a2b3e7f55f8521c843626cf16809eae186ebb9f651d09f"
+      "sha256": "a631b639900b7e89995df57d9846e57ff55ded0e910ef2fb3ad90da49b592259"
     },
     {
       "path": "system/blueprints/linux-vps-oracle.md",
@@ -766,12 +771,12 @@
     {
       "path": "system/catalogue/MCP-CATALOGUE.md",
       "class": "text",
-      "sha256": "2cb360e13981b9f135546e20da50bdd56cd789922f5bb2ace2c470bf62fa5d50"
+      "sha256": "b470d51dddfcd0c7bb0874b41ccf74f3e0d0c7863418ebbf19dda560f0114f2f"
     },
     {
       "path": "system/catalogue/mcp.json",
       "class": "code",
-      "sha256": "15e76d1d4772bce4d6cf0f373c52bc77b99a15a851e6ffb3cf5b4012e60c674f"
+      "sha256": "e00a0fcf869972b84bb08222f92ffb7d94f065a0700984c255d2c961296a0191"
     },
     {
       "path": "system/catalogue/obsidian-plugins.json",
@@ -786,7 +791,7 @@
     {
       "path": "system/core.md",
       "class": "code",
-      "sha256": "6437fac26977cc98f4dbd23b5d7b86d9a88cda1f78f7a688425404dc78c1e0f1"
+      "sha256": "f0578df037ad6ead3e261bbf5d8871d160aa1a904921bbe11ccb58430cb1bfb1"
     },
     {
       "path": "system/docs/guides/autonomy-and-safety.md",
@@ -1126,7 +1131,7 @@
     {
       "path": "system/packs/twin/drafting.md",
       "class": "text",
-      "sha256": "12091b7109865ec9c14ef05a93ca7799647a5b4f3028fd565d4b56dd43eda2c4"
+      "sha256": "d36d28a196c4af8b9f82ff806722540af9b2c2f17289d923fd6fb399cee7c811"
     },
     {
       "path": "system/packs/twin/voice-import.md",
@@ -1446,7 +1451,7 @@
     {
       "path": "system/scripts/slop-check.mjs",
       "class": "code",
-      "sha256": "46bcc28430f7f4bd6bf3ee3ee7abac026345dbef7a8476e44489b4fe89ae7907"
+      "sha256": "f38ab2aaaf7f6fcb1227e9330093d55d305cc7217cba8ee1d997357c898207f9"
     },
     {
       "path": "system/scripts/tasks.mjs",
@@ -2321,7 +2326,7 @@
     {
       "path": "tests/scripts/slop-check.test.mjs",
       "class": "code",
-      "sha256": "0705c3bfdb52d94f5a79394b97fc4542f13a9090b24ee5ab6ca2f74e74e3705e"
+      "sha256": "2bf4a40c1b30ef2f89b2a3200ce51f65e1242cb1b302968bca6e89142d4af2cc"
     },
     {
       "path": "tests/scripts/tasks.test.mjs",

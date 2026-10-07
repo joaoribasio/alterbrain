@@ -155,6 +155,8 @@ node system/scripts/slop-check.mjs "<body file>" --lang <lang>
 
 on the message body only (not the whole note). Exit code `1` means it failed: run the `edit-voice` skill on the body, then check again. Stop after two rounds and show the remaining hits to the user instead of looping.
 
+The framework default anti-AI rules (banned words, phrases, openers, dashes and ellipsis) live in `.claude/rules/writing.md` §2 and are enforced by `slop-check.mjs` for English. A voice profile may add rules but never removes a default.
+
 ---
 
 ## 9. Output: the draft note

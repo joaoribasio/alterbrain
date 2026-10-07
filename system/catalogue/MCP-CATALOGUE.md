@@ -62,6 +62,8 @@ Anything that sends, posts or submits is held back by the **outbound guard** unl
 | `instagram` | Not a server. Official Meta API only (blueprint) | High | Needs a business account; scraping is banned |
 | `telegram` | Reads and sends as your Telegram account | High | The login key is as strong as your password |
 
+For your own LinkedIn data without scraping, so the ban risk above does not apply (members in the EEA and Switzerland only), see the `linkedin-data-portability` blueprint. It is not a helper to switch on: Alterbrain builds a small read-only script from the blueprint.
+
 ## Avoid tier: we do not recommend these
 
 | Name | Why not |

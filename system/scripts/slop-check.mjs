@@ -15,6 +15,8 @@
 //   * Text in quotes, backticks and code blocks is ignored (it is an example, not your voice).
 //   * A file that contains "slop-ok: <reason>" is skipped on purpose.
 //   * For languages other than English only language-neutral checks run.
+//   * The built-in English lists enforce the framework default anti-AI rules in
+//     .claude/rules/writing.md section 2. A voice profile or slop-extra.json may add rules, never remove defaults.
 //
 // Usage:
 //   node system/scripts/slop-check.mjs <file|-> [more files] [--lang en] [--json] [--extra path] [--soft-limit n]
@@ -95,7 +97,7 @@ export const DEFAULT_LISTS = {
     {
       label: 'throat-clearing',
       pattern:
-        "\\b(here'?s the thing|let me be clear|it'?s worth noting|it is worth noting|it'?s important to note|at the end of the day|in today'?s (fast-paced|ever-evolving|digital))\\b",
+        "\\b(here'?s the thing|let me be clear|it'?s worth noting|it is worth noting|it'?s important to note|at the end of the day)\\b",
       flags: 'i',
     },
     {
@@ -109,6 +111,56 @@ export const DEFAULT_LISTS = {
       flags: 'mu',
       neutral: true,
     },
+
+    // ---- Framework default anti-AI rules (.claude/rules/writing.md section 2). English only. ----
+
+    // Banned words so notorious that one hit fails. (All other banned words are in filler_patterns.)
+    { label: 'banned word: delve', pattern: '\\bdelv(e|es|ed|ing)\\b', flags: 'i' },
+    { label: 'banned word: tapestry', pattern: '\\btapestr(y|ies)\\b', flags: 'i' },
+    // "Old Testament", "New Testament" and "last will and testament" are fine.
+    { label: 'banned word: testament', pattern: '(?<!\\b(?:old|new) )(?<!\\bwill and )\\btestament\\b', flags: 'i' },
+
+    // Banned phrases. Apostrophes may be straight or curly.
+    {
+      label: "banned phrase: in today's",
+      // "in today's lecture / meeting / class" is a real time reference, not the stock opener.
+      pattern:
+        "\\bin today['\u2019]s (?!(?:lecture|class|meeting|session|call|seminar|workshop|discussion|exam|agenda|case|update|newsletter|email|reading|news|paper)\\b)",
+      flags: 'i',
+    },
+    { label: 'banned phrase: in the ever-evolving', pattern: '\\bin the ever[- ](evolving|changing)\\b', flags: 'i' },
+    { label: 'banned phrase: it is important to', pattern: "\\bit(?: is|['\u2019]s) important to\\b", flags: 'i' },
+    {
+      label: 'banned phrase: this highlights the importance of',
+      pattern: '\\b(highlight|underscore|underline)(s|d|ed|ing)? the (importance|significance) of\\b',
+      flags: 'i',
+    },
+    { label: 'banned phrase: in a world where', pattern: '\\bin a world where\\b', flags: 'i' },
+    { label: 'banned phrase: when it comes to', pattern: '\\bwhen it comes to\\b', flags: 'i' },
+    {
+      label: "banned phrase: I'm excited to",
+      pattern: "\\bI(?:['\u2019]m| am| was|['\u2019]ve been) (?:so |really |truly |very |absolutely )?(?:excited|thrilled) to\\b",
+      flags: 'i',
+    },
+    { label: 'banned phrase: comprehensive overview', pattern: '\\bcomprehensive (overview|guide)\\b', flags: 'i' },
+    { label: 'banned phrase: shaping the future of', pattern: '\\bshap(e|es|ing) the future of\\b', flags: 'i' },
+    { label: 'banned phrase: treasure trove', pattern: '\\btreasure trove\\b', flags: 'i' },
+    { label: 'banned phrase: in conclusion', pattern: '\\bin conclusion\\b', flags: 'i' },
+
+    // Banned sentence openers: capitalised, at the start of a line, list item or sentence, followed by a comma.
+    // "however" in the middle of a sentence is fine.
+    {
+      label: 'banned opener',
+      pattern:
+        '(?<=^[ \\t]*(?:(?:[-*>]|\\d+[.)])[ \\t]+)*|[.!?]["\'\u2019\u201D)\\]*_]*\\s+)(?:However|Furthermore|Moreover|Additionally|Consequently|Nevertheless),',
+      flags: 'm',
+    },
+
+    // En dash used as a parenthetical (spaced), same as the em dash. "2020\u20132022" is fine.
+    { label: 'en dash', pattern: '[ \\t]\\u2013[ \\t]', flags: '' },
+
+    // Ellipsis for drama. Omission marks inside square brackets, such as "[...]", are fine.
+    { label: 'ellipsis', pattern: '(?<!\\[[^\\]\\n]*)(?:\\u2026|\\.{3,})', flags: '' },
   ],
 
   // "Recap ending" openers: only the last paragraph is checked. Add languages freely.
@@ -123,18 +175,49 @@ export const DEFAULT_LISTS = {
   },
 
   // Counted, not banned. Regex sources, matched case-insensitively with word boundaries around the group.
+  // (delve, tapestry and testament are hard tells above, not filler.)
   filler_patterns: [
-    'delve|delves|delving',
     'leverag(e|es|ing)',
     'utiliz(e|es|ing)',
     'seamless(ly)?',
     'robust(ly)?',
-    'tapestry',
     'game[- ]changer',
     'paradigm shift',
-    'cutting-edge',
+    'cutting[- ]edge',
     'empower(s|ing)?',
     'streamlin(e|es|ing)',
+
+    // Framework default banned words (.claude/rules/writing.md section 2), counted as filler.
+    'endeavou?r(s|ed|ing)?',
+    'realms?',
+    'nuanced',
+    'multi-?faceted',
+    'underscor(e|es|ed|ing)',
+    // "showcase" as a noun is fine, so the base form needs a verb cue before it.
+    'showcas(es|ed|ing)|(to|will|can|could|would|should|we|they|which|that) showcase',
+    // "elevated risk / rates / inflation" is ordinary finance wording.
+    'elevat(e|es|ing)|elevated(?! (risk|levels?|rates?|inflation|prices?|costs?|volatility|uncertainty|temperatures?))',
+    'captivat(e|es|ed|ing)',
+    'hon(e|es|ed|ing)',
+    'embark(s|ed|ing)?',
+    'spearhead(s|ed|ing)?',
+    'bolster(s|ed|ing)?',
+    'harness(es|ed|ing)?',
+    'cornerstones?',
+    'groundbreaking',
+    'revolutionary',
+    'transformative',
+    'furthermore',
+    'moreover',
+    'notably',
+    'ever-evolving',
+    // Only "the <word> landscape" and "landscape of" count, so "landscape painting" is fine.
+    'the (?:[\\p{L}-]+ )?[\\p{L}-]+ landscape|landscape of',
+    'strategically',
+    'meticulous(ly)?',
+    // "particularly" and "especially" are only filler in front of a stock adjective ("particularly valuable").
+    '(particularly|especially) (important|valuable|useful|relevant|interesting|notable|effective|powerful|impactful|crucial|significant|compelling)',
+
     'load-bearing',
     'unlock the (potential|power)',
     'genuinely',
@@ -360,10 +443,23 @@ export function scanText(text, opts = {}) {
   const body = stripQuoted(text);
   const hard = [];
   let totalHard = 0;
+  const seen = new Set(); // one tell per spot: the first rule to claim a start position names it
   const push = (label, index, length) => {
+    if (seen.has(index)) return;
+    seen.add(index);
     totalHard++;
     if (hard.length < MAX_LISTED) hard.push({ label, line: lineOf(body, index), excerpt: excerpt(body, index, index + length) });
   };
+
+  // Recap ending: final paragraph only. Runs first so its label wins over a plain phrase rule ("in conclusion").
+  if (rules.recap) {
+    const last = lastParagraph(body);
+    const m = last.text.match(rules.recap);
+    if (m) {
+      const lead = m[0].length - m[0].trimStart().length;
+      push('summary-recap ending', last.offset + m.index + lead, m[0].length - lead);
+    }
+  }
 
   for (const rule of rules.hard) {
     rule.re.lastIndex = 0;
@@ -372,13 +468,6 @@ export function scanText(text, opts = {}) {
       push(rule.label, m.index, m[0].length);
       if (m[0].length === 0) rule.re.lastIndex++;
     }
-  }
-
-  // Recap ending: final paragraph only.
-  if (rules.recap) {
-    const last = lastParagraph(body);
-    const m = last.text.match(rules.recap);
-    if (m) push('summary-recap ending', last.offset + m.index, m[0].length);
   }
 
   // Em dash density for languages other than English (English: one dash fails, see hard list).
