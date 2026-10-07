@@ -1,0 +1,23 @@
+filters:
+  and:
+    - 'type == "card"'
+    - 'status == "active"'
+    - 'due && date(due) <= today()'
+properties:
+  topic:
+    displayName: "Topic"
+  box:
+    displayName: "Box"
+  due:
+    displayName: "Due"
+views:
+  - type: table
+    name: "Due now"
+    order:
+      - file.name
+      - topic
+      - box
+      - due
+    sort:
+      - property: due
+        direction: ASC

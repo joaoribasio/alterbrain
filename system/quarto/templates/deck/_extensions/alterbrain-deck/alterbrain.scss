@@ -1,0 +1,59 @@
+/*-- scss:defaults --*/
+// Colours and fonts come from the brand file (_brand.yml). These lines only set sizes and spacing.
+$presentation-font-size-root: 34px;
+$presentation-line-height: 1.3;
+$presentation-heading-font-weight: 700;
+$presentation-heading-line-height: 1.15;
+$presentation-h1-font-size: 1.9em;
+$presentation-h2-font-size: 1.45em;
+$presentation-h3-font-size: 1.15em;
+$presentation-block-margin: 0.7em;
+
+/*-- scss:rules --*/
+.reveal h2 {
+  margin-bottom: 0.5em;
+  padding-bottom: 0.2em;
+  border-bottom: 3px solid $primary;
+}
+
+// Section slides ("# Heading") have no rule.
+.reveal section.title-slide h1,
+.reveal h1 {
+  border-bottom: none;
+}
+
+.reveal section.title-slide {
+  text-align: left;
+}
+
+.reveal .subtitle { opacity: 0.75; }
+
+// A highlighted box: ::: {.box} ... :::
+.reveal .box {
+  background: rgba($primary, 0.08);
+  border-left: 8px solid $primary;
+  padding: 0.5em 0.8em;
+  margin: 0.6em 0;
+}
+
+// A big number: ::: {.big-number} 34% ::: followed by a short label.
+.reveal .big-number {
+  font-size: 3.2em;
+  font-weight: 700;
+  line-height: 1;
+  color: $primary;
+}
+
+// Source line at the bottom of a slide: ::: {.source} Source: ... :::
+.reveal .source {
+  position: absolute;
+  bottom: 0.2em;
+  left: 0;
+  font-size: 0.45em;
+  opacity: 0.7;
+}
+
+.reveal .slide-number { font-size: 0.5em; }
+
+.reveal table th { background: $primary; color: #fff; }
+.reveal table td, .reveal table th { padding: 0.3em 0.6em; }

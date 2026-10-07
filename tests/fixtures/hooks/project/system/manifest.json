@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "version": "0.0.0-test",
+  "tag": "v0.0.0-test",
+  "files": [
+    { "path": "system/core.md", "class": "code", "sha256": "0000" },
+    { "path": "tests/example.test.mjs", "class": "code", "sha256": "0000" },
+    { "path": ".github/workflows/ci.yml", "class": "code", "sha256": "0000" },
+    { "path": "system/docs/guides/Notes.md", "class": "text", "sha256": "0000" },
+    { "path": ".claude/skills/ask/SKILL.md", "class": "text", "sha256": "0000" },
+    { "path": "system/templates/notes/Example Note.md", "class": "text", "sha256": "0000" }
+  ]
+}

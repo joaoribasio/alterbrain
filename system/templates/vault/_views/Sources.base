@@ -1,0 +1,22 @@
+filters:
+  and:
+    - 'type == "source"'
+properties:
+  kind:
+    displayName: "Kind"
+  origin:
+    displayName: "Where from"
+  ingested:
+    displayName: "Added"
+views:
+  - type: table
+    name: "All sources"
+    limit: 50
+    order:
+      - file.name
+      - kind
+      - origin
+      - ingested
+    sort:
+      - property: ingested
+        direction: DESC

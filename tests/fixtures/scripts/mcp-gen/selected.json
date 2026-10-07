@@ -1,0 +1,1 @@
+{ "schema": 1, "enabled": ["playwright", "markitdown", "adzuna", "gmail", "playwright"] }

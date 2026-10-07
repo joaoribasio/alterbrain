@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "classes": {
+    "deterministic": { "model": "script", "effort": null, "examples": ["copy", "hash"] },
+    "triage": { "model": "haiku", "effort": "low", "examples": ["classify"] },
+    "work": { "model": "sonnet", "effort": "medium", "examples": ["draft"] },
+    "review": { "model": "sonnet", "effort": "high", "examples": ["verify"] },
+    "judgement": { "model": "opus", "effort": "high", "examples": ["devil's advocate"] }
+  },
+  "caps": { "pro": 3, "max": 8 }
+}

@@ -1,0 +1,72 @@
+---
+title: "Should Harbourline open a second terminal?"
+subtitle: "Operations Strategy | Case discussion"
+author: "Alex Doe"
+date: today
+date-format: "D MMMM YYYY"
+format:
+  alterbrain-deck-revealjs:
+    # Add "?print-pdf" to the address in a browser to print a PDF, or let the render skill do it.
+    footer: "Alex Doe | Operations Strategy"
+---
+
+<!--
+One slide per ## heading. A # heading makes a section divider.
+Rule of thumb: one idea per slide, at most six lines, and a title that states the point.
+Speaker notes go in a ::: {.notes} block and never show on the slides.
+-->
+
+## The answer in one line
+
+::: {.box}
+Open the second terminal in 2028, not 2027. Sign a flexible lease now.
+:::
+
+- Waiting costs about 4 million euros of lost volume.
+- Building early risks a 12 million euro capacity gap if demand falls short.
+
+::: {.notes}
+Say the answer first. Then the two numbers. Pause. Ask if anyone disagrees before going on.
+:::
+
+# The situation
+
+## Demand will fill the first terminal in about three years
+
+:::: {.columns}
+::: {.column width="55%"}
+- 1.2 million containers handled last year
+- Capacity is 1.4 million
+- Demand grew 6% a year for five years
+:::
+::: {.column width="45%"}
+::: {.big-number}
+3 years
+:::
+until the first terminal is full
+:::
+::::
+
+::: {.source}
+Source: case exhibits 2 and 4.
+:::
+
+# Options and recommendation
+
+## Leasing first keeps the choice open
+
+| Option | Cost (EUR m) | Risk |
+|--------|-------------:|------|
+| Build now | 120 | High |
+| Build in 2028 | 105 | Medium |
+| Lease first | 40 | Low |
+
+## Next steps
+
+1. Agree the lease terms with the port authority.
+2. Review demand again in twelve months.
+3. Decide on the build in early 2028.
+
+::: {.notes}
+End with the decision you need from the audience, then stop talking.
+:::

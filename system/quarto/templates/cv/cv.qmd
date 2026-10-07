@@ -1,0 +1,40 @@
+---
+title: "Alex Doe, CV"
+date: today
+date-format: "MMMM YYYY"
+metadata-files:
+  - cv-data.yml
+format: awesomecv-typst
+---
+
+<!--
+Layout for the designed CV. The words come from cv-data.yml, so edit that file, not this one.
+Each cv line below prints one list from cv-data.yml (for example the work list).
+Reorder or delete whole sections here. Keep each heading at least three letters long.
+-->
+
+## Profile
+
+{{< cv summary >}}
+
+## Experience
+
+{{< cv work >}}
+
+## Education
+
+{{< cv education >}}
+
+## Projects
+
+{{< cv projects >}}
+
+## Skills
+
+{{< cv skills >}}
+
+{{< cv languages >}}
+
+## Awards
+
+{{< cv awards >}}

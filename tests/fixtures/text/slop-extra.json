@@ -1,0 +1,6 @@
+{
+  "soft_limit": 2,
+  "hard": [{ "label": "synergy", "pattern": "\\bsynergy\\b", "flags": "i" }],
+  "filler": ["holistic", "stakeholder*"],
+  "languages": { "nl": { "filler": ["uitdaging*"], "hard": [{ "label": "naar de toekomst kijken", "pattern": "naar de toekomst kijkend", "flags": "i" }] } }
+}

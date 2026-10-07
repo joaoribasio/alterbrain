@@ -1,0 +1,21 @@
+filters:
+  and:
+    - 'type == "assignment"'
+properties:
+  course:
+    displayName: "Course"
+  deadline:
+    displayName: "Deadline"
+  status:
+    displayName: "Status"
+views:
+  - type: table
+    name: "By deadline"
+    order:
+      - file.name
+      - course
+      - deadline
+      - status
+    sort:
+      - property: deadline
+        direction: ASC

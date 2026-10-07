@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "user": { "name": "Alex Doe", "timezone": "Europe/Amsterdam", "languages": ["en"] },
+  "plan_tier": "pro",
+  "packs": ["core", "mba"],
+  "git": { "auto_commit": true, "auto_push": true }
+}

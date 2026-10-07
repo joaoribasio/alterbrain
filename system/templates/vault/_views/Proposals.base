@@ -1,0 +1,20 @@
+filters:
+  and:
+    - 'type == "proposal"'
+    - 'status == "open"'
+properties:
+  kind:
+    displayName: "Kind"
+  risk:
+    displayName: "Risk"
+views:
+  - type: table
+    name: "Open proposals"
+    order:
+      - file.name
+      - kind
+      - risk
+      - created
+    sort:
+      - property: created
+        direction: DESC

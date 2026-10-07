@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "servers": [
+    {
+      "id": "playwright", "name": "Playwright (example)", "url": "https://example.com/playwright",
+      "licence": "Apache-2.0", "tier": "core", "what": "Lets Claude use a web browser.",
+      "transport": "stdio", "command": "npx", "args": ["-y", "@example/playwright-mcp@1.2.3"], "env": {},
+      "auth": "none", "cost": "free", "tos_risk": "low", "writes": true, "channel": "web-forms",
+      "notes": "", "verified": "2026-10-06"
+    },
+    {
+      "id": "markitdown", "name": "MarkItDown (example)", "url": "https://example.com/markitdown",
+      "licence": "MIT", "tier": "optional", "what": "Turns files into text.",
+      "transport": "stdio", "command": "uvx", "args": ["markitdown-mcp==0.0.1"], "env": {},
+      "auth": "none", "cost": "free", "tos_risk": "low", "writes": false, "channel": null,
+      "notes": "", "verified": "2026-10-06"
+    },
+    {
+      "id": "adzuna", "name": "Adzuna jobs (example)", "url": "https://example.com/adzuna",
+      "licence": "MIT", "tier": "optional", "what": "Searches job adverts.",
+      "transport": "stdio", "command": "node", "args": ["server.mjs"], "env": { "ADZUNA_APP_KEY": "${ADZUNA_APP_KEY}" },
+      "auth": "api-key", "cost": "free", "tos_risk": "medium", "writes": false, "channel": null,
+      "notes": "", "verified": "2026-10-06"
+    },
+    {
+      "id": "gmail", "name": "Gmail (claude.ai connector)", "url": "https://example.com/gmail",
+      "licence": "n/a", "tier": "optional", "what": "Reads and drafts email through claude.ai.",
+      "transport": "connector", "env": {},
+      "auth": "connector", "cost": "free", "tos_risk": "low", "writes": true, "channel": "email",
+      "notes": "", "verified": "2026-10-06"
+    },
+    {
+      "id": "shady", "name": "Shady tool (example)", "url": "https://example.com/shady",
+      "licence": "MIT", "tier": "avoid", "what": "Should never be written.",
+      "transport": "stdio", "command": "npx", "args": ["shady@0.1.0"], "env": {},
+      "auth": "none", "cost": "free", "tos_risk": "high", "writes": false, "channel": null,
+      "notes": "", "verified": "2026-10-06"
+    }
+  ]
+}

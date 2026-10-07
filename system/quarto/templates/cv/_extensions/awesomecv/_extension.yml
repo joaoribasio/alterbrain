@@ -1,0 +1,14 @@
+# Adapted from quarto-awesomecv-typst (MIT) — https://github.com/kazuyanagimoto/quarto-awesomecv-typst @ 33e70a3ef0bcf28960773f2f8438861ed94b5b4a (v0.3.3). Changes: see PATCHES.md.
+title: quarto-awesomecv-typst
+author: Kazuharu Yanagimoto
+version: 0.3.3
+quarto-required: ">=1.8.0"
+contributes:
+  formats:
+    typst:
+      shortcodes:
+        - input-yaml.lua
+        - cv.lua
+      template-partials:
+        - typst-template.typ
+        - typst-show.typ

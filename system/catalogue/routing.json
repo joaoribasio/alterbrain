@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "reviewed": "2026-10-07",
+  "classes": {
+    "deterministic": {
+      "model": "script",
+      "effort": null,
+      "examples": [
+        "copy a file",
+        "hash a file",
+        "extract text",
+        "render a document",
+        "check page count"
+      ]
+    },
+    "triage": {
+      "model": "haiku",
+      "effort": "low",
+      "examples": [
+        "classify",
+        "tag",
+        "score",
+        "extract fields",
+        "summarise one email"
+      ]
+    },
+    "work": {
+      "model": "sonnet",
+      "effort": "medium",
+      "examples": [
+        "drafts",
+        "explanations",
+        "research",
+        "notes",
+        "edits"
+      ]
+    },
+    "review": {
+      "model": "sonnet",
+      "effort": "high",
+      "examples": [
+        "verification",
+        "critique lenses",
+        "QA",
+        "fact-checks"
+      ]
+    },
+    "judgement": {
+      "model": "opus",
+      "effort": "high",
+      "examples": [
+        "thesis options",
+        "devil's advocate",
+        "critique synthesis",
+        "voice-profile calibration",
+        "self-build review"
+      ]
+    }
+  },
+  "caps": {
+    "pro": 3,
+    "max": 8
+  }
+}

@@ -1,0 +1,41 @@
+# Your report style. Quarto reads this file to colour and style every report,
+# slide deck and PDF Alterbrain makes for you. Change the values, save, and the
+# next report picks them up. Colours are written as hex codes, like #1F3A5F.
+
+# Who this style belongs to. Only used as a label.
+meta:
+  name: "Alex Doe"
+
+# Colours.
+color:
+  # A palette is a list of named colours. Give each one a name you will remember.
+  palette:
+    navy: "#1F3A5F"       # deep blue, good for headings
+    teal: "#2A9D8F"       # fresh accent
+    ink: "#1B1B1F"        # almost black, easy on the eyes
+    paper: "#FFFFFF"      # white page
+  # Then say which palette colour does which job.
+  primary: navy           # main colour: headings, links, buttons
+  secondary: teal         # second colour: highlights and charts
+  foreground: ink         # text colour
+  background: paper       # page colour
+
+# Fonts. Both are free to use (SIL Open Font Licence) and download from Google Fonts.
+typography:
+  fonts:
+    - family: Source Sans 3
+      source: google
+    - family: Source Serif 4
+      source: google
+  # The font for normal text.
+  base:
+    family: Source Sans 3
+    size: 11pt
+  # The font for titles and headings.
+  headings:
+    family: Source Serif 4
+    weight: 600
+
+# Your logo is optional. To use one, put the image in vault/80_me/brand/
+# and remove the "#" at the start of the next line.
+# logo: logo.png

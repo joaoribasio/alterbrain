@@ -1,0 +1,26 @@
+filters:
+  and:
+    - 'type == "application"'
+properties:
+  company:
+    displayName: "Company"
+  role:
+    displayName: "Role"
+  stage:
+    displayName: "Stage"
+  deadline:
+    displayName: "Deadline"
+views:
+  - type: table
+    name: "By stage"
+    groupBy:
+      property: stage
+      direction: ASC
+    order:
+      - file.name
+      - company
+      - role
+      - deadline
+    sort:
+      - property: deadline
+        direction: ASC

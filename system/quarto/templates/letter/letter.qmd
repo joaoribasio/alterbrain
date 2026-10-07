@@ -1,0 +1,40 @@
+---
+sender:
+  name: "Alex Doe"
+  address:
+    - "Example Street 12"
+    - "3011 AA Rotterdam"
+  email: "alex.doe@example.com"
+  phone: "+31 6 1234 5678"
+recipient:
+  name: "Ms Sam Example"
+  role: "Head of Operations"
+  company: "Harbourline Logistics B.V."
+  address:
+    - "Sample Quay 3"
+    - "3012 BB Rotterdam"
+place: "Rotterdam"
+date: today
+date-format: "D MMMM YYYY"
+subject: "Application: Operations Analyst"
+salutation: "Dear Ms Example,"
+closing: "Kind regards,"
+signature: "Alex Doe"
+enclosures: "CV"
+lang: en
+format: alterbrain-letter-typst
+---
+
+<!--
+Cover letter. Everything above the line is data: edit the words, keep the keys.
+Write the letter itself below the second line of dashes. Three or four short paragraphs fit one page.
+Do not write the salutation or the sign-off here; they are printed from the data above.
+-->
+
+I am writing to apply for the Operations Analyst role. I am finishing a full-time MBA in Rotterdam, and before that I spent six years running warehouse operations.
+
+In my last role I led a team of 12 and cut late deliveries by 34% in 18 months. I did it by redesigning the dispatch plan with the team, not around them. I would like to bring the same habit of measuring first and changing second to your planning team.
+
+Your recent move to a second terminal makes planning harder, and that is the kind of problem I enjoy. I would welcome a conversation about how I can help.
+
+Thank you for your time.

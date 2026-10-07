@@ -1,0 +1,37 @@
+---
+title: "Alex Doe, CV"
+metadata-files:
+  - cv-data.yml
+format: alterbrain-cv-ats-typst
+---
+
+<!--
+Plain CV that applicant tracking systems read well: one column, no icons, no colours.
+The words come from cv-data.yml, so edit that file, not this one.
+-->
+
+## Profile
+
+{{< cv summary >}}
+
+## Experience
+
+{{< cv work >}}
+
+## Education
+
+{{< cv education >}}
+
+## Projects
+
+{{< cv projects >}}
+
+## Skills
+
+{{< cv skills >}}
+
+{{< cv languages >}}
+
+## Awards
+
+{{< cv awards >}}

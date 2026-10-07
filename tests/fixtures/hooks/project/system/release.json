@@ -1,0 +1,8 @@
+{
+  "name": "alterbrain",
+  "version": "0.0.0-test",
+  "tag": "v0.0.0-test",
+  "repo": "example/alterbrain",
+  "min_claude_code": "2.1.283",
+  "min_node": "20.0.0"
+}

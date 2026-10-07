@@ -1,0 +1,48 @@
+# Onboarding state (`state/onboarding.json`)
+
+Written only through `node system/scripts/onboard-progress.mjs`. Never edit the file by hand and never type a timestamp yourself: the script takes it from the system clock.
+
+```json
+{
+  "schema": 1,
+  "status": "in_progress",
+  "started": "2026-10-07T09:12:00.000Z",
+  "updated": "2026-10-07T09:31:00.000Z",
+  "minimum": ["M0", "M1", "M2", "M3", "M4"],
+  "modules": {
+    "M0": { "title": "Setup", "status": "done", "started": "…", "finished": "…", "note": "" },
+    "M1": { "title": "Identity and tone", "status": "later", "started": "…", "finished": null, "note": "wants to pick a name tomorrow" }
+  }
+}
+```
+
+## Fields
+
+- `status` (overall), worked out by the script:
+  - `not_started`: no module touched;
+  - `in_progress`: something started, essentials not finished;
+  - `minimum_done`: M0 to M4 are `done`;
+  - `complete`: every module is `done` or `skipped`.
+- `modules.<id>.status`: `todo`, `in_progress`, `done`, `later` (the user said "later"; still open), `skipped` (the user does not want it).
+- `started` / `finished`: ISO timestamps. `finished` is set by `done` and `skip`.
+- `note`: one short line to resume from ("stopped at course 2 of 4"). No personal details beyond what the next step needs.
+
+## Commands
+
+| Command | Effect |
+|---|---|
+| `node system/scripts/onboard-progress.mjs show` | Plain summary for the user, with the next module |
+| `node system/scripts/onboard-progress.mjs next --json` | `{ "next": "M2", "title": "…", "file": "workflows/M2-you-and-facts.md" }` |
+| `node system/scripts/onboard-progress.mjs start M2` | Mark in progress (keeps the first start time) |
+| `node system/scripts/onboard-progress.mjs done M2` | Mark done |
+| `node system/scripts/onboard-progress.mjs later M2 --note "<where we stopped>"` | Save for later |
+| `node system/scripts/onboard-progress.mjs skip M8` | The user does not want this module |
+| `node system/scripts/onboard-progress.mjs reset M5` | Back to `todo` (used by `/reconfigure` before a full redo) |
+
+Modules accept aliases too: `setup`, `identity`, `you`, `courses`, `autonomy`, `voice`, `career`, `gmail`, `brand`, `import`.
+
+## Who reads it
+
+- `system/hooks/session_start.mjs`: shows "setup incomplete" in the digest while `status` is `not_started` or `in_progress`.
+- `/menu` and `/reconfigure`: show what is set up.
+- `system/scripts/doctor.mjs`: reports the onboarding state.

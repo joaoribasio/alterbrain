@@ -1,0 +1,29 @@
+# Alterbrain default brand. Quarto reads this file when you make a CV, letter, report or deck.
+# Your own brand lives at vault/80_me/brand/_brand.yml. When that file exists it is used instead of this one.
+# Plain words: a "brand" is just your colours and fonts, so your documents look like they belong together.
+meta:
+  name: "Alterbrain default"
+color:
+  palette:
+    navy: "#1F3A5F"
+    sky: "#3C78B4"
+    ink: "#222222"
+    paper: "#FFFFFF"
+    mist: "#EEF2F7"
+    grey: "#5D6673"
+  primary: navy
+  secondary: sky
+  foreground: ink
+  background: paper
+  link: sky
+typography:
+  fonts:
+    - family: Arial
+      source: system
+  base:
+    family: Arial
+    size: 11pt
+  headings:
+    family: Arial
+    weight: bold
+    color: navy

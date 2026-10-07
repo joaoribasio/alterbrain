@@ -1,0 +1,20 @@
+{
+  "obsidian-tasks-plugin": {
+    "repo": "obsidian-tasks-group/obsidian-tasks",
+    "version": "8.4.0",
+    "files": {
+      "main.js": "c1e3333bce3fee7c1a06397ea2989cd27e1659cc30795c53ed5a60e7941e48fa",
+      "manifest.json": "499cfa146ba9cbdd70ccfc9d16b6b6cbfb4243158d14335b2b336259e867c33f",
+      "styles.css": "3b2ca53d3b74162b5899b251d18b695f532546181ebaed6354befbe72c29935d"
+    }
+  },
+  "obsidian-git": {
+    "repo": "Vinzent03/obsidian-git",
+    "version": "2.41.1",
+    "files": {
+      "main.js": "28a18afcab1d2f152a0d3c89aff38e2a97ad0be1aeaaf99630613233bbec6c1b",
+      "manifest.json": "5d4d0f411518636c1d2a4831425a8e3487b925b5bd413be0ca22e6de38a593f7",
+      "styles.css": "bfa8fbd45fe49ff340fdb196b84badd631aede5d6f96740f336ea779cd441005"
+    }
+  }
+}

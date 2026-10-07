@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "default": "draft",
+  "channels": {
+    "email":    { "level": "auto" },
+    "calendar": { "level": "auto" },
+    "jobs":     { "level": "draft" },
+    "linkedin": { "level": "draft" },
+    "social":   { "level": "draft" },
+    "messaging":{ "level": "draft" },
+    "web-forms":{ "level": "draft" }
+  }
+}

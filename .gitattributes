@@ -1,0 +1,31 @@
+# Text files: LF everywhere (Windows-safe scripts, stable hashes for the update manifest)
+* text=auto eol=lf
+
+# Framework binaries (system/) are NOT in LFS: release downloads and the update tool read raw files.
+
+# User binaries inside the vault go through Git LFS
+vault/**/*.pdf  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.docx filter=lfs diff=lfs merge=lfs -text
+vault/**/*.doc  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.xlsx filter=lfs diff=lfs merge=lfs -text
+vault/**/*.xls  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.pptx filter=lfs diff=lfs merge=lfs -text
+vault/**/*.ppt  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.png  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.jpg  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+vault/**/*.gif  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.webp filter=lfs diff=lfs merge=lfs -text
+vault/**/*.mp3  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.m4a  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.mp4  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.mov  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.zip  filter=lfs diff=lfs merge=lfs -text
+vault/**/*.mbox filter=lfs diff=lfs merge=lfs -text
+
+# Obsidian plugin files must stay byte-identical to their pinned sha256 (no line-ending changes)
+vault/.obsidian/plugins/** -text
+
+# Append-only logs: concatenate on the rare merge instead of conflicting
+vault/40_sources/manifest.jsonl merge=union
+vault/30_wiki/log.md            merge=union

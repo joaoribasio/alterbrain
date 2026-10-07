@@ -1,0 +1,66 @@
+---
+title: "Should Harbourline open a second terminal?"
+subtitle: "Case analysis"
+author:
+  - name: "Alex Doe"
+course: "Operations Strategy"
+programme: "MBA 2026-27"
+date: today
+date-format: "D MMMM YYYY"
+bibliography: references.bib
+format:
+  alterbrain-report-typst:
+    # Page rules from the assignment brief. Change these to match the limits you were given.
+    fontsize: 11pt
+    line-spacing: 1.15
+    margin:
+      x: 2.5cm
+      y: 2.5cm
+---
+
+<!--
+Sections start at ## because the title comes from the front matter above.
+Numbers are automatic. Add {-} after a heading to leave it unnumbered.
+Write \$98m with a backslash, so the dollar sign stays a dollar sign.
+-->
+
+## Summary {-}
+
+::: {.box}
+**Answer.** Open the second terminal in 2028, not 2027. The wait costs about 4 million euros of lost volume but avoids a 12 million euro capacity gap that opens if demand falls short.
+
+1. Delay the commitment by one year.
+2. Sign a flexible lease option now.
+:::
+
+## Situation {#sec-situation}
+
+Harbourline handles 1.2 million containers a year. Demand grew 6% a year over the last five years [@porter1985]. This section sets out what is known and what is not.
+
+A paragraph that ends with a colon introduces a list:
+
+1. Capacity at the first terminal is 1.4 million containers.
+2. Demand reaches that limit in about three years.
+
+## Options {#sec-options}
+
+@sec-situation shows the limit. @tbl-options compares the options.
+
+| Option | Cost (EUR m) | Risk |
+|--------|-------------:|------|
+| Build now | 120 | High |
+| Build in 2028 | 105 | Medium |
+| Lease first | 40 | Low |
+
+: Options compared {#tbl-options}
+
+*Source: team estimates from the case exhibits.*
+
+## Recommendation
+
+Choose the lease. It keeps the choice open and limits the downside [@porter1985, p. 12].
+
+<!--
+To start a new page, write the pagebreak shortcode on a line of its own (see README.md).
+The reference list prints itself at the end, so you do not write a References heading.
+-->

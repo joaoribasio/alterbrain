@@ -1,0 +1,46 @@
+# Secrets — never committed
+.env
+.env.*
+!.env.example
+
+# Keys and credentials, wherever they sit (Keynote .key files are not private keys, so they are not listed)
+*.pem
+*.p12
+*.pfx
+*.kdbx
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+credentials*.json
+client_secret*.json
+
+# Generated per computer (it holds absolute folder paths): rebuilt by system/scripts/mcp-gen.mjs
+.mcp.json
+
+# Machine-local state (consents, logs, caches)
+state/local/
+.claude/settings.local.json
+
+# Dependencies and build output
+node_modules/
+.quarto/
+**/_out/
+**/*_files/
+
+# Obsidian per-device files
+vault/.obsidian/workspace.json
+vault/.obsidian/workspace-mobile.json
+vault/.obsidian/cache
+vault/.trash/
+
+# Local-only vault content (never committed)
+vault/40_sources/raw/_local/
+vault/80_me/.auto-memory/
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+~$*

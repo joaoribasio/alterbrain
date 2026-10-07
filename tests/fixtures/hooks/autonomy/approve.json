@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "default": "draft",
+  "channels": {
+    "email":    { "level": "approve" },
+    "calendar": { "level": "approve" },
+    "jobs":     { "level": "draft" },
+    "linkedin": { "level": "draft" },
+    "social":   { "level": "draft" },
+    "messaging":{ "level": "approve" },
+    "web-forms":{ "level": "approve" }
+  }
+}

@@ -1,0 +1,84 @@
+# Alterbrain CV data. Synthetic example: Alex Doe is not a real person.
+# The render skill fills this file from vault/80_me/USER.md, vault/80_me/fact-sheet.md
+# and vault/20_areas/career/. Both CV layouts (cv.qmd and cv-ats.qmd) read it.
+#
+# Rules for every value:
+#  - Plain text only. No markdown, no emoji. Avoid * ` ~ < > because Quarto reads them as formatting.
+#  - Put every value in double quotes.
+#  - Only facts the person has confirmed. Leave a field out rather than guess it.
+#  - Dates are text, for example "2022 - 2024" or "Sep 2025 - present".
+#
+# An entry can have: title, description (usually the organisation), location, date,
+# and details (a list of short bullet points, each starting with a verb and ending with a result).
+
+author:
+  firstname: "Alex"
+  lastname: "Doe"
+  position: "MBA candidate | Operations and strategy"
+  address: "Rotterdam, the Netherlands"
+  contacts:
+    - icon: "fa envelope"
+      text: "alex.doe@example.com"
+      url: "mailto:alex.doe@example.com"
+    - icon: "fa phone"
+      text: "+31 6 1234 5678"
+      url: ""
+    - icon: "fa brands linkedin"
+      text: "linkedin.com/in/alex-doe-example"
+      url: "https://linkedin.com/in/alex-doe-example"
+
+cv:
+  summary: "Operations manager with six years in logistics, now completing a full-time MBA in Rotterdam. Led a 12-person team and cut delivery delays by a third. Looking for a strategy or operations role in the Netherlands from autumn 2027."
+
+  education:
+    - title: "MBA, full-time"
+      description: "Example Business School"
+      location: "Rotterdam, NL"
+      date: "2026 - 2027"
+      details:
+        - "Electives: Operations strategy, Negotiation, Corporate finance"
+        - "Elected class representative for the operations club"
+    - title: "BSc Industrial Engineering"
+      description: "Example University of Technology"
+      location: "Eindhoven, NL"
+      date: "2014 - 2018"
+
+  work:
+    - title: "Operations Manager"
+      description: "Harbourline Logistics B.V."
+      location: "Rotterdam, NL"
+      date: "2021 - 2026"
+      details:
+        - "Led a team of 12 across two warehouses and a night shift."
+        - "Cut late deliveries by 34% in 18 months by redesigning the dispatch plan."
+        - "Negotiated a new carrier contract that saved 220,000 euros a year."
+    - title: "Operations Analyst"
+      description: "Harbourline Logistics B.V."
+      location: "Rotterdam, NL"
+      date: "2018 - 2021"
+      details:
+        - "Built the weekly performance dashboard used by the management team."
+        - "Mapped the returns process and removed three handovers."
+
+  projects:
+    - title: "Consulting project: port congestion"
+      description: "MBA field project for a regional port authority"
+      location: ""
+      date: "2027"
+      details:
+        - "Team of five. Recommended a slot-booking system with an expected 15% shorter truck queue."
+
+  skills:
+    - title: "Analysis"
+      description: "Excel and financial modelling, SQL basics, process mapping"
+    - title: "Leadership"
+      description: "Team management, stakeholder communication, coaching"
+
+  languages:
+    - title: "Languages"
+      description: "English (fluent), Dutch (conversational), Portuguese (native)"
+
+  awards:
+    - title: "Dean's scholarship"
+      description: "Example Business School"
+      date: "2026"

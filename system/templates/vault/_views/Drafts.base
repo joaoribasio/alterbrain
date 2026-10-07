@@ -1,0 +1,23 @@
+filters:
+  and:
+    - 'type == "draft"'
+    - 'status == "draft"'
+properties:
+  channel:
+    displayName: "Channel"
+  to:
+    displayName: "To"
+  lang:
+    displayName: "Language"
+views:
+  - type: table
+    name: "Waiting for you"
+    order:
+      - file.name
+      - channel
+      - to
+      - lang
+      - file.ctime
+    sort:
+      - property: file.ctime
+        direction: DESC
