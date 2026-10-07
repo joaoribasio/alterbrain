@@ -891,7 +891,7 @@
     {
       "path": "system/lib/hookio.mjs",
       "class": "code",
-      "sha256": "8948dd2309eeeed7f94a625116aef6f20b61070374b3af364634534acae6519b"
+      "sha256": "216e8570b0b3778c22612d79efc7518b4c35b171d156123380409f005b071a92"
     },
     {
       "path": "system/lib/manifest.mjs",
@@ -2311,7 +2311,7 @@
     {
       "path": "tests/scripts/qmd-prerender.test.mjs",
       "class": "code",
-      "sha256": "65f25533b126d0ae5507b9e8a91868f42d629af27d206984224ac7266bc94eb1"
+      "sha256": "8bea4cce643ca82837e568a67406b705660e61f6a0ca7976e3df5963f96c8958"
     },
     {
       "path": "tests/scripts/setup-github.test.mjs",

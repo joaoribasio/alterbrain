@@ -238,17 +238,22 @@ function relInside(root, abs) {
 export function projectRels(p) {
   if (typeof p !== 'string' || !p.trim()) return [];
   const root = projectRoot();
-  const raw = process.platform === 'win32' ? winAliasNormalise(p) : p;
-  const abs = resolve(root, raw);
   const out = [];
   const add = (rel) => {
     if (rel !== null && !out.includes(rel)) out.push(rel);
   };
-  add(relInside(root, abs));
-  try {
-    add(relInside(realpathSync.native(root), realpathNearest(abs)));
-  } catch {
-    /* no real path: the lexical spelling stands */
+  // On macOS and Linux a backslash is a legal file-name character, but a model or a PowerShell
+  // command may still write "system\lib\x.mjs" meaning a folder path. Check both readings, so the
+  // guards err on the side of blocking.
+  const spellings = process.platform === 'win32' ? [winAliasNormalise(p)] : p.includes('\\') ? [p, p.replace(/\\/g, '/')] : [p];
+  for (const raw of spellings) {
+    const abs = resolve(root, raw);
+    add(relInside(root, abs));
+    try {
+      add(relInside(realpathSync.native(root), realpathNearest(abs)));
+    } catch {
+      /* no real path: the lexical spelling stands */
+    }
   }
   return out;
 }

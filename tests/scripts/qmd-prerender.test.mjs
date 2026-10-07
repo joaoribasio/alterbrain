@@ -18,7 +18,11 @@ function run(args) {
 }
 
 function tmp() {
-  return mkdtempSync(join(tmpdir(), 'qmd-'));
+  // Same drive as the fixture vault: on CI runners the system temp folder can sit on another drive
+  // (C: vs D:), where no relative image path exists.
+  const base = join(HERE, '..', '..', 'state', 'local', 'tmp', 'qmd-tests');
+  mkdirSync(base, { recursive: true });
+  return mkdtempSync(join(base, 'qmd-'));
 }
 
 // The fixture's own top-level sections, in order. (Embedded notes bring their own "##" headings.)
