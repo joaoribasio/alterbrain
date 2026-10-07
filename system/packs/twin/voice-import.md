@@ -186,10 +186,28 @@ Write the result to `vault/80_me/voice/<lang>/profile.md`.
 
 ## 6. Read-back with the user
 
-1. Show a 5 to 8 line plain summary of the profile, not the whole file.
-2. Ask one question: "Does this sound like you?" Options: **Yes** · **Mostly, with changes** · **Not really**.
-3. For changes: ask what is off, one item at a time. Update the profile. The user's word beats the stats.
-4. Confirm, then write.
+Never ask "does this sound like you?" in the abstract. First show what you found, then show a sample, then ask.
+
+1. **Show what you discovered**, as a short list the user can correct (not the whole file). Mark each item `measured` (from the stats) or `inferred` (from reading the samples):
+   - **Based on:** how many samples, from which sources, and the gaps ("24 samples: essays and interview stories. No emails or LinkedIn posts yet, so those registers are unknown.").
+   - **Signature habits** (3 to 5): openers, sentence rhythm, punctuation, sign-offs. Each with a tiny quote from the user's own text (12 words at most).
+   - **You do / You never** (top 5 each).
+   - **Covered registers:** which channels and recipient classes the profile covers, and which are still unknown.
+
+   Ask: "Anything wrong or missing?" Options: **Looks right** (recommended) · **Change an item** · **Add something**. Take changes one at a time. The user's word beats the stats.
+2. **Write a sample in their voice.** Ask the topic with three options plus their own:
+   - **Opening of a class presentation** (recommended for an MBA student): 60 seconds introducing a topic from one of their courses.
+   - **Explaining a fact from their field** to a classmate.
+   - **A short LinkedIn-style post** about a lesson they learned.
+
+   The `ghostwriter` writes 120 to 180 words using the profile and exemplars, then runs the slop check. It uses only facts from the fact sheet or `USER.md`; anything else becomes `[FACT NEEDED: …]`. Present it labelled **"Sample in your voice (not saved)"**.
+3. **Ask "Does this sound like you?"** Options:
+   - **Yes, that's me** (recommended if it rings true)
+   - **Close, but…** (say what is off)
+   - **Not me**
+
+   For the last two, ask what gave it away, one item at a time. Update the profile and write one new sample. At most two rounds.
+4. Confirm, then write the profile. Never save the sample to the vault.
 
 ---
 

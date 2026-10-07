@@ -31,7 +31,10 @@ Follow **`system/packs/twin/voice-import.md`** step by step. It is the single so
 - Stats: `node system/scripts/voice-stats.mjs "state/local/tmp/voice/<lang>/corpus.md" --lang <lang> --out "vault/80_me/voice/<lang>/stats.json"`. It prints JSON and, with `--out`, also saves it (there is no `--json` flag). That file is the baseline `voice-stats --check` reads by default.
 - Exemplars and profile register rows use the seven recipient classes of `system/packs/twin/drafting.md` §3: `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`.
 - Profile: an **opus / high** subagent fills `system/templates/voice/profile.md` from the exemplars and the baseline stats, and writes `vault/80_me/voice/<lang>/profile.md`.
-- Read-back: show 5–8 plain lines, ask "Does this sound like you?" Yes / Mostly, with changes / Not really.
+- Read-back (voice-import.md §6), always in this order:
+  1. Show what was discovered (sources and gaps, signature habits with tiny quotes, do/never, covered registers), each marked measured or inferred, and let the user correct it.
+  2. Write a 120–180-word sample in their voice on a topic they pick (default: opening a class presentation).
+  3. Only then ask "Does this sound like you?"
 - Blind test: 5 pairs (one real held-out message, one `ghostwriter` draft from a neutral brief). The user guesses which is theirs. 0–3 correct = pass. 4–5 = ask what gave it away, update the profile, at most two rounds.
 
 ## Saving progress between languages

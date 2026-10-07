@@ -401,7 +401,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M5-voice.md",
       "class": "text",
-      "sha256": "ebfab696e852bdb33890546ddead589c815f2dd1d373a1b9e21c365b607990e2"
+      "sha256": "d9b9b702f292f99b75c6a5d2955c5cba6c6a0c5d365b6df90734e8775d0eaa12"
     },
     {
       "path": ".claude/skills/onboard/workflows/M6-career.md",
@@ -1156,7 +1156,7 @@
     {
       "path": "system/packs/twin/voice-import.md",
       "class": "text",
-      "sha256": "57010faf40132406cc2853c039b901b75ce31954bc3017fc96388025ba4350b1"
+      "sha256": "4819cfc0a8838d0021aa241c81bd8569edbe03240ea01fc25259f98ad85ebf6e"
     },
     {
       "path": "system/quarto/NOTICE.md",
