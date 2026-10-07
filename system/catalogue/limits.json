@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "_note": "Framework defaults for the rate guard (system/hooks/rate_guard.mjs). A server listed here is rate-limited: the guard counts every call after it ran and blocks a call that is over a cap or too soon. A server that is not listed is never touched. To add a server later, add a block here; no code changes. Your own overrides live in config/limits.json (lowering a number is always allowed; raising one needs accept_risk). Day caps reset at local midnight, week caps on Monday at 00:00.",
+  "servers": {
+    "linkedin": {
+      "name": "LinkedIn",
+      "_note": "LinkedIn publishes no limits, so every number is a cautious starting point, not a LinkedIn rule. The figures follow LeadLoft, 'LinkedIn Limits 2026' (Zack Olivas, 2026-06-15, https://www.leadloft.com/blog/linkedin-limits) for a Premium account, all [Claim: LeadLoft]: invites 'around 20-30 per day' and 'up to 200 per week' on Premium; messages '150 per week' on paid accounts; profile views 'up to 2,000 profiles per day' on Premium with the advice to 'stay under half'. The invite weekly_cap is 150, not 200, because invites sent by hand from the app never reach the ledger but still count against LinkedIn's weekly limit. weekday_cap keeps invites to Monday to Thursday. Search: LinkedIn's monthly search quota is about 300 and resets on the 1st [Unverified: framework author, from a web search], so the daily search cap is 14 (about 300 over 21 weekdays). The other categories are the framework author's own cautious guesses [Speculation]; the invite min_gap_seconds was lowered from 90 to 20 by the author. The author used these numbers on a Premium account for an active outreach campaign, so they are generous for most people: on a free account, lower them in config/limits.json. Warning rule (the author's): a checkpoint, CAPTCHA or warning stops all calls and halves every cap; a second one switches the server to draft-only. throttle_days, pause_hours and draft_only_window_days are Alterbrain's own choices [Assumption]. Tool names are those of mcp-server-linkedin 4.26.2 (identical to 4.24.4); a tool not listed counts as 'other'.",
+      "match": ["linkedin"],
+      "target_keys": ["linkedin_username", "url", "company_name", "thread_id", "job_id", "keywords"],
+      "categories": {
+        "invite": {
+          "label": "connection requests",
+          "tools": ["connect_with_person"],
+          "writes": true,
+          "daily_cap": 40,
+          "weekly_cap": 150,
+          "weekday_cap": ["mon", "tue", "wed", "thu"],
+          "min_gap_seconds": 20
+        },
+        "message": {
+          "label": "messages",
+          "tools": ["send_message"],
+          "writes": true,
+          "daily_cap": 30,
+          "weekly_cap": 150,
+          "min_gap_seconds": 60
+        },
+        "profile": {
+          "label": "profile views",
+          "tools": ["get_person_profile", "get_my_profile", "get_sidebar_profiles"],
+          "daily_cap": 80,
+          "min_gap_seconds": 20
+        },
+        "company": {
+          "label": "company page views",
+          "tools": ["get_company_profile", "get_company_posts"],
+          "daily_cap": 40,
+          "min_gap_seconds": 20
+        },
+        "search": {
+          "label": "searches",
+          "tools": ["search_people", "search_companies", "search_posts", "search_jobs"],
+          "daily_cap": 14,
+          "min_gap_seconds": 30
+        },
+        "employees": {
+          "label": "employee lists",
+          "tools": ["get_company_employees"],
+          "daily_cap": 10,
+          "min_gap_seconds": 60
+        },
+        "inbox": {
+          "label": "inbox, feed and saved-job reads",
+          "tools": ["get_inbox", "get_conversation", "search_conversations", "get_feed", "get_saved_jobs", "get_job_details"],
+          "daily_cap": 60,
+          "min_gap_seconds": 10
+        },
+        "free": {
+          "label": "housekeeping",
+          "tools": ["close_session"]
+        },
+        "other": {
+          "label": "other actions",
+          "writes": true,
+          "daily_cap": 20,
+          "min_gap_seconds": 30
+        }
+      },
+      "warnings": {
+        "phrases": [
+          "linkedin\\.com/checkpoint",
+          "security checkpoint",
+          "rate limit detected",
+          "\\[rate limited\\]",
+          "restricted access to this account",
+          "verify it'?s you",
+          "verify it is you",
+          "quick security check"
+        ],
+        "weak": [
+          "captcha",
+          "checkpoint",
+          "unusual activity",
+          "(your|this) account.{0,40}restricted",
+          "restricted.{0,40}(your|this) account",
+          "you('ve| have| are| were) (been )?restricted",
+          "temporarily limited",
+          "temporarily restricted",
+          "too many requests",
+          "\\b429\\b",
+          "security verification",
+          "verify (that )?you('re| are) (a )?human"
+        ],
+        "weak_max_chars": 1000
+      },
+      "outcome_unknown": {
+        "statuses": ["outcome_unknown", "send_unconfirmed"],
+        "patterns": ["outcome is unknown", "did not confirm the outcome", "may already have been submitted", "interrupted while in flight"],
+        "error_patterns": ["timed? ?out", "timeout", "cancel", "interrupted", "connection (closed|lost|reset)", "disconnected"]
+      },
+      "failed_statuses": ["custom_note_limit_reached", "connect_unavailable"],
+      "throttle_days": 14,
+      "pause_hours": 24,
+      "draft_only_window_days": 60
+    }
+  }
+}

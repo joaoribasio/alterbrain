@@ -581,17 +581,18 @@ status: "setup"        # setup, brief, draft, critique, final, shipped
 
 **General:**
 - Node, zero dependencies, read JSON from stdin.
-- **Fail open on malformed input** (exit 0, no output), **except** `outbound_guard`, which fails closed.
+- **Fail open on malformed input** (exit 0, no output), **except** `outbound_guard`, which fails closed, and `rate_guard`, which fails closed for a server that has limits when its limits, ledger or state cannot be read (a payload it cannot read at all is still ignored: it cannot tell which server it is about).
 - Resolve the project root from `process.env.CLAUDE_PROJECT_DIR`, then fall back to walking up from `import.meta.url`. Never rely on cwd.
 - Every hook has tests in `tests/hooks/`.
 
 | hook | event / matcher | behaviour |
 |---|---|---|
 | `session_start.mjs` | SessionStart | Runs `git-auto pull` (5 s budget). Emits a compact digest as additional context: date/time; onboarding status (incomplete → suggest `/onboard` after handling the user's request); counts of overdue/today tasks, outbox drafts and open proposals; warnings (model not sonnet, Claude Code version below minimum, git problems). |
-| `protect_paths.mjs` | PreToolUse Write\|Edit\|MultiEdit\|NotebookEdit | Denies edits to `code`-class paths (from `system/manifest.json`, plus always `.claude/settings.json`, `system/core.md`, `system/hooks/**`, `system/scripts/**`, `system/lib/**`, `system/catalogue/*.json`) unless dev mode. Denies writes into `vault/40_sources/raw/**` (raw is immutable; only `ingest.mjs` writes there). |
+| `protect_paths.mjs` | PreToolUse Write\|Edit\|MultiEdit\|NotebookEdit | Denies edits to `code`-class paths (from `system/manifest.json`, plus always `.claude/settings.json`, `system/core.md`, `system/hooks/**`, `system/scripts/**`, `system/lib/**`, `system/catalogue/*.json`) unless dev mode. Denies writes into `vault/40_sources/raw/**` (raw is immutable; only `ingest.mjs` writes there) and into `state/local/rate-guard/**` (the rate guard's ledger and state; an agent must not be able to clear a safety stop). |
 | `block_secrets.mjs` | PreToolUse Write\|Edit\|MultiEdit, and Bash\|PowerShell for `git commit` | Denies content matching secret patterns (private keys, `sk-…`, `ghp_…`, `gho_…`, `xox…`, AWS keys, generic `api_key=…` with high entropy) anywhere except `.env.local`. |
 | `block_dangerous_git.mjs` | PreToolUse Bash\|PowerShell | Denies `push --force` / `-f`, `reset --hard`, `clean -f`, deleting `.git`, `filter-branch`, `worktree add`, creating or switching to new branches (`checkout -b`, `switch -c`, `branch <name>`), `rebase -i`. |
 | `outbound_guard.mjs` | PreToolUse `mcp__.*` (Gmail connector tools are `mcp__claude_ai_Gmail__*`) | Classifies outbound tools by name (`send`, `reply`, `forward`, `post`, `publish`, `submit`, `apply`, `connect`, `invite`, `message`, `comment`, `share`, `create_event`, `delete`) and maps them to a channel by server (gmail/mail → email, calendar → calendar, linkedin → linkedin, instagram/facebook/x → social, telegram/whatsapp/slack → messaging, playwright click on submit-like elements → web-forms). Reads `config/autonomy.json`: `draft` → deny with a plain explanation and the tip "the draft is in your outbox"; `approve` → ask; `auto` → allow only if the blueprint is built, else ask. Creating drafts is never blocked. Unreadable config → deny. |
+| `rate_guard.mjs` | PreToolUse, PostToolUse and PostToolUseFailure, all `mcp__.*` | Generic rate guard for MCP servers that have limits in `system/catalogue/limits.json` (LinkedIn today); a server with no limits gets no output. Core logic in `system/lib/rateguard.mjs`. **Pre:** maps the tool to a category (a tool not listed on a limited server is `other`, which has its own cap), then denies with a plain reason (which limit, used of cap, when it resets, that it protects the account) when: all calls are paused after a warning; the server is draft-only and the category writes; the identical call (same tool and target) had an unknown outcome in the last 24 h; the day is not in `weekday_cap`; the daily or weekly cap is reached (local midnight and Monday 00:00 reset); or `min_gap_seconds` has not passed. It never answers `allow` (that would skip the permission prompt). **Post and PostToolUseFailure:** count the call after it ran (a call refused at the permission prompt never reaches Post), append `{ts, server, tool, category, outcome, target?, warning?}` to `state/local/rate-guard/ledger.jsonl` (pruned to 35 days) and read the result: platform warnings (specific phrases anywhere; common words such as captcha, restricted or 429 only in an error or a result under `weak_max_chars`) set `paused_until` (pause_hours, default 24, all calls) and `throttled_until` (throttle_days, default 14, daily and weekly caps halved), add a `#ab/rate-guard` task and tell Claude to stop; a second warning (after the pause, within draft_only_window_days) sets `draft_only`, which denies every category that writes until the user runs `rate-guard.mjs clear-draft-only`. An unknown outcome on a write (status in `outcome_unknown.statuses`, `retry_safe:false` without `sent:true`, a matching text, or an error that looks like a timeout) is recorded as `unknown`, adds a task and blocks the identical call for 24 h. User overrides (`config/limits.json`) may lower caps freely; raising a cap, shortening a gap or adding weekdays needs `accept_risk: true` on that server, otherwise the default stays and the deny reason says the setting was ignored. Fail closed for a limited server when the framework limits, the user file, the ledger or the state cannot be read (until the limits file is readable, servers whose name contains `linkedin` count as limited). |
 | `session_end.mjs` | SessionEnd, plus Stop throttled to once per 10 min | Runs `git-auto commit` then `git-auto push`. On failure: a plain-language task (`#ab/git`) and a log line in `state/local/git.log`. |
 
 ---
@@ -623,6 +624,7 @@ All scripts:
 | `onboard-progress.mjs` | Reads and writes `state/onboarding.json` (section 10) |
 | `proposals.mjs` | Reads and writes `state/proposals.json` and counts open proposal cards (sections 10 and 11) |
 | `built.mjs` | Reads and writes `state/built.json` (section 10). `remove <name> --delete-files` also deletes the entry's `my-*` skill folders and agent files, and nothing else |
+| `rate-guard.mjs status [--all] [--json]` / `reset-throttle <server>` / `clear-draft-only <server>` / `repair-ledger` | `status` shows used-of-cap per category for each rate-limited server that is switched on or has been used (exit 1 on a pause, draft-only, an unknown outcome to check, or a damaged file). The other three lift a safety stop or repair a file, so they are not on the allow list: Claude asks first |
 | `date.mjs [--plus N] [--from YYYY-MM-DD] [--now] [--weekday] [--iso-week]` | Local date and time from the system clock (the same clock as the session digest). Skills use it instead of `node -e` and never use the UTC date |
 | `check-json.mjs <file>...` / `--length <file>` | Checks that edited settings files still parse, or counts the characters of a file (USER.md limit) |
 | `ingest-pending.mjs` | Lists files that `ingest.mjs` copied but that have no source note yet |
@@ -647,6 +649,35 @@ Entry shape:
 `{ "schema":1, "reviewed":"YYYY-MM-DD", "classes": { "<class>": { "model":"…", "effort":"…", "examples":[…] } }, "caps": { "pro":3, "max":8 } }`
 
 `reviewed` is the date of the last model check (section 6). `validate.mjs` ignores keys it does not know, so the field needs no schema change.
+
+### `system/catalogue/limits.json`
+Framework defaults for the rate guard (code class, protected). A server not listed here is never touched; adding a server is data only.
+```json
+{ "schema": 1, "_note": "…",
+  "servers": { "linkedin": {
+    "name": "LinkedIn", "_note": "sources, [Claim] / [Unverified] / [Speculation] labels",
+    "match": ["linkedin"],                     // words matched inside the server name (normalised, so claude_ai_LinkedIn matches)
+    "target_keys": ["linkedin_username", "url"], // tool arguments that identify the target (for the unknown-outcome rule)
+    "categories": {
+      "invite": { "label": "connection requests", "tools": ["connect_with_person"], "writes": true,
+                  "daily_cap": 40, "weekly_cap": 150, "weekday_cap": ["mon","tue","wed","thu"], "min_gap_seconds": 20 },
+      "other":  { "label": "other actions", "writes": true, "daily_cap": 20, "min_gap_seconds": 30 }
+    },
+    "warnings": { "phrases": ["regex, matched anywhere"], "weak": ["regex, only in errors or short results"], "weak_max_chars": 1000 },
+    "outcome_unknown": { "statuses": ["outcome_unknown"], "patterns": ["regex"], "error_patterns": ["timed? ?out"] },
+    "failed_statuses": ["connect_unavailable"],
+    "throttle_days": 14, "pause_hours": 24, "draft_only_window_days": 60 } } }
+```
+- `daily_cap` / `weekly_cap`: whole numbers (0 blocks the category). `weekday_cap`: the days a category may run (`"mon"`..`"sun"`, or 0-6 with Monday = 0); a category without it runs every day. `min_gap_seconds`: minimum time between two calls of the category. `writes: true` marks categories that send or change things (draft-only blocks them, and an unknown outcome is tracked for them). A category with no caps, no gap and no `writes` (such as `free`) is never checked.
+- Day caps reset at local midnight, week caps on Monday 00:00 local time. Halving (after a warning) rounds down and never goes below 1.
+- `validate.mjs` checks the file; the hook fails closed on a bad one.
+- Seeded LinkedIn caps (the framework author's own, for a Premium account): invite 40/day, 150/week, Monday to Thursday, 20 s apart; message 30/day, 150/week, 60 s; profile 80/day, 20 s; company 40/day, 20 s; search 14/day, 30 s; employees 10/day, 60 s; inbox 60/day, 10 s; other 20/day, 30 s. Tools are those of `mcp-server-linkedin` 4.26.2.
+
+### `config/limits.json` (user-owned, optional; template `system/templates/config/limits.json`)
+`{ "schema": 1, "comment": "…", "servers": { "linkedin": { "accept_risk": false, "categories": { "invite": { "daily_cap": 10 } } } } }` — only `daily_cap`, `weekly_cap`, `min_gap_seconds` and `weekday_cap` can be overridden. Lowering is always allowed. Raising a cap above the framework default, shortening a gap or adding a weekday needs `"accept_risk": true` on that server; without it the default stays and `rate_guard` says so when it denies. A file that is not valid JSON blocks the server it belongs to (fail closed).
+
+### `state/local/rate-guard/` (gitignored, never committed: it can hold names and URLs of people)
+`ledger.jsonl` (one JSON object per call that ran, pruned to 35 days) and `state.json` (per server: `warnings`, `paused_until`, `throttled_until`, `draft_only`). Protected from agent writes by `protect_paths`; changed only by the hook and by `rate-guard.mjs`.
 
 ### `system/catalogue/obsidian-plugins.json`
 `{ "<id>": { "repo":"owner/name", "version":"x.y.z", "files": { "main.js":"<sha256>", "manifest.json":"<sha256>", "styles.css":"<sha256>|null" } } }`

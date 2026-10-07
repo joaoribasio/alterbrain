@@ -529,3 +529,19 @@ test('--write-manifest --sign-key signs the manifest, and the signature is kept 
     p.cleanup();
   }
 });
+
+test('limits.json: a valid file passes, and a bad cap or pattern is an error (the rate guard fails closed on it)', () => {
+  const good = JSON.stringify({ schema: 1, servers: { demo: { match: ['demo'], categories: { read: { tools: ['get_x'], daily_cap: 5, min_gap_seconds: 10 } }, warnings: { phrases: ['captcha'] } } } });
+  const ok = check((p) => write(p, 'system/catalogue/limits.json', good));
+  assert.equal(ok.status, 0, JSON.stringify(ok.out));
+  assert.equal(ok.out.checked.limits_servers, 1);
+  const bad = JSON.stringify({ schema: 1, servers: { demo: { categories: { read: { daily_cap: 'five', weekday_cap: ['funday'] } }, warnings: { weak: ['(unclosed'] } } } });
+  const r = check((p) => write(p, 'system/catalogue/limits.json', bad));
+  assert.equal(r.status, 1);
+  assert.ok(has(r.out.errors, /limits\.json.*daily_cap must be a whole number/));
+  assert.ok(has(r.out.errors, /limits\.json.*weekday_cap must be a list of days/));
+  assert.ok(has(r.out.errors, /limits\.json.*warnings\.weak must be a list of valid patterns/));
+  const broken = check((p) => write(p, 'system/catalogue/limits.json', '{ nope'));
+  assert.equal(broken.status, 1);
+  assert.ok(has(broken.out.errors, /limits\.json.*not valid JSON/));
+});

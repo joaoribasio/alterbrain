@@ -27,6 +27,7 @@ Check that Alterbrain is healthy, say what is wrong in plain words, and fix it w
 
 1. Say in one line what you are about to do: "I am running the health check. It only looks, it does not change anything."
 2. Run `node system/scripts/doctor.mjs --json`. A non-zero exit code means "problems found". It is not a crash. If the script itself fails to start (for example Node is too old), say so plainly and go to step 5 for the Node fix.
+   - Rate-limited tools (LinkedIn): when one is switched on (`config/mcp.selected.json`), also run `node system/scripts/rate-guard.mjs status` and tell the user in one or two lines how much is used today. A non-zero exit means a pause, draft-only mode, an action to check on the platform, or a damaged usage log. Explain which in plain words and offer `reset-throttle`, `clear-draft-only` or `repair-ledger` only after asking, one at a time.
 3. Sort the results into three groups:
    - **All good** (one short line, no detail);
    - **Needs fixing** (breaks something the user relies on);

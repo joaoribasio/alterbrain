@@ -1,0 +1,5 @@
+{
+  "schema": 1,
+  "comment": "Your own usage limits for tools that can get an account restricted (LinkedIn today). Leave 'servers' empty to use the standard limits. You may LOWER a number freely. To raise one above the standard, add \"accept_risk\": true next to it and accept that the account could be restricted. Example: { \"linkedin\": { \"categories\": { \"invite\": { \"daily_cap\": 10, \"weekly_cap\": 50 }, \"profile\": { \"daily_cap\": 20 } } } }. A shorter min_gap_seconds counts as raising. weekday_cap lists the days allowed, for example [\"mon\", \"tue\"]. Ask Alterbrain to show the numbers: node system/scripts/rate-guard.mjs status",
+  "servers": {}
+}

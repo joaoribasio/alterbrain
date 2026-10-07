@@ -57,6 +57,9 @@ test('the allow list is exact: nothing that replaces code, publishes or runs arb
     'node system/scripts/update.mjs finish v1',
     'node system/scripts/setup-github.mjs --name x',
     'node system/scripts/built.mjs add gmail-send-approval',
+    'node system/scripts/rate-guard.mjs reset-throttle linkedin',
+    'node system/scripts/rate-guard.mjs clear-draft-only linkedin',
+    'node system/scripts/rate-guard.mjs repair-ledger',
     'node system/scripts/obsidian-setup.mjs',
     'node system/scripts/../../anything.js',
     'node system/scripts/tasks.mjs/../../evil.js',
@@ -75,7 +78,7 @@ test('the allow list is exact: nothing that replaces code, publishes or runs arb
       const hit = allow.find((r) => ruleMatches(r, shell, cmd));
       assert.equal(hit, undefined, `${shell}: "${cmd}" must prompt, but ${hit} allows it`);
     }
-    for (const cmd of ['node system/scripts/tasks.mjs add "x"', 'node system/scripts/doctor.mjs --json', 'node system/scripts/git-auto.mjs status', 'node system/scripts/git-auto.mjs commit --json', 'node system/scripts/update.mjs check --json', 'node system/scripts/built.mjs list', 'node system/quarto/tools/render.mjs note.md', 'git status', 'git log --oneline -5']) {
+    for (const cmd of ['node system/scripts/tasks.mjs add "x"', 'node system/scripts/doctor.mjs --json', 'node system/scripts/git-auto.mjs status', 'node system/scripts/git-auto.mjs commit --json', 'node system/scripts/update.mjs check --json', 'node system/scripts/built.mjs list', 'node system/scripts/rate-guard.mjs status', 'node system/scripts/rate-guard.mjs status --json', 'node system/quarto/tools/render.mjs note.md', 'git status', 'git log --oneline -5']) {
       assert.ok(allow.some((r) => ruleMatches(r, shell, cmd)), `${shell}: "${cmd}" should be allowed`);
     }
   }
@@ -105,14 +108,18 @@ test('every hook is in exec form and points at a file that exists', () => {
 });
 
 test('events, matchers and hooks match the spec', () => {
-  assert.deepEqual(Object.keys(settings.hooks).sort(), ['PreToolUse', 'SessionEnd', 'SessionStart', 'Stop']);
+  assert.deepEqual(Object.keys(settings.hooks).sort(), ['PostToolUse', 'PostToolUseFailure', 'PreToolUse', 'SessionEnd', 'SessionStart', 'Stop']);
   const pre = settings.hooks.PreToolUse;
   const byMatcher = Object.fromEntries(pre.map((g) => [g.matcher, g.hooks.map((h) => h.args[0].split('/').pop())]));
   assert.deepEqual(byMatcher, {
     'Write|Edit|MultiEdit|NotebookEdit': ['protect_paths.mjs', 'block_secrets.mjs'],
     'Bash|PowerShell': ['block_dangerous_git.mjs', 'block_secrets.mjs', 'protect_paths.mjs', 'outbound_guard.mjs'],
-    'mcp__.*': ['outbound_guard.mjs', 'protect_paths.mjs'],
+    'mcp__.*': ['outbound_guard.mjs', 'protect_paths.mjs', 'rate_guard.mjs'],
   });
+  // The rate guard also counts calls after they ran (PostToolUse) and calls that failed or timed out (PostToolUseFailure).
+  for (const event of ['PostToolUse', 'PostToolUseFailure']) {
+    assert.deepEqual(entries(event).map((h) => [h.matcher, h.args]), [['mcp__.*', ['${CLAUDE_PROJECT_DIR}/system/hooks/rate_guard.mjs']]], event);
+  }
   assert.deepEqual(entries('SessionStart').map((h) => h.args), [['${CLAUDE_PROJECT_DIR}/system/hooks/session_start.mjs']]);
   assert.deepEqual(entries('Stop').map((h) => h.args.slice(1)), [['--stop']]);
   const end = entries('SessionEnd');
@@ -164,4 +171,35 @@ test('the hooks run exactly as the template starts them', (t) => {
   // protect_paths also sits in the shell and MCP groups: it must refuse a shell write to a protected file there too.
   const shellProtect = entries('PreToolUse').find((h) => h.matcher === 'Bash|PowerShell' && /protect_paths/.test(h.args[0]));
   assert.match(run(shellProtect, bash('echo hi > system/core.md')).stdout, /"permissionDecision":"deny"/);
+});
+
+test('the rate guard runs exactly as the template starts it: Pre, Post and PostToolUseFailure', (t) => {
+  const p = makeProject();
+  t.after(p.cleanup);
+  p.write('system/catalogue/limits.json', readFileSync(join(REPO, 'system', 'catalogue', 'limits.json'), 'utf8'));
+  const run = (h, payload) =>
+    spawnSync(process.execPath, h.args.map((a) => a.replace('${CLAUDE_PROJECT_DIR}', p.root)), {
+      input: JSON.stringify(payload),
+      encoding: 'utf8',
+      env: { ...process.env, CLAUDE_PROJECT_DIR: p.root },
+      cwd: p.root,
+      windowsHide: true,
+    });
+  const rate = (event) => entries(event).find((h) => /rate_guard/.test(h.args[0]));
+  const tool = 'mcp__linkedin__get_person_profile';
+  let r = run(rate('PreToolUse'), { hook_event_name: 'PreToolUse', tool_name: tool, tool_input: { linkedin_username: 'a' } });
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stdout.trim(), '', 'under the limits: no output');
+  r = run(rate('PostToolUse'), { hook_event_name: 'PostToolUse', tool_name: tool, tool_input: { linkedin_username: 'a' }, tool_response: [{ type: 'text', text: 'Jane' }] });
+  assert.equal(r.status, 0, r.stderr);
+  r = run(rate('PostToolUseFailure'), { hook_event_name: 'PostToolUseFailure', tool_name: tool, tool_input: { linkedin_username: 'b' }, error: 'boom', is_error: true });
+  assert.equal(r.status, 0, r.stderr);
+  const rows = p.read('state/local/rate-guard/ledger.jsonl').split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l));
+  assert.deepEqual(rows.map((x) => x.outcome), ['ok', 'error']);
+  // The second profile view is now inside the minimum gap, so the same hook, started the same way, refuses it.
+  r = run(rate('PreToolUse'), { hook_event_name: 'PreToolUse', tool_name: tool, tool_input: { linkedin_username: 'c' } });
+  assert.match(r.stdout, /"permissionDecision":"deny"/);
+  // A server with no limits is left alone.
+  r = run(rate('PreToolUse'), { hook_event_name: 'PreToolUse', tool_name: 'mcp__mcpvault__read_note', tool_input: {} });
+  assert.equal(r.stdout.trim(), '');
 });

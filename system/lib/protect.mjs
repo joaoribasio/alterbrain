@@ -14,6 +14,8 @@ export const DEV_MODE_REL = 'state/local/dev-mode';
 export const RAW_GLOB = 'vault/40_sources/raw/**';
 // Obsidian plugin code runs with the user's rights inside Obsidian.
 const PLUGIN_GLOB = 'vault/.obsidian/plugins/**/*.js';
+// The rate guard's usage log and warning record: an agent that could edit them could clear a safety stop.
+export const RATE_GUARD_GLOB = 'state/local/rate-guard/**';
 
 // Always protected, even when the manifest is missing (spec section 14).
 export const ALWAYS_PROTECTED = [
@@ -33,6 +35,7 @@ export const REASONS = {
   devmode: 'Developer mode can only be switched on by hand, by the person who owns this computer. Alterbrain never creates or edits that file.',
   git: 'The hidden .git folder holds your saved history and its automatic steps. Alterbrain never edits it directly.',
   plugin: 'Obsidian plugin code runs inside Obsidian, so Alterbrain does not edit it. Ask me to propose a change instead.',
+  rateguard: 'The usage limits record protects your accounts, so Alterbrain never edits it. To see it, ask me to run: node system/scripts/rate-guard.mjs status',
   ancestor: 'This would delete or move a whole folder that holds protected Alterbrain files or your original sources.',
 };
 
@@ -67,6 +70,7 @@ export function protectedKind(rel, codePaths = new Set(), dev = false) {
   if (matchGlob(r, RAW_GLOB)) return 'raw';
   if ((r === '.git' || r.startsWith('.git/')) && !/\.lock$/.test(r)) return 'git';
   if (matchGlob(r, PLUGIN_GLOB)) return 'plugin';
+  if (matchGlob(r, RATE_GUARD_GLOB)) return 'rateguard';
   if (ALWAYS_PROTECTED.some((g) => matchGlob(r, g))) return 'system';
   if (codePaths.has(r)) return 'system';
   return null;
@@ -88,7 +92,7 @@ let sampleCache = null;
 /** Example protected files, and the folders that contain them (deleting a folder deletes its files). */
 function samples(codePaths) {
   if (sampleCache && sampleCache.codePaths === codePaths) return sampleCache;
-  const files = new Set([DEV_MODE_REL, '.git/config', '.git/hooks/pre-commit', 'vault/40_sources/raw/x', 'vault/.obsidian/plugins/x/main.js']);
+  const files = new Set([DEV_MODE_REL, '.git/config', '.git/hooks/pre-commit', 'vault/40_sources/raw/x', 'vault/.obsidian/plugins/x/main.js', 'state/local/rate-guard/ledger.jsonl']);
   for (const g of ALWAYS_PROTECTED) {
     if (g.endsWith('/**')) files.add(`${g.slice(0, -3)}/x`);
     else files.add(g.replace('*', 'x'));
@@ -100,7 +104,7 @@ function samples(codePaths) {
     for (let k = 1; k < parts.length; k++) dirs.add(parts.slice(0, k).join('/'));
   }
   // Folders whose whole content is protected: copying a file INTO one writes a protected file.
-  const containers = new Set(['.git', 'vault/40_sources/raw', 'vault/.obsidian/plugins']);
+  const containers = new Set(['.git', 'vault/40_sources/raw', 'vault/.obsidian/plugins', 'state/local/rate-guard']);
   for (const g of ALWAYS_PROTECTED) if (g.endsWith('/**')) containers.add(g.slice(0, -3));
   sampleCache = { codePaths, files: [...files], dirs, containers };
   return sampleCache;
@@ -171,7 +175,7 @@ const DOTNET_WRITE = /\[(?:system\.)?io\.(?:file|directory)\]::\s*(?:write|appen
 
 const LITERALS = [
   'system/hooks', 'system/scripts', 'system/lib', 'system/core.md', 'system/release.json', 'system/manifest.json',
-  'system/catalogue', '.claude/settings', 'state/local/dev-mode', 'dev-mode', '40_sources/raw', '.git/hooks', '.git/config',
+  'system/catalogue', '.claude/settings', 'state/local/dev-mode', 'state/local/rate-guard', 'dev-mode', '40_sources/raw', '.git/hooks', '.git/config',
   '.obsidian/plugins',
 ];
 

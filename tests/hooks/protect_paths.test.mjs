@@ -152,3 +152,24 @@ test('finds the project from its own location when CLAUDE_PROJECT_DIR is not set
   const r = ask(p, write('system/core.md'), { useEnv: false, cwd: tmpdir() });
   assert.equal(decisionOf(r), 'deny');
 });
+
+test('the rate guard\'s usage log and warning record cannot be edited by an agent, but may be by the owner in dev mode', (t) => {
+  const p = makeProject();
+  t.after(p.cleanup);
+  for (const rel of ['state/local/rate-guard/ledger.jsonl', 'state/local/rate-guard/state.json']) {
+    const r = ask(p, write(p.path(...rel.split('/'))));
+    assert.equal(decisionOf(r), 'deny', rel);
+    assert.match(reasonOf(r), /usage limits record protects your accounts/, rel);
+  }
+  // Shell writes and deleting the whole folder are caught too.
+  for (const command of ['echo {} > state/local/rate-guard/state.json', 'rm -rf state/local/rate-guard', 'rm state/local/rate-guard/ledger.jsonl']) {
+    assert.equal(decisionOf(ask(p, { tool_name: 'Bash', tool_input: { command } })), 'deny', command);
+  }
+  // Reading it through the script is not a write.
+  assert.equal(ask(p, { tool_name: 'Bash', tool_input: { command: 'node system/scripts/rate-guard.mjs status --json' } }).stdout, '');
+  // Other state/local files stay editable.
+  assert.equal(ask(p, write(p.path('state', 'local', 'model-check.json'))).stdout, '');
+  const dev = makeProject({ devMode: true });
+  t.after(dev.cleanup);
+  assert.equal(ask(dev, write(dev.path('state', 'local', 'rate-guard', 'ledger.jsonl'))).stdout, '');
+});

@@ -44,6 +44,7 @@
       "Bash(node system/scripts/update.mjs check *)",
       "Bash(node system/scripts/built.mjs list *)",
       "Bash(node system/scripts/built.mjs has *)",
+      "Bash(node system/scripts/rate-guard.mjs status *)",
       "Bash(node system/scripts/jobs/ind-sponsors.mjs *)",
       "Bash(node system/scripts/jobs/adzuna.mjs *)",
       "Bash(node system/quarto/tools/render.mjs *)",
@@ -72,6 +73,7 @@
       "PowerShell(node system/scripts/update.mjs check *)",
       "PowerShell(node system/scripts/built.mjs list *)",
       "PowerShell(node system/scripts/built.mjs has *)",
+      "PowerShell(node system/scripts/rate-guard.mjs status *)",
       "PowerShell(node system/scripts/jobs/ind-sponsors.mjs *)",
       "PowerShell(node system/scripts/jobs/adzuna.mjs *)",
       "PowerShell(node system/quarto/tools/render.mjs *)",
@@ -156,6 +158,38 @@
             "type": "command",
             "command": "node",
             "args": ["${CLAUDE_PROJECT_DIR}/system/hooks/protect_paths.mjs"],
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/system/hooks/rate_guard.mjs"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/system/hooks/rate_guard.mjs"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/system/hooks/rate_guard.mjs"],
             "timeout": 10
           }
         ]

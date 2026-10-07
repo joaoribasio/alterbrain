@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { projectRoot, isMainModule } from '../lib/paths.mjs';
 import { splitFrontmatter } from '../lib/frontmatter.mjs';
 import { signManifest, writeManifest } from '../lib/manifest.mjs';
+import { validateLimits } from '../lib/rateguard.mjs';
 import { extractEntries, isSafeEnvValue } from './mcp-gen.mjs';
 
 const MODELS = ['haiku', 'sonnet', 'opus', 'fable', 'inherit'];
@@ -334,6 +335,21 @@ function checkRouting(root, r) {
   return true;
 }
 
+// ---------------------------------------------------------------- rate-guard limits
+/** system/catalogue/limits.json: checked when present (the hook fails closed on a bad file, so catch it here first). */
+function checkLimits(root, r) {
+  const rel = 'system/catalogue/limits.json';
+  const file = join(root, 'system', 'catalogue', 'limits.json');
+  if (!existsSync(file)) return 0;
+  const { data, error } = readJsonStrict(file);
+  if (error) {
+    r.error(rel, `not valid JSON (${error}).`);
+    return 0;
+  }
+  for (const problem of validateLimits(data)) r.error(rel, `${problem}.`);
+  return data && data.servers && typeof data.servers === 'object' ? Object.keys(data.servers).length : 0;
+}
+
 // ---------------------------------------------------------------- catalogue
 function isPinned(entry) {
   const cmd = String(entry.command || '').toLowerCase().replace(/\.(cmd|exe)$/, '');
@@ -454,6 +470,7 @@ export function validateProject(root = projectRoot()) {
   checked.blueprints = checkBlueprints(root, r);
   checked.routing = checkRouting(root, r);
   checked.mcp_entries = checkCatalogue(root, r);
+  checked.limits_servers = checkLimits(root, r);
   checkAttribution(root, r);
 
   const settings = join(root, '.claude', 'settings.json');

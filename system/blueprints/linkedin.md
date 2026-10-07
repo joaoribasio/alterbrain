@@ -25,6 +25,7 @@ Alterbrain can look up a company, a job post or a public profile on LinkedIn, an
 - Risk: **high.** LinkedIn's rules forbid automated access. Your account could be restricted or banned, and that could hurt your job search.
   - Read only a few pages at a time, slowly, and never in bulk.
   - **Never** let it send connection requests, messages, comments or posts. The `linkedin` autonomy channel stays on `draft`.
+  - A usage guard is built in (the rate guard, nothing to build). It counts every LinkedIn action after it ran and stops one that is over a limit. Standard limits per day: 40 connection requests (150 a week, Monday to Thursday only, 20 seconds apart), 30 messages (150 a week, a minute apart), 80 profile views, 40 company pages, 14 searches, 10 employee lists, 60 inbox or feed reads. These are generous, so lower them to fit you (see below). A CAPTCHA, security check or similar warning pauses LinkedIn for 24 hours and halves the limits for 14 days; a second one switches it to draft-only. An action whose result is unknown is never repeated for 24 hours.
   - Keep business facts only about people: role, employer, source and date. Nothing private.
 - The helper is `mcp-server-linkedin` (stickerdaniel, Apache-2.0). Its login is a saved browser session on your computer. Treat that folder like a password.
 - Safer substitute for many tasks: download your own data from LinkedIn's settings page and let Alterbrain ingest the files. No risk to the account.
@@ -45,6 +46,7 @@ Alterbrain can look up a company, a job post or a public profile on LinkedIn, an
 3. Add `linkedin` to `config/mcp.selected.json` and run `node system/scripts/mcp-gen.mjs`.
 4. Guide the user through the one-time login (the helper opens a browser). They type their own password. You never see it. If LinkedIn shows a captcha, the user solves it. You must not. The catalogue entry carries `--no-auto-import`, so the helper does not copy a session from the user's everyday browser. On Windows, if the sign-in stops with a `PrivateStateError`, the user creates an empty folder in their user folder and sets the `INSTALLER_TEMP_DIR` environment variable to it, then signs in again.
 5. Confirm `config/autonomy.json` has `linkedin` on `draft`. Do not change it.
+   - Set the usage limits to match the answer to question 4. Edit `config/limits.json` (lowering is always allowed): for example profile views `daily_cap` 5, searches 3, company pages 5, and leave connection requests and messages low or at 0 while sending stays on draft. Do not raise any number above the standard and never add `accept_risk` unless the user asks for it in their own words. Run `node system/scripts/rate-guard.mjs status` and show the user the result.
 6. Create the working rules in a note in `vault/20_areas/career/`:
    - one lookup at a time, no loops;
    - every fact saved with source URL and date;
@@ -57,6 +59,7 @@ Alterbrain can look up a company, a job post or a public profile on LinkedIn, an
 1. Ask for one public company page. Expect a short summary with a source line.
 2. Ask it to "send a connection request". Expect the outbound guard to refuse and offer a draft instead.
 3. Check the outbox draft opens in Obsidian.
+4. Run `node system/scripts/rate-guard.mjs status`. Expect LinkedIn listed with one profile or company view used today and no warnings.
 
 ## How to undo
 

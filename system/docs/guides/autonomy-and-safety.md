@@ -29,6 +29,20 @@ You can set a level per channel: email, calendar, jobs, LinkedIn, social media, 
 - Change its own safety rules or the framework files.
 - Change your original files. Imported files are kept untouched in `vault/40_sources/raw/`.
 
+## Limits for risky tools
+
+Some tools act inside an account that a platform can restrict if it sees too much activity. LinkedIn is the one Alterbrain knows today. For these, a second safety check (the **rate guard**) counts every action after it has run and stops it when you are over a limit. It says which limit, how much has been used and when it starts again.
+
+For LinkedIn the standard limits per day are: 40 connection requests (and 150 a week, Monday to Thursday only, at least 20 seconds apart), 30 messages (150 a week, at least a minute apart), 80 profile views, 40 company page views, 14 searches, 10 employee lists and 60 inbox or feed reads. These are generous: they come from an experienced Premium account. On a free account, or if you simply want to be careful, lower them.
+
+- **See what has been used:** say "show my usage limits", or run `node system/scripts/rate-guard.mjs status`.
+- **Lower a limit:** edit `config/limits.json` (or ask me to). Lowering is always allowed. The file explains the format.
+- **Raise a limit:** only if you add `"accept_risk": true` for that tool. Alterbrain then mentions this whenever the limit stops something. Nobody can promise your account stays safe at higher numbers.
+- **If the platform pushes back** (a CAPTCHA, a security check, "unusual activity", "too many requests"): Alterbrain pauses that tool for 24 hours, halves its limits for 14 days and adds a task for you. A second warning switches the tool to draft-only, so it prepares things but never sends them. Only you can lift these: `node system/scripts/rate-guard.mjs reset-throttle linkedin` ends the pause and the halved limits, and `node system/scripts/rate-guard.mjs clear-draft-only linkedin` ends draft-only. Alterbrain asks you before running either.
+- **If an action may or may not have gone through** (a timeout, or "outcome unknown"): Alterbrain never repeats the same action for 24 hours. Check on the platform yourself first. A task reminds you.
+- **The record** of what was used lives in `state/local/rate-guard/` on your computer only. It can contain names of people, so it is never backed up or committed, and Alterbrain cannot edit it.
+- **If it says it could not read its limits or its log**, it blocks the tool to be safe. Ask me to run the health check; `node system/scripts/rate-guard.mjs repair-ledger` fixes a damaged log.
+
 ## Coursework and AI rules
 
 Each course note records the course's AI policy, copied from the syllabus:

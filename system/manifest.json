@@ -46,7 +46,7 @@
     {
       "path": ".claude/settings.json",
       "class": "code",
-      "sha256": "30486250a89f36d1235ad2583577cb0f253e5e128373ba54eb4e14ba7c9b5a5e"
+      "sha256": "67bc3c189783072af7d7093ad299007ed678f33efb0519cc402565b86c71c0d8"
     },
     {
       "path": ".claude/skills/ask/SKILL.md",
@@ -221,7 +221,7 @@
     {
       "path": ".claude/skills/health-check/SKILL.md",
       "class": "text",
-      "sha256": "cd9a41197e0f75e9ecea557389ac13df6d847fb250f76508b9d9cef7942a4a1e"
+      "sha256": "005a7f74f468d14735fc93db9ef39ca76604c8d692adf9a8b5cf86fcc11c5bf2"
     },
     {
       "path": ".claude/skills/health-check/references/fixes.md",
@@ -541,7 +541,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "25482ce3bc6d75effa69764b9d0b5552605346efd2613d6da409c8d5a5460da3"
+      "sha256": "caf7ee7c76f8c0aa5858f3fade9eaa64dfab5511baba583741deaf1da1261f54"
     },
     {
       "path": "CLAUDE.md",
@@ -571,7 +571,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "79932fad782f0f92fd869bb2f587cc89446c4899cd83a3fccef04f811de1bd5d"
+      "sha256": "27cb9def34b3ff082492d9ec4e41a0b96e4a9c01fffaff28fb5874cdfd4e2e44"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -659,6 +659,11 @@
       "sha256": "b8b81a3011905a2046742508e7e2ba8c7414d654101a31f7cd2c99836b2113e7"
     },
     {
+      "path": "docs/critique-panel-prompts.md",
+      "class": "text",
+      "sha256": "fbd2be4174d7c1c3e3c92e937e294676387dbaf39833a8532bd9230cb77f43a5"
+    },
+    {
       "path": "docs/research/claude-code-mechanics.md",
       "class": "text",
       "sha256": "5a4ada5629c60f5f9d612e7ae882e75200dae132d50bc672df7dba826947eefb"
@@ -731,7 +736,7 @@
     {
       "path": "system/blueprints/linkedin.md",
       "class": "text",
-      "sha256": "a631b639900b7e89995df57d9846e57ff55ded0e910ef2fb3ad90da49b592259"
+      "sha256": "e0d701fa1672985326fcbbb11b53da98802c57c83a4232043c796d8c439f61b1"
     },
     {
       "path": "system/blueprints/linux-vps-oracle.md",
@@ -774,6 +779,11 @@
       "sha256": "b470d51dddfcd0c7bb0874b41ccf74f3e0d0c7863418ebbf19dda560f0114f2f"
     },
     {
+      "path": "system/catalogue/limits.json",
+      "class": "code",
+      "sha256": "a91d8da26fd5f1c2d582176b9310ad8e490ccdf945fb7a4ddf0ccbeb5e2947cf"
+    },
+    {
       "path": "system/catalogue/mcp.json",
       "class": "code",
       "sha256": "e00a0fcf869972b84bb08222f92ffb7d94f065a0700984c255d2c961296a0191"
@@ -796,7 +806,7 @@
     {
       "path": "system/docs/guides/autonomy-and-safety.md",
       "class": "text",
-      "sha256": "d0b511a5c0098d5fa3c839c6fbc06afa39f1fdf71d277bc9a7e8332833f5cb31"
+      "sha256": "f159287bf2c5a3869aa1e728bb479c33fc2157df6757b6628d8b247ea8328a21"
     },
     {
       "path": "system/docs/guides/getting-started.md",
@@ -869,6 +879,11 @@
       "sha256": "db61710abfa75533d78558895423bf38792d11f8c7e204e992c3fc71ff8652a3"
     },
     {
+      "path": "system/hooks/rate_guard.mjs",
+      "class": "code",
+      "sha256": "dfb224e0e6513763eb6c609bf12117242ac99613499e5ead0d5a50d98c644f99"
+    },
+    {
       "path": "system/hooks/session_end.mjs",
       "class": "code",
       "sha256": "1d58fb8723329bd0448fd3bbccdbd643a9cd7cc97577290faaf277fdc54c37db"
@@ -916,7 +931,12 @@
     {
       "path": "system/lib/protect.mjs",
       "class": "code",
-      "sha256": "f2269f33e09fae87088a7ebea59857059e5ff1d547080a700b410b96984efe9d"
+      "sha256": "9a9a983ff1d74d2aefb9add4c74ba27a26e3359cd96a833374234fa976dfb398"
+    },
+    {
+      "path": "system/lib/rateguard.mjs",
+      "class": "code",
+      "sha256": "aeabc3c60ed94b69ca9a3aa28cad351b1cd046482827e888bd472b62087072fd"
     },
     {
       "path": "system/lib/tasks.mjs",
@@ -1444,6 +1464,11 @@
       "sha256": "1bd7e5a6d94ae4957f1995188eb7aa19f6734315d5b3ff0aa35f73ba7e1cc06a"
     },
     {
+      "path": "system/scripts/rate-guard.mjs",
+      "class": "code",
+      "sha256": "c99ef68bce5018906e2c040e2ff080566176dce1257051168217f081177ed8e9"
+    },
+    {
       "path": "system/scripts/setup-github.mjs",
       "class": "code",
       "sha256": "5cce8f7a695d7810c937caaed17915e7db8444e62580c358e2afa9adaadecc94"
@@ -1466,7 +1491,7 @@
     {
       "path": "system/scripts/validate.mjs",
       "class": "code",
-      "sha256": "53022512b005878a2c3f27734fcf8dffe94ca2c8a24d0c9db1b7b5d18f5f6e12"
+      "sha256": "c23c97868e6147e881fbe0a2d9f1fb340521d74da8977f948522874ab25f5a04"
     },
     {
       "path": "system/scripts/voice-stats.mjs",
@@ -1481,7 +1506,7 @@
     {
       "path": "system/templates/claude-settings.json",
       "class": "text",
-      "sha256": "30486250a89f36d1235ad2583577cb0f253e5e128373ba54eb4e14ba7c9b5a5e"
+      "sha256": "67bc3c189783072af7d7093ad299007ed678f33efb0519cc402565b86c71c0d8"
     },
     {
       "path": "system/templates/config/autonomy.json",
@@ -1492,6 +1517,11 @@
       "path": "system/templates/config/brain.json",
       "class": "text",
       "sha256": "8938583df026b0326c04b9fd503c8143f62296822acf1ba7073b328402b8327a"
+    },
+    {
+      "path": "system/templates/config/limits.json",
+      "class": "text",
+      "sha256": "1a4c5dab13a49597ef6dd93c986a88d45b1865b9a08171d62c84d5cd006c0cc5"
     },
     {
       "path": "system/templates/config/mcp.selected.json",
@@ -2236,7 +2266,12 @@
     {
       "path": "tests/hooks/protect_paths.test.mjs",
       "class": "code",
-      "sha256": "33357b478d908572b8e2e4efcce5ca5ed5e1eae46f3166f28e61b987a4b00220"
+      "sha256": "c7b9ece60014743822b94a25687a678e6e982c72ea4fc018604d3579e3fa6930"
+    },
+    {
+      "path": "tests/hooks/rate_guard.test.mjs",
+      "class": "code",
+      "sha256": "44059bb7bde795c7219a3ec3efe8897323b67d91a543ca84e2511870336a02b5"
     },
     {
       "path": "tests/hooks/safety.test.mjs",
@@ -2256,7 +2291,7 @@
     {
       "path": "tests/hooks/settings_template.test.mjs",
       "class": "code",
-      "sha256": "beb383096b527374c8abe6b0aced7bf4bebfa50ebff827dac66aa0f1c2000ba5"
+      "sha256": "e92e6aa4f8ec888a38c5e72988d5b6f0b52ca2b33c9431e529cc6dff80322c70"
     },
     {
       "path": "tests/quarto/quarto.test.mjs",
@@ -2319,6 +2354,11 @@
       "sha256": "8bea4cce643ca82837e568a67406b705660e61f6a0ca7976e3df5963f96c8958"
     },
     {
+      "path": "tests/scripts/rate-guard.test.mjs",
+      "class": "code",
+      "sha256": "393a315fcef35eed71854adb38b77256fd7ce723edcd59110d32f91f27998725"
+    },
+    {
       "path": "tests/scripts/setup-github.test.mjs",
       "class": "code",
       "sha256": "b311290a2abd69a04f1b29a5ceb0bd2412044994e6afaa81d91c03c7d32ab2e4"
@@ -2346,7 +2386,7 @@
     {
       "path": "tests/scripts/validate.test.mjs",
       "class": "code",
-      "sha256": "d193af62a14a2711a9edf599e7ab431bb5997af07be23077065422255dcbbce3"
+      "sha256": "fe0c8fde6398e15c12262f9caaba47eca823d960db460e7d86df1f122e615c41"
     },
     {
       "path": "tests/scripts/voice-stats.test.mjs",
