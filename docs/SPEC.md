@@ -660,7 +660,7 @@ Framework defaults for the rate guard (code class, protected). A server not list
     "target_keys": ["linkedin_username", "url"], // tool arguments that identify the target (for the unknown-outcome rule)
     "categories": {
       "invite": { "label": "connection requests", "tools": ["connect_with_person"], "writes": true,
-                  "daily_cap": 40, "weekly_cap": 150, "weekday_cap": ["mon","tue","wed","thu"], "min_gap_seconds": 20 },
+                  "daily_cap": 15, "weekly_cap": 60, "weekday_cap": ["mon","tue","wed","thu"], "min_gap_seconds": 30 },
       "other":  { "label": "other actions", "writes": true, "daily_cap": 20, "min_gap_seconds": 30 }
     },
     "warnings": { "phrases": ["regex, matched anywhere"], "weak": ["regex, only in errors or short results"], "weak_max_chars": 1000 },
@@ -671,7 +671,7 @@ Framework defaults for the rate guard (code class, protected). A server not list
 - `daily_cap` / `weekly_cap`: whole numbers (0 blocks the category). `weekday_cap`: the days a category may run (`"mon"`..`"sun"`, or 0-6 with Monday = 0); a category without it runs every day. `min_gap_seconds`: minimum time between two calls of the category. `writes: true` marks categories that send or change things (draft-only blocks them, and an unknown outcome is tracked for them). A category with no caps, no gap and no `writes` (such as `free`) is never checked.
 - Day caps reset at local midnight, week caps on Monday 00:00 local time. Halving (after a warning) rounds down and never goes below 1.
 - `validate.mjs` checks the file; the hook fails closed on a bad one.
-- Seeded LinkedIn caps (the framework author's own, for a Premium account): invite 40/day, 150/week, Monday to Thursday, 20 s apart; message 30/day, 150/week, 60 s; profile 80/day, 20 s; company 40/day, 20 s; search 14/day, 30 s; employees 10/day, 60 s; inbox 60/day, 10 s; other 20/day, 30 s. Tools are those of `mcp-server-linkedin` 4.26.2.
+- Default LinkedIn caps (conservative, for student accounts; about half the framework author's campaign limits, which he applies through his own config/limits.json with accept_risk): invite 15/day, 60/week, Monday to Thursday, 30 s apart; message 15/day, 60/week, 60 s; profile 40/day, 20 s; company 20/day, 20 s; search 8/day, 30 s; employees 5/day, 60 s; inbox 30/day, 10 s; other 10/day, 30 s. Tools are those of `mcp-server-linkedin` 4.26.2.
 
 ### `config/limits.json` (user-owned, optional; template `system/templates/config/limits.json`)
 `{ "schema": 1, "comment": "…", "servers": { "linkedin": { "accept_risk": false, "categories": { "invite": { "daily_cap": 10 } } } } }` — only `daily_cap`, `weekly_cap`, `min_gap_seconds` and `weekday_cap` can be overridden. Lowering is always allowed. Raising a cap above the framework default, shortening a gap or adding a weekday needs `"accept_risk": true` on that server; without it the default stays and `rate_guard` says so when it denies. A file that is not valid JSON blocks the server it belongs to (fail closed).

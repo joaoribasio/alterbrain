@@ -33,7 +33,7 @@ You can set a level per channel: email, calendar, jobs, LinkedIn, social media, 
 
 Some tools act inside an account that a platform can restrict if it sees too much activity. LinkedIn is the one Alterbrain knows today. For these, a second safety check (the **rate guard**) counts every action after it has run and stops it when you are over a limit. It says which limit, how much has been used and when it starts again.
 
-For LinkedIn the standard limits per day are: 40 connection requests (and 150 a week, Monday to Thursday only, at least 20 seconds apart), 30 messages (150 a week, at least a minute apart), 80 profile views, 40 company page views, 14 searches, 10 employee lists and 60 inbox or feed reads. These are generous: they come from an experienced Premium account. On a free account, or if you simply want to be careful, lower them.
+For LinkedIn the standard limits per day are: 15 connection requests (and 60 a week, Monday to Thursday only, at least 30 seconds apart), 15 messages (60 a week, at least a minute apart), 40 profile views, 20 company page views, 8 searches, 5 employee lists and 30 inbox or feed reads. They are deliberately cautious, set for student accounts. You can lower them any time. Raising one above the standard needs "accept_risk": true, because it raises the chance of a restriction.
 
 - **See what has been used:** say "show my usage limits", or run `node system/scripts/rate-guard.mjs status`.
 - **Lower a limit:** edit `config/limits.json` (or ask me to). Lowering is always allowed. The file explains the format.

@@ -42,15 +42,15 @@ test('status shows what is used and the rules, in plain words, for a switched-on
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.match(r.stdout, /^LinkedIn\n/);
     assert.match(r.stdout, /Normal: no warnings\./);
-    assert.match(r.stdout, /- profile views: 2 of 80 today \(at least 20 seconds apart\)/);
-    assert.match(r.stdout, /- connection requests: 1 of 40 today, 1 of 150 this week \(Monday to Thursday only, at least 20 seconds apart\) \[sends or changes things\]/);
+    assert.match(r.stdout, /- profile views: 2 of 40 today \(at least 20 seconds apart\)/);
+    assert.match(r.stdout, /- connection requests: 1 of 15 today, 1 of 60 this week \(Monday to Thursday only, at least 30 seconds apart\) \[sends or changes things\]/);
     const j = run(p, 'status', '--json').json();
     assert.equal(j.ok, true);
     const li = j.servers[0];
     assert.equal(li.key, 'linkedin');
     assert.equal(li.enabled, true);
     assert.equal(li.categories.find((c) => c.category === 'profile').used_today, 2);
-    assert.equal(li.categories.find((c) => c.category === 'invite').weekly_cap, 150);
+    assert.equal(li.categories.find((c) => c.category === 'invite').weekly_cap, 60);
   } finally {
     p.cleanup();
   }
@@ -63,7 +63,7 @@ test('status shows your own lower limits, and says when a raised one was ignored
     write(p, 'config/limits.json', JSON.stringify({ schema: 1, servers: { linkedin: { categories: { invite: { daily_cap: 5 }, profile: { daily_cap: 500 }, nonsense: { daily_cap: 1 } } } } }));
     const r = run(p, 'status');
     assert.match(r.stdout, /connection requests: 0 of 5 today/);
-    assert.match(r.stdout, /profile views: 0 of 80 today/);
+    assert.match(r.stdout, /profile views: 0 of 40 today/);
     assert.match(r.stdout, /Ignored: your setting for profile\.daily_cap in config\/limits\.json is above the default and accept_risk is not switched on\./);
     assert.match(r.stdout, /"nonsense", which is not a known category/);
     write(p, 'config/limits.json', JSON.stringify({ schema: 1, servers: { linkedin: { accept_risk: true, categories: { profile: { daily_cap: 500 } } } } }));
@@ -84,7 +84,7 @@ test('a pause after a warning is shown, makes status exit 1, and reset-throttle 
     assert.match(r.stdout, /PAUSED until/);
     assert.match(r.stdout, /Limits are halved until/);
     assert.match(r.stdout, /reset-throttle linkedin/);
-    assert.match(r.stdout, /- profile views: 0 of 40 today/, 'halved from 80');
+    assert.match(r.stdout, /- profile views: 0 of 20 today/, 'halved from 40');
     const reset = run(p, 'reset-throttle', 'linkedin');
     assert.equal(reset.status, 0, reset.stderr);
     assert.match(reset.stdout, /LinkedIn is no longer paused and its limits are back to normal/);

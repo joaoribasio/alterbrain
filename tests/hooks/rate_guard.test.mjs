@@ -526,19 +526,19 @@ test('user override: weekdays can be narrowed freely, but widened only with acce
 
 /* ---------------- shipped defaults ---------------- */
 
-test('the shipped limits file is valid, and the numbers are the author\'s', () => {
+test('the shipped limits file is valid, and the defaults are the conservative student ones', () => {
   assert.deepEqual(validateLimits(REAL), []);
   const c = REAL.servers.linkedin.categories;
   const pick = (name) => [c[name].daily_cap, c[name].weekly_cap, c[name].min_gap_seconds];
-  assert.deepEqual(pick('invite'), [40, 150, 20]);
+  assert.deepEqual(pick('invite'), [15, 60, 30]);
   assert.deepEqual(c.invite.weekday_cap, ['mon', 'tue', 'wed', 'thu']);
-  assert.deepEqual(pick('message'), [30, 150, 60]);
-  assert.deepEqual(pick('profile'), [80, undefined, 20]);
-  assert.deepEqual(pick('company'), [40, undefined, 20]);
-  assert.deepEqual(pick('search'), [14, undefined, 30]);
-  assert.deepEqual(pick('employees'), [10, undefined, 60]);
-  assert.deepEqual(pick('inbox'), [60, undefined, 10]);
-  assert.deepEqual(pick('other'), [20, undefined, 30]);
+  assert.deepEqual(pick('message'), [15, 60, 60]);
+  assert.deepEqual(pick('profile'), [40, undefined, 20]);
+  assert.deepEqual(pick('company'), [20, undefined, 20]);
+  assert.deepEqual(pick('search'), [8, undefined, 30]);
+  assert.deepEqual(pick('employees'), [5, undefined, 60]);
+  assert.deepEqual(pick('inbox'), [30, undefined, 10]);
+  assert.deepEqual(pick('other'), [10, undefined, 30]);
   const note = REAL.servers.linkedin._note;
   assert.match(note, /\[Claim: LeadLoft\]/);
   assert.match(note, /\[Unverified/);

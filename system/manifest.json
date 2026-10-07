@@ -541,7 +541,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "caf7ee7c76f8c0aa5858f3fade9eaa64dfab5511baba583741deaf1da1261f54"
+      "sha256": "2c1440067b097f0403f048a785c0d86ba04d03d275ea898d7e6977ec1ec753de"
     },
     {
       "path": "CLAUDE.md",
@@ -571,7 +571,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "27cb9def34b3ff082492d9ec4e41a0b96e4a9c01fffaff28fb5874cdfd4e2e44"
+      "sha256": "ec49d27b207be3d3af6c81e220bbc544a83c45335af99144b83fd2ca941ebb3b"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -736,7 +736,7 @@
     {
       "path": "system/blueprints/linkedin.md",
       "class": "text",
-      "sha256": "e0d701fa1672985326fcbbb11b53da98802c57c83a4232043c796d8c439f61b1"
+      "sha256": "9a4782f68e845c9b2ffa59a834384bd1d960a00762292330a2928d7135c00a16"
     },
     {
       "path": "system/blueprints/linux-vps-oracle.md",
@@ -781,7 +781,7 @@
     {
       "path": "system/catalogue/limits.json",
       "class": "code",
-      "sha256": "a91d8da26fd5f1c2d582176b9310ad8e490ccdf945fb7a4ddf0ccbeb5e2947cf"
+      "sha256": "329765288efcf9d9e1f8a6655a6cc46dd45b6496279ee24f26d1fb5ad03685cf"
     },
     {
       "path": "system/catalogue/mcp.json",
@@ -806,7 +806,7 @@
     {
       "path": "system/docs/guides/autonomy-and-safety.md",
       "class": "text",
-      "sha256": "f159287bf2c5a3869aa1e728bb479c33fc2157df6757b6628d8b247ea8328a21"
+      "sha256": "1d10c1f8806dd775cb7416ddb92b2b6310acb260d6566193bbe9702bd2f74443"
     },
     {
       "path": "system/docs/guides/getting-started.md",
@@ -2271,7 +2271,7 @@
     {
       "path": "tests/hooks/rate_guard.test.mjs",
       "class": "code",
-      "sha256": "44059bb7bde795c7219a3ec3efe8897323b67d91a543ca84e2511870336a02b5"
+      "sha256": "c2bb0f62723e81e026864388a12d577e21fa50718a58364ce1eee8d6150949fb"
     },
     {
       "path": "tests/hooks/safety.test.mjs",
@@ -2356,7 +2356,7 @@
     {
       "path": "tests/scripts/rate-guard.test.mjs",
       "class": "code",
-      "sha256": "393a315fcef35eed71854adb38b77256fd7ce723edcd59110d32f91f27998725"
+      "sha256": "b4729c7127b97f79f355be835fff83cd3be9895288fd68f0e7d81dc3834e44e0"
     },
     {
       "path": "tests/scripts/setup-github.test.mjs",
