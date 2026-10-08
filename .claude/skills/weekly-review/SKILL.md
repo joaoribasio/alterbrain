@@ -55,12 +55,18 @@ Look back, clear the decks, and plan the week ahead. About ten minutes.
    - Run `node system/scripts/tasks.mjs list` and skip any deadline that already has a task.
    - Add the rest: `node system/scripts/tasks.mjs add "<what is due>" --tag weekly-review --due <date> --priority high|medium [--link "<path>"]`. Use `high` for deadlines within three days.
    - If a deadline is marked unconfirmed (`deadline_confirmed: false`), say so in the task text.
-7. **Quarterly model check reminder.** Work out the last check date: the later of `reviewed` in `system/catalogue/routing.json` and `checked` in `state/local/model-check.json` (if it exists). Then run `node system/scripts/date.mjs --from <that date> --plus 90`. If today is **after** the date it prints, and `node system/scripts/tasks.mjs list` shows no open task containing "model check", add one: `node system/scripts/tasks.mjs add "Run the model check (are the Claude models Alterbrain uses still the best fit?)" --tag health-check --priority low`. Say one line: "It is time for the quarterly model check. It is on your task list; say 'check the models' when you have two minutes." Do not run it here. If it is not due, say nothing.
-8. **Write the weekly note** at `vault/70_journal/weekly/<label>.md`, using the layout in `references/numbers.md`. Put the numbers table first, then what happened, what you cleared, decisions waiting, and next week.
+7. **Course material.** Only if `vault/20_areas/courses/*/course.md` holds notes with `status: "active"`; otherwise skip silently. Ask **one** question for all of them together (AskUserQuestion), naming the courses: "Any new slides, readings or briefs this week for <course>, <course>?"
+   - **Which answer comes first** is a fixed rule, not a guess about lectures: read the newest earlier note in `vault/70_journal/weekly/`. If its `## Cleared` section says "Course material: none new", put **No, nothing new** first and mark it recommended; in every other case (it says files were added, there is no earlier note, or the line is missing) put **Yes** first.
+   - **Yes, I have some:** "Keeps my answers in step with your lectures. Costs a minute or two per course." Recommended when last week's answer was not "none new".
+   - **No, nothing new:** "Nothing to do. I only know what you have already given me." Recommended when last week's answer was "none new": it fits a quiet stretch and saves the minute.
+   If the active courses carry different `term` values, add one line under the question: "<course>, <course> are from an earlier term. Tell me which are finished and I will mark them completed, so I stop asking." Change `status` to `"completed"` in the frontmatter of those notes only after the user names them, and nothing else. Do not make this a second question.
+   On yes, ask which courses if there is more than one, then the path to the files (free text). Hand them to `/ingest` with `--course "<course title>"`: the course is known, so it skips its course question and updates the course note's Material list (`system/packs/mba/course-setup.md`, mode `refresh`). On no, say nothing more. Ask this once per review, never per course. Note the answer for step 9.
+8. **Quarterly model check reminder.** Work out the last check date: the later of `reviewed` in `system/catalogue/routing.json` and `checked` in `state/local/model-check.json` (if it exists). Then run `node system/scripts/date.mjs --from <that date> --plus 90`. If today is **after** the date it prints, and `node system/scripts/tasks.mjs list` shows no open task containing "model check", add one: `node system/scripts/tasks.mjs add "Run the model check (are the Claude models Alterbrain uses still the best fit?)" --tag health-check --priority low`. Say one line: "It is time for the quarterly model check. It is on your task list; say 'check the models' when you have two minutes." Do not run it here. If it is not due, say nothing.
+9. **Write the weekly note** at `vault/70_journal/weekly/<label>.md`, using the layout in `references/numbers.md`. Put the numbers table first, then what happened, what you cleared (including the one line "Course material: none new", or how many files were added to which course, when step 7 ran), decisions waiting, and next week.
    - Only state what the data shows. No invented events.
    - Ask one optional question at the end: "Anything you want to remember from this week?" Add the answer under `## In your words`, exactly as written.
    - If the user shares a lesson, offer `/learn`.
-9. **Close.** In five lines or fewer: numbers headline, tasks moved, captures cleared, proposals decided or suggested, deadlines added, and the path to the note. Name the one thing most worth doing first next week.
+10. **Close.** In five lines or fewer: numbers headline, tasks moved, captures cleared, proposals decided or suggested, deadlines added, and the path to the note. Name the one thing most worth doing first next week.
 
 ## Outputs
 
@@ -70,6 +76,7 @@ Look back, clear the decks, and plan the week ahead. About ten minutes.
 - Updated status on decided proposal cards, and at most one new proposal card from a repeated job.
 - New deadline tasks tagged `#ab/weekly-review`.
 - Once a quarter, only when due: one task "Run the model check…" tagged `#ab/health-check`.
+- If the user said yes to new course material: the files imported through `/ingest`, and the updated Material list in each course note.
 
 ## Safety
 

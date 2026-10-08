@@ -7,6 +7,20 @@ summary: "How to download your readings, slides and course pages from your schoo
 
 Alterbrain does not connect to your school's course website. Some schools do not allow automated access, and you do not need it: you download your files once and hand them over. From then on Alterbrain can answer from your own slides and readings, with sources.
 
+When a course starts (a new term or block, or a course you add later), say `/course new` or "I'm starting Marketing". Alterbrain asks for everything you have for it, in one go:
+
+- the syllabus or course guide
+- slides
+- readings and the reading list
+- cases
+- Excel models and data files
+- assignment briefs and rubrics
+- past exams or sample questions
+- announcements
+- anything else you have
+
+You can hand over everything, only the syllabus, or say "later" (it adds a reminder with the steps below).
+
 ## 1. Download (about 5 minutes per course)
 
 Canvas is the example below. Other platforms (Brightspace, Moodle) work much the same, but the buttons have other names. [Unverified] These steps come from general knowledge of Canvas, not from your school. If a button is missing, tell Alterbrain what you see, or save files one at a time: it can add single files whenever you like.
@@ -24,9 +38,30 @@ Alterbrain then:
 - works out which course the files belong to and asks you once to confirm;
 - keeps an untouched copy of every file (the zip itself is not kept), writes a short note for each one, and links the notes to your course;
 - reads the syllabus and assignment pages, if there are any, shows you the deadlines it found and asks whether to add them to your course note and your task list. If the course's AI rules were unknown, it offers to read them from the syllabus too;
+- writes the course note (AI rules, grading, submission rules, deadlines) and a **Material** list in it, grouped by type (syllabus, slides, readings, cases, data and models, assignments and rubrics, exams) and by session when that is clear;
+- tells you in a few lines what is missing, for example an assignment without its brief or a session without slides;
 - for a big import (more than 50 files), works in batches of about 50 and adds a task for the rest, with a rough time for each batch.
 
 Importing and summarising readings is not assignment work, so the AI-rules reminder does not appear yet. It appears when you ask Alterbrain to start or draft an assignment.
+
+**Word, PowerPoint and Excel files.** Alterbrain always keeps your originals untouched. PDF, CSV and plain-text files are read in full. Word, PowerPoint and Excel files can be read only if a small optional document reader is installed on your computer. Alterbrain checks that before it copies anything. If the reader is missing, it asks you to choose:
+
+- **Save them as PDF first (recommended).** Nothing to install. In PowerPoint, Word or Excel choose File, then Save As or Export, then PDF. A workbook saved as PDF shows its values, not its formulas.
+- **Install the reader first.** It needs a small free launcher called uv, which Alterbrain installs only after your yes. Every Word, PowerPoint and Excel file is then read as it comes in.
+- **Copy them as they are.** Every file is kept and listed, but Alterbrain cannot read inside the Word, PowerPoint and Excel ones, so it cannot answer from them.
+
+Decide before you hand the files over. Installing the reader afterwards does not help files that are already copied, because Alterbrain skips a file it already holds. A file it cannot read is listed as "not readable yet", and Alterbrain never guesses what is in it. When the reader works, a workbook's note lists each sheet and what its tables hold, using the numbers the sheet shows. [Unverified] Formulas, charts and speaker notes may not come through. For a workbook you can also save each sheet as CSV (File, Save As, CSV) and hand those over.
+
+## When new material arrives
+
+Everything you study belongs in your vault, and it keeps arriving all term: slides, your own notes from class, a case, a reading, a brief, feedback on a report, the transcript of a recording.
+
+- **Mention it or hand it over.** Say "we had class today" or "here are my notes from the case discussion". Alterbrain finishes what you asked first, then asks once whether you have the slides or notes. It works out the course from what you said and asks only if two could fit. It does not ask in the middle of a draft, and not for anything already in the course's Material list. It asks once per course in a session: say "not now" and it leaves that course alone until your next session. Files or notes you hand over are always taken in.
+- **Give it the files, or paste the text.** Say "add these to Strategy". Each item is kept untouched, gets a note and is linked into the course's Material list. A video itself cannot be read: give it the transcript or captions as text.
+- **Notes you already typed in the vault** are not imported again. They are linked into the Material list under "Your notes" and left as you wrote them.
+- **A reminder after each class.** When the course note holds the class dates, the start-of-session summary adds a line such as "New material? Corporate Finance had class on Tue 13 Oct", once per class and only for the last 14 days. A class counts as over from 18:00 on the day itself. Classes on or before the day you set the course up are left out, because you handed that material over then. The dates come from the syllabus. If it has none, Alterbrain asks once on which days the class meets (for example Tuesday and Thursday) and, if you know them, when the term starts and ends. Say "I don't know" and there is no reminder for that course. Without an end date the reminders stop 16 weeks after the term starts, and they stop earlier when you mark the course finished.
+- **Courses you set up earlier.** They have no class dates yet. To get the reminder, say `/course Strategy` (use the course's name) or "add class days to Strategy". Alterbrain asks once which days the class meets and writes the answer in the course note. If you say you do not know, it notes that and does not ask again on its own; tell it the days whenever you do know them.
+- **The weekly review** still asks once a week about all your active courses.
 
 ## What it refuses
 
@@ -44,6 +79,7 @@ Alterbrain opens a zip safely, and if anything is wrong with it, it uses **none*
 ## Good to know
 
 - Course files are copyright material. They stay in your own vault on your computer and in your private backup, never in the public Alterbrain project.
-- A file you have already imported is skipped, and keeps the course it was first saved under.
+- A file you have already imported is skipped. If it was saved under another course, it stays there. If it was saved with no course, Alterbrain links its note to the course you name now.
+- One zip per course. Alterbrain cannot split a zip that holds several courses: unzip it and give one folder per course.
 - A source over 100 MB is kept on your computer only (`vault/40_sources/raw/_local/`) and is not backed up online.
 - If your school offers no download at all, give Alterbrain the files one by one as you get them.

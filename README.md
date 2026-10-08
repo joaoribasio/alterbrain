@@ -86,7 +86,7 @@ The minimum path takes about 25 minutes. The rest can wait (they will appear in 
 | M0 | Health check, GitHub sign-in, your private repository, automatic backup |
 | M1 | Identity and tone: a name for your assistant and how it talks to you |
 | M2 | You and your facts: CV or LinkedIn export (optional) fills in the basics |
-| M3 | Your programme, your courses (with each course's AI rules), your goals, and how to bring in your course files |
+| M3 | Your programme and courses: for each course you hand over everything you have (syllabus, slides, readings, Excel files, briefs), or only the syllabus, or leave it for later. Alterbrain records its AI rules and deadlines and lists the material |
 | M4 | Autonomy and self-build: what Claude may do alone (default: nothing is sent) |
 | M5 | Your voice: you share writing samples, Claude writes a profile, you read it back |
 | M6 | Career in the Netherlands: target roles, languages, whether you need sponsorship |
@@ -110,6 +110,7 @@ Example prompts:
 - "What do I already know about Porter's Five Forces? Cite your sources."
 - "Add this PDF to my brain." (then drag the file in)
 - "Here is the zip of my Strategy course files. Add it to my brain." (the zip you get from your school's course website)
+- "I'm starting Marketing next block. Set it up: here is everything I have."
 - "Remind me to email Prof. Smith on Friday."
 - "Start an assignment for my Strategy course."
 - "Draft a reply to the latest email from the programme office."
@@ -127,6 +128,7 @@ Example prompts:
 | `/health-check` | Check that everything is healthy |
 | `/capture` | Save a quick note or a reminder |
 | `/ingest` | Add files, folders or a zip of course files to your brain (originals are kept) |
+| `/course` | Set up a course with all its material: slides, readings, Excel files, briefs. It records the AI rules and deadlines and keeps a list of what you have and what is missing |
 | `/ask` | Ask a question, answered from your own notes with sources |
 | `/framework` | Apply a business framework (for example SWOT, Porter) to a case |
 | `/render` | Make a PDF, CV, cover letter or deck with Quarto |
@@ -149,7 +151,7 @@ Each add-on has **one working case** that you can use today. Each also has a **b
 | **Assignments** (`/assignment`) | Set up an assignment, write a brief, draft it, get blind critiques from several "lenses" (devil's advocate, pre-mortem, board, specialists, grader), then ship a PDF within the page limit | Page budget, fact-check, Excel model, class prep, team review |
 | **Email replies** (`/reply`) | Reads a thread safely, drafts a reply in your voice, saves it as a draft and adds a task. Nothing is sent. | Inbox triage, meeting briefs, calendar, learning from your edits, Outlook |
 | **Jobs in the Netherlands** (`/jobs`) | `scan` finds roles and flags sponsor register, Dutch-language and visa points. `apply` prepares a tailored CV and cover letter in your outbox. | Weekly scan, pipeline view, LinkedIn (read-only), networking messages |
-| **Study** (`/study`) | Explains a topic from your own sources and makes cards. Due reviews appear in your task list. `/study quiz` runs them. | Course set-up from a syllabus, lecture transcripts, Anki |
+| **Study** (`/study`) | Explains a topic from your own sources and makes cards. Due reviews appear in your task list. `/study quiz` runs them. | Session notes from a syllabus, lecture transcripts, Anki |
 
 More blueprints (always-on options, Instagram, Zotero, morning brief, cost report) are listed in `/menu` as "available to build". Just say "build the morning brief" and Claude will start with some questions.
 

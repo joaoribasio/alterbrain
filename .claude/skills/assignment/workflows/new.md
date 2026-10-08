@@ -18,12 +18,12 @@ When you find an answer, state it and ask the user to confirm instead of asking 
 ## 2. The course and the title
 
 1. List the course notes: `vault/20_areas/courses/*/course.md`. Ask which course this is for (AskUserQuestion if there are two to four; free text otherwise).
-2. If the course has no note yet, create one from `system/templates/notes/course.md` (the one course template; onboarding uses it too):
+2. If the course has no note yet, create one from `system/templates/notes/course.md` (the one course template; onboarding and `/course` use it too). Keep it small: the basics and the AI rule only. Do not ask for the course's slides, readings or rubrics now. The assignment interview comes first, and step 8 offers the rest:
    - folder `vault/20_areas/courses/<course-slug>/` (kebab-case, for example `corporate-finance`);
    - ask for the course code and term; take `school` from `config/brain.json`;
    - ask for the AI policy: "Please paste the course's rule on AI tools, word for word, or tell me where it is (syllabus, LMS page)." If the user does not know it, set `ai_policy: "unknown"` and leave `ai_policy_quote` empty.
    - Map the quote to one value: `allowed`, `allowed-with-disclosure`, `restricted`, `banned` or `unknown`. Show your reading and ask the user to confirm it. Never set anything other than `unknown` without the user's confirmation.
-   - Show the course note in three lines and write it on a yes.
+   - Show the course note in three lines and write it on a yes. Remember that you created it: step 8 needs that.
 3. Ask the title: "What is the assignment called?" (for example "Case 2: the media deal"). Make the assignment slug from it now: kebab-case, at most five words (for example `case-2-media-deal`).
 
 ## 3. Coursework notice
@@ -98,7 +98,12 @@ Do not create `reviews/` or `releases/` yet.
 
 Get today from the system: `node system/scripts/date.mjs` (local date). Count days with it, for example five days before 2026-10-20: `node system/scripts/date.mjs --from 2026-10-20 --plus -5`. Tomorrow is `node system/scripts/date.mjs --plus 1`.
 
-Add, with `node system/scripts/tasks.mjs add`:
+First read the open tasks: `node system/scripts/tasks.mjs list`. Course setup (`system/packs/mba/course-setup.md`) may already have put this deadline on the list, as "<course>: <assignment> due" or "Confirm the deadline for <assignment> (<course>)". Match on the assignment title together with the course name or code, not on the exact wording.
+- **A matching task with the same date:** skip item 1 below ("The deadline was already on your list"), and item 2 as well when a matching "Confirm the deadline" task is open. If `deadline_confirmed` is true now and its "Confirm the deadline" task is open, tick it: `node system/scripts/tasks.mjs done "<its text>"`.
+- **A matching task with a different date:** show both and ask which is right. Tasks cannot be edited from here: if the list is wrong, add item 1 with the right date and, with the user's OK, tick the old one with `tasks.mjs done`.
+- **No match:** add items 1 to 3 as below.
+
+Add what is not skipped, with `node system/scripts/tasks.mjs add`:
 1. `"Deadline: <title> (<course code>)" --tag assignment --due <deadline> --priority high --link "10_projects/<folder>/assignment"`.
 2. If `deadline_confirmed` is false: `"Confirm the deadline for <title> on the LMS" --tag assignment --due <tomorrow> --priority high --link "10_projects/<folder>/assignment"`.
 3. If the deadline is more than seven days away: `"First review round for <title>" --tag assignment --due <deadline minus 5 days> --priority medium --link "10_projects/<folder>/assignment"`.
@@ -106,3 +111,5 @@ Add, with `node system/scripts/tasks.mjs add`:
 ## 8. Close
 
 Tell the user, in three lines: the folder is ready, what tasks were added, and the next step: "Next: `/assignment brief`. I will read the case and your course notes and come back with two or three possible answers for you to choose from."
+
+If you created the course note in step 2, add one more line, once, and do not wait for an answer: "This course is new to me, so I only know its AI rule. Say `/course <course title>` and give me its slides, readings, Excel files and rubrics, and I can answer from your own material." It never blocks the assignment. `/course` follows `system/packs/mba/course-setup.md` and fills in this same course note without making a second one.

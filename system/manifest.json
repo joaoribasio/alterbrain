@@ -36,7 +36,7 @@
     {
       "path": ".claude/rules/vault.md",
       "class": "text",
-      "sha256": "4650b9565ae528db367576bb1faa8b351c114943e78d5b86344763a0a25e426e"
+      "sha256": "074f7a2c1ff63ac17f09f1d094cf682ac35bd417b7cf40118f035b638ebca904"
     },
     {
       "path": ".claude/rules/writing.md",
@@ -81,7 +81,7 @@
     {
       "path": ".claude/skills/assignment/workflows/new.md",
       "class": "text",
-      "sha256": "547ef914256ecd3c290d1f416cbc273c74c658976c3ebd4df7bd4d125e63c6e6"
+      "sha256": "cd5c0f7502dcf1108c368c4509440d34fe955111738601604ce88c0e3fd8d602"
     },
     {
       "path": ".claude/skills/assignment/workflows/ship.md",
@@ -179,6 +179,11 @@
       "sha256": "29cad88669e6d4e84551dc939d6072624ffe54b23110926207213807c2fb7410"
     },
     {
+      "path": ".claude/skills/course/SKILL.md",
+      "class": "text",
+      "sha256": "ee4932c638e0bafce11cf5b1e5d3d5d8ac649ae05f232cb97e185a8f5801dca2"
+    },
+    {
       "path": ".claude/skills/defuddle/LICENSE-obsidian-skills",
       "class": "text",
       "sha256": "64c64d48361edfe8610016441bf593256ea9b67f133b00f47c55aa29ee878567"
@@ -236,12 +241,12 @@
     {
       "path": ".claude/skills/ingest/SKILL.md",
       "class": "text",
-      "sha256": "665811cdb27813cb8273cdb6c842e5c51f1ffc53b5de00edf575016ed0a34bf0"
+      "sha256": "732ef7a7bb8e86173e247dd212e206ab36b853846bc22306a28882152779d262"
     },
     {
       "path": ".claude/skills/ingest/references/course-material.md",
       "class": "text",
-      "sha256": "544137c1d2228d91615e9a4c2d4459a6572421f6ddf5372143522d15f39792d4"
+      "sha256": "d178b0a7f618f1bf65218c91a9b43d90512c7443b2674d5507e80b33e4b70dfd"
     },
     {
       "path": ".claude/skills/ingest/references/note-formats.md",
@@ -291,12 +296,12 @@
     {
       "path": ".claude/skills/menu/SKILL.md",
       "class": "text",
-      "sha256": "24640a3703df5beb63cd915451f5c999d3d49f53316d742e125be25db96d20a7"
+      "sha256": "b9e537cf37bf4109fbe4dcbbc191de368c65d10b6f2ed6f16ba07d914b430111"
     },
     {
       "path": ".claude/skills/menu/references/groups.md",
       "class": "text",
-      "sha256": "d40954191caddbfa384f7f859cc2a9a8ddace74e8c2dcc5ed4712400ab192227"
+      "sha256": "e7ad9f7cf3ddd135885fde560ea62b9f0390259c8316f6260747d83246f7023a"
     },
     {
       "path": ".claude/skills/obsidian-bases/LICENSE-obsidian-skills",
@@ -371,7 +376,7 @@
     {
       "path": ".claude/skills/onboard/SKILL.md",
       "class": "text",
-      "sha256": "e0884db7c684f24670c2a0febd36bb0d7650a04b3e9159dec5676681f6ae9916"
+      "sha256": "738330be0d429a4615c18bfe9010ea4c671a97eb5e158caa778488876f097ef4"
     },
     {
       "path": ".claude/skills/onboard/references/state.md",
@@ -396,7 +401,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M3-programme.md",
       "class": "text",
-      "sha256": "7726257723596a7e5f362aa4cca1a98f324313a06a71ef44c0ead641e82eb988"
+      "sha256": "6a3f25a47e7e8a3dcb4a9dee5eb21936e0d8a62ef6f142c68b33dc752336aebc"
     },
     {
       "path": ".claude/skills/onboard/workflows/M4-autonomy.md",
@@ -416,7 +421,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M7-integrations.md",
       "class": "text",
-      "sha256": "4f4f7c25779dfec77f7996ac7ac040e9ac30469863bfcae6506f2b2ad7a705e1"
+      "sha256": "fb6999f9efa8b9fa7a7ddfcc3c091f76b7b53cfac234b2dcc4c851d711fbc12c"
     },
     {
       "path": ".claude/skills/onboard/workflows/M8-brand.md",
@@ -426,7 +431,7 @@
     {
       "path": ".claude/skills/onboard/workflows/M9-import.md",
       "class": "text",
-      "sha256": "aef590ff9263cf4426771ea82feacf7a5cd800ec67b6b4c6d16c2939089767e3"
+      "sha256": "b94ae57bfecb2732e83d31c8b8ddc7875eb5c9f4f36d076508a955b19bc8e6e0"
     },
     {
       "path": ".claude/skills/propose/SKILL.md",
@@ -441,7 +446,7 @@
     {
       "path": ".claude/skills/reconfigure/SKILL.md",
       "class": "text",
-      "sha256": "649e654871b66bb276d0d51d3d9fa9d96e0dc771dee27589c36fe18514e67591"
+      "sha256": "0c501bb0642c03481d3cc98dc1aec95a84a1d10b131789ade04be9817e8e613a"
     },
     {
       "path": ".claude/skills/remove-skill/SKILL.md",
@@ -491,7 +496,7 @@
     {
       "path": ".claude/skills/study/SKILL.md",
       "class": "text",
-      "sha256": "4efa528786f1a854d4541026499708b9cb87cf45b02bb753de2e9f1516c2b24f"
+      "sha256": "488489f51c875372327b7c60cf6b2ab3a02477ea9c88460a1e8a6f5c16e01190"
     },
     {
       "path": ".claude/skills/study/workflows/learn.md",
@@ -516,12 +521,12 @@
     {
       "path": ".claude/skills/weekly-review/SKILL.md",
       "class": "text",
-      "sha256": "e57128b288c975a3be4415dcf850282b2a31f5e459fba221e814b315f39bc6b5"
+      "sha256": "72ef895e461c94cf689a8d9da11301fb636f581864dd3be78e476b444cb888c8"
     },
     {
       "path": ".claude/skills/weekly-review/references/numbers.md",
       "class": "text",
-      "sha256": "828ed9a817d5baa9463f06f9e4f06ea16d5dcc0f79e46a9446e987e906eb51a9"
+      "sha256": "d48c038cc1839b389bff158633d681eadad632e2aa760d3b66a45e0909ef4369"
     },
     {
       "path": ".env.example",
@@ -546,7 +551,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "65f43dffb1eb8804d33673de27d04cbc86bbf525719494e7157804573dcfd16f"
+      "sha256": "68c5736e72e5ad1a7a31586c00c9f56f3f10c66e13e283057ffcde843ce8b4da"
     },
     {
       "path": "CLAUDE.md",
@@ -561,7 +566,7 @@
     {
       "path": "README.md",
       "class": "text",
-      "sha256": "a142d853c3b3c792baf012d152189e1cc2f4a3ca19a4eaeb1bd14d94762d5fd7"
+      "sha256": "4dda937e3707704d743dc8ecf710c4e0166b02e5b9538bb652e5bccf3ff7a778"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -576,7 +581,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "4760ed9ede97946f8c438ccaef6c3693fcfd6494c3446fe0cd80a672af9b80c1"
+      "sha256": "a1c36b43999b18a9d713f11f7b978eb7e010817a95baee5bee1462641764a859"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -684,6 +689,11 @@
       "sha256": "d400b7995e8bf1c8a51f86be42ab4c799abef67021f6b047b1a980f61137829f"
     },
     {
+      "path": "docs/adr/0022-ask-for-all-course-material-at-course-start.md",
+      "class": "text",
+      "sha256": "1d4dd6547e5420369b890e936141b67a1d722f1dbde7deda2c5c3a916158512e"
+    },
+    {
       "path": "docs/critique-panel-prompts.md",
       "class": "text",
       "sha256": "fbd2be4174d7c1c3e3c92e937e294676387dbaf39833a8532bd9230cb77f43a5"
@@ -776,7 +786,7 @@
     {
       "path": "system/blueprints/study-extras.md",
       "class": "text",
-      "sha256": "2dcafa1834a331d48600e1bd53d6410e99c1b7121c51948946683bec4f22678c"
+      "sha256": "332d5a5c09582d22bfe5b82405696f68bcc3aedf29a84189726733f3cc2fd906"
     },
     {
       "path": "system/blueprints/telegram-channel.md",
@@ -821,7 +831,7 @@
     {
       "path": "system/core.md",
       "class": "code",
-      "sha256": "6ec6f93f55c71e191d7e102080a8d7722af37bfb080d33522f0fa8b09f332566"
+      "sha256": "766a501b25df052cbeb1927f13a4664e7951e8356ca417a357cd39566a3f3b78"
     },
     {
       "path": "system/docs/guides/autonomy-and-safety.md",
@@ -831,7 +841,7 @@
     {
       "path": "system/docs/guides/bringing-in-course-material.md",
       "class": "text",
-      "sha256": "2d4c5b0fa7145e077d47d65354da1d1415f10448c7f48d9fb885b9fbeccfe3d9"
+      "sha256": "dd95f2bb44bbb31269937728b3175f76c6a245fe9e9fae7af3041d8be6197a47"
     },
     {
       "path": "system/docs/guides/encrypting-private-notes.md",
@@ -841,7 +851,7 @@
     {
       "path": "system/docs/guides/getting-started.md",
       "class": "text",
-      "sha256": "a1db3187b2243118725c3d52156c82f019646330e5b777fe572f821e38d3ba31"
+      "sha256": "51d284c99d95abea4dd781acff35bbc138f4421968e4c4a7c71126e68cb29aa3"
     },
     {
       "path": "system/docs/guides/git-is-automatic.md",
@@ -886,7 +896,7 @@
     {
       "path": "system/docs/guides/what-can-i-ask.md",
       "class": "text",
-      "sha256": "0c87413f60a9334fcb377f0be23d30fa60433a416482de77a3f80091541841fc"
+      "sha256": "a92584a4c44543c95d35aaeb3df3828cea0f84c45684421a87440d085f7495b7"
     },
     {
       "path": "system/hooks/block_dangerous_git.mjs",
@@ -921,7 +931,12 @@
     {
       "path": "system/hooks/session_start.mjs",
       "class": "code",
-      "sha256": "5732df66a4f792cf11198e27afba131826b2d639b8e2026fe1d43232463481e5"
+      "sha256": "f250e0c2da5f569d90aba19f6126487860a51f1e881ab659f2db941ccc70e488"
+    },
+    {
+      "path": "system/lib/courses.mjs",
+      "class": "code",
+      "sha256": "8f8d937e13542be9f2337af7a776c85a26a92a6740ce1942597a955a563b8e8a"
     },
     {
       "path": "system/lib/frontmatter.mjs",
@@ -981,7 +996,12 @@
     {
       "path": "system/packs/mba/README.md",
       "class": "text",
-      "sha256": "143c759e6418b0f13d8f2f03a87d477d34d9b604992939d4328f22b67ec23c4e"
+      "sha256": "f725b71c787ed034a88978bfb939befdc38c3b34128932c2db9da48bf8dc57e7"
+    },
+    {
+      "path": "system/packs/mba/course-setup.md",
+      "class": "text",
+      "sha256": "206e6efa7d5fcaf7b698c9c8dafe3bc0c3f7cdc5bafac6857277169459e37263"
     },
     {
       "path": "system/packs/mba/frameworks/Ansoff Matrix.md",
@@ -1631,7 +1651,7 @@
     {
       "path": "system/templates/notes/course.md",
       "class": "text",
-      "sha256": "cef0102737bfd6c373cc35fd690cd0738387c1da6dd41b81d92b1e78fcbbab46"
+      "sha256": "14e3d2852940682c5adecf2c55048e767c330fad2158a63424e83cb5102154c8"
     },
     {
       "path": "system/templates/notes/daily.md",
@@ -2319,6 +2339,11 @@
       "sha256": "2c499084aacadce8139935490ee8424fef17b9540f159b2ec3c5d9d33534c977"
     },
     {
+      "path": "tests/hooks/courses.test.mjs",
+      "class": "code",
+      "sha256": "7d18787762000f3df61e4c6cf79de7d5a6b812d58c168caadbb466cf516ad5e3"
+    },
+    {
       "path": "tests/hooks/hookio.test.mjs",
       "class": "code",
       "sha256": "fbaa08e3823552cb5e5ac9a30c6eed3e28a95cc8f16492d0a1c54d5787a5db85"
@@ -2367,6 +2392,11 @@
       "path": "tests/hooks/session_start.test.mjs",
       "class": "code",
       "sha256": "a6ba49555ab95dc29271ebec466be9075dcad976aaa11d4c05a6f685a9c84b49"
+    },
+    {
+      "path": "tests/hooks/session_start_courses.test.mjs",
+      "class": "code",
+      "sha256": "90c773676220027fc80b122bb0f55094e14a2e2a7d9d5bfb0c62b46a093a6328"
     },
     {
       "path": "tests/hooks/session_start_encryption.test.mjs",

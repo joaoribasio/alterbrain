@@ -1,10 +1,12 @@
 # Course material: a folder or a zip
 
-Use this when the user gives a folder or a zip that holds the material for one course: slides, readings, cases, the syllabus, assignment pages. The usual zip is "download everything" from the school's course website. How the user gets one is explained in onboarding M3 ("Bring your course material"); if they ask, give those steps again.
+Use this when the user gives a folder or a zip that holds the material for one course: slides, readings, cases, Excel models, the syllabus, assignment pages. The usual zip is "download everything" from the school's course website. The download steps are in `system/packs/mba/course-setup.md` (section 1); if the user asks, give those steps again.
 
 One loose file follows the normal steps in `SKILL.md`. If the user names its course, still pass `--course`.
 
 There is no connection to the school's learning platform. The user downloads the files and you read them.
+
+**Two procedures meet here.** `system/packs/mba/course-setup.md` is the one procedure for a course: the request for all the material, the course note, the Material list and the gap check. When `/course` (or onboarding) started this import, the course is already known: skip step 1 below and step 6, and do steps 2 to 5; course setup does the rest. When the user starts here, follow this file, and use course setup for the course note (step 6) and the Material list (step 5).
 
 ## 1. Which course? (one question)
 
@@ -16,7 +18,7 @@ Infer first. Never ask what you can see.
   - A match: "**Strategy (recommended)**: the name matches your Strategy course, so the notes link to it and deadlines go into it. If I am wrong, the links are wrong and the notes need redoing."
   - "**A different course**: you pick it from your list. Costs one more question."
   - "**Several courses or not sure**: I decide per file from what it says. Slower, and I may get some wrong."
-  - No course note matches at all: "**Set up <name> as a new course (recommended)**: if the syllabus is in the files I read the deadlines and the AI rules from it. Needs a syllabus, and about two more minutes." and "**Import without a course**: fastest, but nothing links to a course until you tell me."
+  - No course note matches at all: "**Set up <name> as a new course (recommended)**: after the import I read the syllabus for the deadlines and the AI rules, write the course note and list every file in it. About two more minutes, and it needs the syllabus to be in the files." and "**Import without a course**: fastest, but nothing links to a course until you tell me." On the first, `--course` is the name the user confirms, and step 6 runs course setup in mode `after-import`.
 
 The value for `--course` is the course title as written in the course note. For "several courses or not sure" and "without a course", leave `--course` out.
 
@@ -34,7 +36,7 @@ If the course note says `ai_policy: "unknown"` and the files hold a syllabus, of
 - Different courses go in different runs.
 - A zip that was refused has a plain `reason` in `zips[]` (and an `error` record in `files[]`). Tell the user in your own words and what to do next: password protected means they unzip it with the password and give you the folder; too big or too many files means one course folder at a time; an unsafe path or a link means download it again from the school's website; two file names that Windows and macOS treat as the same file (for example `Notes.md` and `notes.md`), or "lists 12 files, but 11 came out", means one file would have overwritten another, so they unzip it themselves, rename the clashing files and give you the folder; unreadable means the download is damaged or incomplete. Never unpack a zip yourself with another tool, and never offer to switch a check off.
 - A zip inside a zip is stored as an ordinary file and not opened (its `note` says so). Tell the user, and offer to carry on once they have unzipped it.
-- Duplicates keep the course they were first saved with. If a duplicate's `course` differs from the one chosen, say so in one line ("3 files were already in your vault under Marketing, so I left them there") and write no second note for them.
+- Duplicates keep the course they were first saved with (the manifest is never edited). If a duplicate's `course` differs from the one chosen, say so in one line ("3 files were already in your vault under Marketing, so I left them there") and write no second note for them. A duplicate with no course (an earlier import without one) gets this course on its existing note: `course-setup.md` section 4 adds the line, and you say "7 were already in your vault, so I linked them to <course>". A duplicate that never got a note is written as a new note.
 - Read the counts: new, duplicate, skipped, problems, `text_pending`, `local_only`. Report them in a line.
 
 ## 4. How many, and how long
@@ -54,24 +56,23 @@ Follow steps 5 and 6 of `SKILL.md`, with these differences:
 
 - The source note carries `course: "[[20_areas/courses/<slug>/course|<Course title>]]"` (see `note-formats.md`).
 - The classify step does not guess the course. It decides kind, title and the wiki pages to touch.
-- After each batch, append one line per new note to the `## Sources` section of the course note: `- [[Source note title]]`. Add only; never reword what the user wrote there.
+- At the end of each run (and before pausing), update the course note's `## Material` list as in `system/packs/mba/course-setup.md` section 4: one line per new note, in its group (slides, readings, cases, data and models, and so on), with the "N of M files noted" heading while notes are still to write. Add only; never reword what the user wrote, and leave lines under `## Sources` as they are. If the course has no note yet, leave the `course` line out of the notes; section 4 adds it once the note exists. When the last note for the course is written, run the gap check as well (`course-setup.md` section 5): before that, a "missing" slide or model may only be a file that has no note yet.
 - If a file's own text says it belongs to another course you know, set `course` to that course, and tell the user in one line.
+- A spreadsheet or data file: describe its sheets or columns and main figures, as `note-formats.md` says. A Word, PowerPoint or Excel file whose text is `pending` cannot be read here: write the note from the file name only, say so (`Text status: pending`), and never summarise it. `course-setup.md` section 2, step 5 says what to tell the user.
 
-## 6. Syllabus and assignment pages: deadlines
+## 6. Course note, deadlines and the AI rule
 
-If the new files include a syllabus, course guide, assignment sheet or an announcement with dates (judge by name and content):
+Follow `system/packs/mba/course-setup.md`. Do not repeat its steps here.
 
-1. Read them in full, not just a summary. Collect deadlines, exam dates, assignment titles, submission rules and any sentence on AI use.
-2. Show what you found in a short table: item, date as written, your reading. Dates stay as written. "Week 6" and "TBC" stay without a date. A date that has already passed is marked "already passed" and gets no task.
-3. Ask once: "Add these to the course note and your task list?" **Yes, all (recommended)**: nothing to remember by hand; you can delete any task later. / **Let me choose**: only what you tick, one extra question. / **No**: nothing is written.
-4. On yes:
-   - **Course note:** add to its Grading table and "Cases and assignments" section, and to "Submission rules" where the files state them. Add only; never overwrite what the user wrote. If there is no course note, create it from `system/templates/notes/course.md` following onboarding M3, "Per-course steps" 2 to 4 (the exact policy quote, your reading of it, the user's confirmation).
-   - **Tasks:** check `vault/00_inbox/Tasks.md` first so nothing is added twice, then
-     `node system/scripts/tasks.mjs add "<Course>: <assignment> due" --tag ingest --due YYYY-MM-DD --priority high --link "20_areas/courses/<slug>/course"`.
-     For an unclear date: `node system/scripts/tasks.mjs add "Confirm the deadline for <assignment> (<course>)" --tag ingest --priority medium --link "20_areas/courses/<slug>/course"`. Never invent a date.
-   - **AI policy:** if `ai_policy` is `unknown` and a sentence on AI use turns up, show the exact words and your reading ("I read that as *allowed with disclosure*. Agree?"). The user's answer wins. If it is unclear, it stays `unknown`.
-5. Offer `/assignment new` for an assignment sheet. That skill runs the AI-policy notice (step 2 above).
+- **The course has no note** (the user chose "Set up <name> as a new course"): run mode `after-import`: section 3 (read the syllabus, the AI-policy reading the user confirms, the course note, deadline tasks), then 4, 5 and 6. Write the course note before the remaining source notes, so they can link to it. No syllabus among the files: the note is written with what is known and the gap check says so.
+- **The course has a note:** run mode `refresh`. If the new files include a syllabus, course guide, assignment sheet or an announcement with dates (judge by name and content), run section 3 in add-only mode for the course note, the deadline tasks and, if `ai_policy` is `unknown`, the AI-policy reading. Then section 4 (the Material list) and the one-line summary of section 6.
+- **Import without a course:** nothing here. If the user later names the course, run `after-import` or `refresh` then.
+- Offer `/assignment new` for an assignment sheet. That skill runs the AI-policy notice (step 2 above).
 
-## 7. Report
+## 7. New material later in the term
 
-A few lines, for example: "Added 212 files from the zip to Strategy (14 were already there). Wrote 50 notes, 162 to go (task added). Found 4 deadlines (added) and the AI rule (allowed with disclosure)." End with two next steps, such as "Ask me a question about it (`/ask`)" and "Turn the first week into study cards (`/study`)".
+Material keeps arriving all term. When the user mentions or hands over something new for a course (a class that took place, slides, their own notes, a case, a reading, a brief, feedback, a transcript), or the session digest says "New material?" for a course, the course is usually clear already: take it from their words or the digest line and skip step 1. Ask the step 1 question only if two courses fit. The flow is steps 3 to 6 with the course known (mode `refresh`). Notes the user already typed in the vault are linked into the Material list under "Your notes", not imported again. Ask once per course per session, never mid-draft, and only for what the course's Material list does not already hold. The detail (when to ask, what to check first, examples) is in `system/packs/mba/course-setup.md` section 7.
+
+## 8. Report
+
+A few lines, for example: "Added 212 files from the zip to Strategy (14 were already there). Wrote 50 notes, 162 to go (task added). Found 4 deadlines (added) and the AI rule (allowed with disclosure)." For a new course, use the summary in `course-setup.md` section 6 instead. End with two next steps, such as "Ask me a question about it (`/ask`)" and "Turn the first week into study cards (`/study`)".

@@ -16,7 +16,8 @@ Save the original, write a short note about it, and weave what it teaches into y
 
 - The user gives a file, a folder, a zip or a link and says "add this", "read this", "learn this", "save this for later".
 - Course readings, lecture slides, cases, articles, company reports, notes from a call.
-- The user drops a folder or a zip of course material, for example everything downloaded from the school's course website. Use "Course material" below. There is no connection to the learning platform; the user downloads and gives you the files.
+- The user drops a folder or a zip of course material, for example everything downloaded from the school's course website. Use "Course material" below. There is no connection to the learning platform; the user downloads and gives you the files. For a whole new course, `/course new` is the better entry: it asks for everything the user has and sets the course up.
+- The user mentions something new for a course, at any time, or the session digest says "New material?" for one (see "New material at any time" below).
 - After `/ask` or the researcher agent found something worth keeping.
 - The user says `/ingest pending`, "write notes for my imported files", or onboarding (M9) copied files that still need notes.
 
@@ -39,7 +40,7 @@ For files that `ingest.mjs` already copied (for example in onboarding M9) but th
    ```
 2. **Say how many.** If none: "Every saved file already has a note." and stop. Otherwise show the count and the first few titles, and ask once: "Write the notes now?" (Yes (recommended) / Later).
 3. **Work through them** with step 5 below (classify, read, write the source note, update the wiki, log), in batches of at most 8, using each entry's `stored`, `text`, `text_status`, `kind`, `origin` and `course`. (`ingest-pending.mjs` may not print `course`: if it is missing, read it from that entry's line in the manifest. If an entry has a `course`, the note links to that course as in `references/course-material.md`, step 5.) Stop after about 50 files per run, say how many are left, and offer to continue.
-4. Then do steps 6 and 8 (check, report) for the files you handled. Tick the matching `#ab/ingest` task with `node system/scripts/tasks.mjs done "<task text>"` once none are left.
+4. Then do steps 6 and 8 (check, report) for the files you handled. Tick the matching `#ab/ingest` task with `node system/scripts/tasks.mjs done "<task text>"` once none are left. If the files belong to a course and none are left for it, update its Material list and run the gap check (`system/packs/mba/course-setup.md` sections 4 and 5, mode `refresh`).
 
 ## Steps
 
@@ -60,7 +61,7 @@ For files that `ingest.mjs` already copied (for example in onboarding M9) but th
    - More than 20 new files: say how many and roughly how long, and work in batches (`references/course-material.md`, step 4).
 5. **For each new file, in batches.** Work through at most 8 files at a time and check in after each batch if there are more.
    1. **Classify (cheap step).** Decide kind, a clear title, the course or topic, and which wiki pages it may touch. For more than three files, give this step to a helper on `model: haiku` (fan-out cap from `plan_tier`). For one to three files, do it yourself.
-   2. **Read the text.** Use the `text` path from the manifest. If `text_status` is `pending`, read the raw file with the Read tool (PDFs in chunks of 20 pages). If you cannot read it, still write the source note, mark it `Text: pending`, and tell the user.
+   2. **Read the text.** Use the `text` path from the manifest. If `text_status` is `pending`, read the raw file with the Read tool (PDFs in chunks of 20 pages). The Read tool opens PDFs, images and plain text, not Word, PowerPoint or Excel files. If you cannot read it, still write the source note from the file name only, mark it `Text: pending`, never summarise what you cannot see, and tell the user (for a course, `system/packs/mba/course-setup.md` section 2, step 5 says how).
    3. **Write the source note** at `vault/40_sources/notes/<Title Case title>.md` using the layout in `references/note-formats.md`: summary, key points with page references, quotes in quotation marks, and a link to the raw file. Check there is no note with the same name in a different case first.
    4. **Update the wiki.** Follow `references/wiki-update.md`. In short: find two to six ideas, frameworks or companies the source teaches. Extend the existing page if there is one. Create a page only if none exists. Cite the source note on every addition.
    5. Append to the log and refresh the index (see `references/wiki-update.md`).
@@ -72,11 +73,23 @@ For files that `ingest.mjs` already copied (for example in onboarding M9) but th
 
 For a folder or zip that holds a course's material, `references/course-material.md` has the whole flow. In short:
 
-1. Infer the course from the folder or zip name and the course notes in `vault/20_areas/courses/`; confirm with **one** question, recommended option first.
+1. Infer the course from the folder or zip name and the course notes in `vault/20_areas/courses/`; confirm with **one** question, recommended option first. If no course note matches, that question offers to set the course up.
 2. Run the script with `--course`; write the source notes linked to the course note.
 3. Importing readings is not assignment work, so there is no AI-policy notice yet. It comes at the first request to start or draft an assignment (`system/core.md` rule 6, run by `/assignment`).
-4. If a syllabus or assignment document is among the files, offer to pull the deadlines into the course note and the task list (`tasks.mjs` with `--due`), and the AI rule if the course says `unknown`.
+4. After the import, follow `system/packs/mba/course-setup.md`. The course has no note: mode `after-import` (the course note, the AI rule, the deadlines, the Material list and a short check of what is missing). The course has a note: mode `refresh` (update its Material list, and offer the deadlines and the AI rule from a new syllabus or assignment document).
 5. Large imports: say the number of files and a labelled time estimate, and write notes in batches of 8, about 50 per run.
+
+## New material at any time
+
+Bringing in course material is a habit, not a one-off at course setup: everything the student studies belongs in the vault. `system/core.md` has the standing rule; the detail is in `system/packs/mba/course-setup.md` section 7.
+
+- **When:** the user mentions or hands over something new for a course: a class that took place, slides, their own notes, a case, a reading, a brief, feedback on an assignment, a transcript of a recording. Also when the digest line "New material? <course> had class on …" appears.
+- **Order:** their request first, then one line. Ask once per course per session; a "no" or "later" ends it for that course until the next session. Never mid-draft: wait for a natural pause. Files or notes they hand over are always taken in.
+- **Look first:** read the course note's `## Material` list, its `sessions/` folder and the manifest lines for that course. What is already listed (a reading, a case, a class whose slides are in) is used, not asked for again.
+- **Which course:** from their words, then the digest line, then the conversation, then the only active course or the course note whose title, code or folder matches the file names. Ask only when two fit, and say which you think is likelier. No course note fits: offer `/course new`.
+- **Examples:** "We had class today" leads to "Do you have the slides or your own notes from today's <course> class? Give me the files, or paste your notes here." Notes handed over in the same breath need no question.
+- **Take it in** as above with `--course`, then refresh the course's Material list (mode `refresh`). Notes or feedback pasted in chat go through the pasted-text route (`course-setup.md` section 2, step 3). A recording itself cannot be read: ask for its transcript as text.
+- **The user's own notes already in the vault** (typed in Obsidian, or saved earlier by `/capture`) are not imported again. Link them into the Material list under "Your notes" (`course-setup.md` section 4, step 1) and leave the notes themselves untouched.
 
 ## Outputs
 
@@ -86,7 +99,7 @@ For a folder or zip that holds a course's material, `references/course-material.
 - New or extended pages in `vault/30_wiki/{concepts,frameworks,companies,industries,topics}/`.
 - A new entry in `vault/30_wiki/log.md` and an updated `vault/30_wiki/index.md`.
 - A task only if something needs the user (for example a PDF that could not be read): `node system/scripts/tasks.mjs add "<text>" --tag ingest --link "<note path>"`.
-- For course material: deadline tasks (`--due`) that the user agreed to, lines in the course note's Sources section, and a task for notes still to write.
+- For course material: deadline tasks (`--due`) that the user agreed to, the course note's `## Material` list, and a task for notes still to write.
 
 ## Safety
 

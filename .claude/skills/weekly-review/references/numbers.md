@@ -49,6 +49,7 @@ week: "2026-W41"
 ## Cleared
 - Inbox: 5 captures processed (2 notes, 2 tasks, 1 archived).
 - Tasks: 9 archived, 3 rescheduled, 2 moved to Someday.
+- Course material: none new (or: 6 files added to Strategy). Only when the review asked.
 
 ## Decisions waiting
 - [[Proposal title]] (open)

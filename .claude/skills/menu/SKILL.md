@@ -38,7 +38,7 @@ Show what Alterbrain can do, in a short list the user can scan in ten seconds.
    ```
    Here's what I can do. Copy any example, or just ask in your own words.
 
-   Study: /study, /ask, /framework
+   Study: /course, /study, /ask, /framework
      • "Explain the Value Chain using my own lecture notes."
      • …two more
    Assignments: /assignment

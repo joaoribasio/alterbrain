@@ -60,7 +60,8 @@ See how Alterbrain is set up, in plain words, and change anything you like.
    | Automatic backup | `config/brain.json` `git.auto_commit` / `git.auto_push`. Recommend keeping both on; explain that off means no online backup. |
    | Encrypt private notes (turn it on later) | Same steps as onboarding, `.claude/skills/onboard/workflows/M0-setup.md` step 4 (explain, key-loss warning, ask, install git-crypt with permission, `vault-key.mjs setup`, key copy, recovery drill). After the install command, run `vault-key.mjs status --json` again before asking for an app restart: the script looks in the folder where Windows puts the tool, so a restart is normally not needed. `setup` also installs a safety check against Obsidian Git uploading a private note unscrambled; if it prints a `Warning:` about another tool's check, relay it in plain words and never touch that other file. The same check is kept in place at every session start. **Before asking, add this warning in plain words:** "Notes you saved before today stay readable in the old versions on GitHub. Turning encryption on protects what you save from now on. The only clean fix for the old versions is a fresh private repository, and moving to one is your decision. I will never rewrite your history or force anything." Offer the fresh repository only if the user asks; it is a separate job, planned with `/clarify` first and never part of this change. Turning encryption off is not built: say so plainly if asked, and do not improvise it. |
    | Check the key backup | `node system/scripts/vault-key.mjs check --key "<their key file>"`. For a password-protected copy the user runs it in their own terminal (Terminal panel in the desktop app) and types the password there; never ask for it in chat. |
-   | Identity, tone, profile, courses, voice, career, brand, import | Re-run the onboarding module: `/onboard M1` … `/onboard M9` (see the table in `.claude/skills/onboard/SKILL.md`). It shows what is saved and changes only what the user wants. |
+   | Add a course (a new block or term, or one that was missed) | Hand over to `/course new`, not to onboarding. It asks for everything the user has for the course and follows `system/packs/mba/course-setup.md`. For a course already in the vault, `/course <name>` shows its material and gaps. |
+   | Identity, tone, profile, school, programme or term, voice, career, brand, import | Re-run the onboarding module: `/onboard M1` … `/onboard M9` (see the table in `.claude/skills/onboard/SKILL.md`). School, programme and term are in M3. It shows what is saved and changes only what the user wants. |
    | Re-do a module from scratch | `node system/scripts/onboard-progress.mjs reset <id>`, then `/onboard <id>`. Ask first: "This starts that step from the beginning. Your current files stay until we replace them. OK?" |
    | Model or effort of a built `my-*` skill | Edit its frontmatter; run `node system/scripts/validate.mjs`. |
 
@@ -77,6 +78,7 @@ See how Alterbrain is set up, in plain words, and change anything you like.
 
 - Edited keys in `config/brain.json` (including `privacy.encryption`, written by `vault-key.mjs`), `config/autonomy.json`, `config/mcp.selected.json`; regenerated `.mcp.json`.
 - Files changed by re-run onboarding modules (see each module's "Files written").
+- For a new course: handed to `/course`, which writes the course note and its Material list.
 - `vault/70_journal/decisions/<YYYY-MM-DD> <Short title>.md` for significant changes.
 - Tasks for anything the user must still do (keys, restart checks).
 

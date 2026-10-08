@@ -1,6 +1,6 @@
 # The MBA pack
 
-This pack gives Alterbrain what an MBA student needs most. It has four parts.
+This pack gives Alterbrain what an MBA student needs most. It has five parts.
 
 ## What is in it
 
@@ -8,6 +8,7 @@ This pack gives Alterbrain what an MBA student needs most. It has four parts.
 2. **Frameworks library** (`system/packs/mba/frameworks/`). 25 short notes on the models you meet in an MBA, such as Porter's Five Forces, VRIO and DCF. Each note is written the same way, so they are easy to scan and use. See the list below.
 3. **Jobs in the Netherlands** (`/jobs`). It searches for roles, checks which firms can sponsor a visa, and drafts applications for you to review. It never sends anything on its own.
 4. **Study** (`/study`). It turns your notes and readings into flashcards, schedules reviews, and quizzes you (`/study quiz`).
+5. **Course setup** (`/course`). When a course starts, it asks for everything you have for it (syllabus, slides, readings, cases, Excel models and data files, briefs and rubrics, past exams), keeps an untouched copy of each file, reads the syllabus for the deadlines and the AI rule, and lists the material in the course note. It then tells you what is still missing. Later in the term it asks for new material when you mention it, and the session summary reminds you after each class. The procedure is `course-setup.md` in this folder.
 
 ## How the frameworks get into your vault
 

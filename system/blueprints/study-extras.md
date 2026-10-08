@@ -15,7 +15,7 @@ Add-ons for `/study`. Pick the ones you want. Each is built the safe way: Alterb
 
 Five optional upgrades:
 
-1. **Course setup from a syllabus.** You give a syllabus PDF (or a zip of everything you downloaded from your course site: see `/ingest`). Alterbrain creates the course folder, the weekly sessions, the deadlines as tasks, and records the course AI policy with its quote. Example: "Set up Strategy 101 from this syllabus" gives `20_areas/courses/strategy-101/course.md` and 12 session notes.
+1. **Session notes from a syllabus.** `/course` already sets a course up: the course note, the AI policy with its quote, the deadlines as tasks and a Material list of your files. This extra adds one note per session in `sessions/`, taken from the syllabus's session list, each linking that session's slides and readings. Example: "Make session notes for Strategy 101" gives 12 notes in `20_areas/courses/strategy-101/sessions/`.
 2. **Lecture transcript ingest.** Drop in a recording transcript. It is saved raw, summarised per topic, and linked to the session note. Cards can then come straight from the lecture.
 3. **Better scheduling (FSRS) or Anki export.** FSRS is a newer way to time reviews. It uses how hard each card felt. Or send your cards to Anki, a free flashcard app, to study on your phone.
 4. **Mastery map.** A single page that shows each topic of a course as weak, getting there, or strong, based on your card boxes.
@@ -24,7 +24,7 @@ Five optional upgrades:
 ## You'll need
 
 - Alterbrain core set up (`/onboard` done) and a course in `vault/20_areas/courses/`.
-- For 1: the syllabus as a file (PDF, Word or text), or a zip of your course files with the syllabus inside.
+- For 1: the course already set up with `/course`, with its syllabus among the sources.
 - For 2: a transcript file (for example from your recording tool or Teams).
 - For 3: either the `ts-fsrs` package (via Node, no Python needed) or an Anki install with the `anki-mcp` server. Check `system/catalogue/MCP-CATALOGUE.md` for the current entry before choosing.
 - For 4 and 5: cards created with `/study`, and an exam date.
@@ -43,7 +43,7 @@ Alterbrain asks these one at a time (`/clarify`, type `skill`):
 
 1. Which of the five do you want first?
 2. Which course is it for?
-3. For setup: where is the syllabus file? Is the AI policy in it? (If it is not clear, the course is marked `unknown` and I will warn you before coursework.)
+3. For session notes: which course? (Its syllabus must already be in the vault. If the course is not set up, I start `/course new` first.)
 4. For transcripts: how do you get them, and in which language?
 5. For scheduling: stay with simple boxes, move to FSRS, or export to Anki?
 6. For exam mode: exam date, how many days a week you can study, and what the exam covers.
@@ -52,11 +52,9 @@ Alterbrain asks these one at a time (`/clarify`, type `skill`):
 
 Written for the agent. Follow `/build`. Scaffold into `.claude/skills/my-study-<slug>/`. Never edit `.claude/skills/study/` directly (it is a framework file).
 
-1. **Course setup.**
-   - Run `node system/scripts/ingest.mjs <syllabus> --course "<course name>"` so the file is stored raw with provenance. If the syllabus came inside a zip of course files and `/ingest` has already saved it, use that copy instead (find it in `vault/40_sources/manifest.jsonl`).
-   - Read the extracted text (or the file with Read if `text_status` is `pending`).
-   - Create `vault/20_areas/courses/<slug>/course.md` with `type: "course"` and `code`, `term`, `school`, `ai_policy`, `ai_policy_quote` (verbatim quote, or `unknown` with an empty quote). Create `sessions/` with one note per week, `cases/` and `assignments/` folders.
-   - For each deadline found, add a task: `node system/scripts/tasks.mjs add "<text>" --tag study --due <date> --link "20_areas/courses/<slug>/course"`. Label unclear dates `[Unverified]` and ask.
+1. **Session notes.**
+   - Read the course note and the syllabus source note it links. If the course has no note, tell the user to run `/course new` first and stop.
+   - Create `sessions/` with one note per session in the syllabus's list: the title, the date exactly as written, and the readings the syllabus names. Link the session's slides and readings from the course note's Material list. Never invent a date.
    - Show a summary before writing anything.
 2. **Transcript ingest.**
    - `node system/scripts/ingest.mjs <file> --kind transcript --course "<course name>"`.
@@ -77,7 +75,7 @@ Add a short `/propose` card first (kind `skill`, model sonnet, effort medium) an
 
 ## How to test
 
-- Course setup: use a synthetic syllabus (Alex Doe, Strategy 101, Rotterdam). Check the course note, the sessions and the tasks.
+- Session notes: use a course set up from a synthetic syllabus (Alex Doe, Strategy 101, Rotterdam). Check the session notes and their links.
 - Transcript: ingest a short sample. Check the source note and that re-ingesting says "duplicate".
 - FSRS or Anki: run on three sample cards. Confirm the old `/study quiz` still works.
 - Mastery map: make 6 cards in different boxes. Check the table matches.

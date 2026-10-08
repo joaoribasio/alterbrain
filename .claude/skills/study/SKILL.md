@@ -92,4 +92,4 @@ Right answer: box plus 1 (box 5 stays at 5). Wrong answer: back to box 1. The ne
 
 ## Extend this
 
-See `system/blueprints/study-extras.md`: course setup from a syllabus, lecture transcript ingest, FSRS scheduling or Anki export, a mastery map and exam mode.
+See `system/blueprints/study-extras.md`: session notes from a syllabus (a whole course is set up by `/course`), lecture transcript ingest, FSRS scheduling or Anki export, a mastery map and exam mode.

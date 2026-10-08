@@ -3,10 +3,10 @@
 The overview shows these eight groups, in this order. Each row: the skills behind the group, and three example prompts the user can copy. Show a skill only if `.claude/skills/<name>/SKILL.md` exists. If none of a group's skills exist, show the group under "Available to build" instead.
 
 ## 1. Study
-Skills: `study`, `ask`, `framework`
+Skills: `course`, `study`, `ask`, `framework`
+- "I'm starting Marketing next block. Set it up: here are my slides, readings and Excel files."
 - "Explain the Value Chain using my own lecture notes."
 - "Make study cards from this week's Corporate Finance slides."
-- "Quiz me on the cards that are due today."
 
 ## 2. Assignments
 Skills: `assignment`, `clarify`
@@ -74,4 +74,5 @@ When the user's own words (a request, or a "how do I" question) include one of t
 
 | Words | Group |
 |---|---|
-| Canvas, Brightspace, Moodle, learning platform, course site, course files, download everything, zip | Knowledge: importing course material (`ingest`). There is no connection to the learning platform. The user downloads the files from the course site and gives me the folder or zip. For "how do I download them?" give the steps in `.claude/skills/onboard/workflows/M3-programme.md` ("Bring your course material"); the import itself is in `.claude/skills/ingest/references/course-material.md`. |
+| Canvas, Brightspace, Moodle, learning platform, course site, course files, download everything, zip | Knowledge: importing course material (`ingest`). There is no connection to the learning platform. The user downloads the files from the course site and gives me the folder or zip. For "how do I download them?" give the steps in `system/packs/mba/course-setup.md` ("The download steps"); the import itself is in `.claude/skills/ingest/references/course-material.md`. For a whole course (syllabus, slides, readings, Excel files, briefs), point to Study: `course`. |
+| new course, new block, new term, start a course, set up a course, add a course | Study: `course`. It asks for everything the user has for the course, reads the syllabus for deadlines and the AI rule, and keeps a list of the material in the course note. |

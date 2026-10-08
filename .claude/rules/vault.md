@@ -22,7 +22,7 @@ Every note starts with YAML frontmatter holding at least `type`, `created` (YYYY
 | `concept` | `30_wiki/concepts/` | `sources: []` |
 | `framework` | `30_wiki/frameworks/` | `family`, `when_to_use`, `sources: []` |
 | `company` | `30_wiki/companies/` | `sources: []` |
-| `course` | `20_areas/courses/<slug>/course.md` | `code`, `term`, `school`, `ai_policy`, `ai_policy_quote` |
+| `course` | `20_areas/courses/<slug>/course.md` | `code`, `term`, `school`, `ai_policy`, `ai_policy_quote`, `session_dates`, `class_days`, `term_start`, `term_end`, `class_days_asked` (class dates for the "New material?" reminder in the session digest; may be empty) |
 | `case` | `courses/<slug>/cases/` | `course`, `question`, `case_type`, `case_date` (the date the case is set; SPEC §13) |
 | `assignment` | `10_projects/<YYYY> <course> <slug>/assignment.md` | SPEC §13 |
 | `application` | `20_areas/career/applications/` | `company`, `role`, `stage`, `source_url`, `deadline` |
@@ -56,7 +56,7 @@ Always take dates from the session digest ("Today is …") or from `node system/
 
 ## Sources
 - `40_sources/raw/` is immutable. Never edit, move, rename or delete anything there.
-- New material goes in through `/ingest` (`node system/scripts/ingest.mjs <file, folder or zip> [--origin "<text>"] [--course "<Course title>"]`), which copies it raw, extracts text and logs it in `manifest.jsonl`. A zip is opened and its files are copied one by one (the zip itself is not stored). Then write one source note per new file and update `30_wiki/index.md` and `30_wiki/log.md`. For a folder or zip of course material follow `.claude/skills/ingest/references/course-material.md`. There is no connection to any learning platform: the user downloads the files.
+- New material goes in through `/ingest` (`node system/scripts/ingest.mjs <file, folder or zip> [--origin "<text>"] [--course "<Course title>"]`), which copies it raw, extracts text and logs it in `manifest.jsonl`. A zip is opened and its files are copied one by one (the zip itself is not stored). Then write one source note per new file and update `30_wiki/index.md` and `30_wiki/log.md`. For a folder or zip of course material follow `.claude/skills/ingest/references/course-material.md`. For a whole course (course note, AI rule, deadlines, the Material list) follow `system/packs/mba/course-setup.md`. There is no connection to any learning platform: the user downloads the files.
 - A source over 100 MB is kept in `40_sources/raw/_local/`, on this computer only; ingest does that, never you.
 
 ## Git rules inside the vault

@@ -24,14 +24,14 @@ Type `/onboard`. Alterbrain asks one question at a time:
 | Setup | Checks your computer, makes your folders, sets up the online backup (and offers to scramble your most private notes there) | 8 min |
 | Identity | Gives your assistant a name and a tone you like | 2 min |
 | You | A short profile and the facts drafts may use (a CV makes it quicker) | 5 min |
-| Courses | Your programme, courses, AI rules and deadlines | 6 min |
+| Courses | Your programme, courses, AI rules and deadlines (more if you hand over all your course files) | 6 min with syllabi only |
 | Autonomy | How much Alterbrain may do on its own | 3 min |
 
-Have these ready if you can: your CV as a PDF and your course syllabi.
+Have these ready if you can: your CV as a PDF and your course syllabi. For each course Alterbrain also asks for everything else you have (slides, readings, Excel files, briefs). You can hand it over now, give only the syllabus, or say "later".
 
 You can stop any time. Say "later" and it saves your progress and adds a reminder to your task list. Say `/onboard` again to carry on.
 
-Later, when you have time, there are optional steps: your writing voice, your job search, Gmail and extra tools, the look of your documents, and importing your existing files. Your course material counts too: download it from your school's course website and Alterbrain reads it (see [Bringing in your course material](bringing-in-course-material.md)).
+Later, when you have time, there are optional steps: your writing voice, your job search, Gmail and extra tools, the look of your documents, and importing your existing files. When a new course or block starts, say `/course new`. Your course material counts too: download it from your school's course website and Alterbrain reads it (see [Bringing in your course material](bringing-in-course-material.md)).
 
 ## 3. Try your first requests
 

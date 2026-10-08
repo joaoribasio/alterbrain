@@ -4,8 +4,10 @@
 // The digest (at most 25 lines) holds the date and weekday, onboarding status, task / outbox /
 // proposal counts and warnings (model, Claude Code version, git, dev mode, and, when encryption of private notes is on,
 // a locked or tool-missing copy and an untested key backup; it also keeps git's upload check for private notes in place,
-// quietly, and only speaks when another tool's hook stops it). It never throws:
-// a part that fails is simply left out. Fails open on malformed input (no output).
+// quietly, and only speaks when another tool's hook stops it). After the task, outbox and proposal lines it may add up to
+// three "New material?" lines for courses that had class since the user was last asked (system/lib/courses.mjs); they only
+// use the room left after the warnings, and what was said is saved to state/local/course-nudges.json after the digest is
+// delivered, never before. It never throws: a part that fails is simply left out. Fails open on malformed input (no output).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { context, isMainModule, readInput, runHook } from '../lib/hookio.mjs';
@@ -15,6 +17,7 @@ import { splitFrontmatter } from '../lib/frontmatter.mjs';
 import { listTasks } from '../lib/tasks.mjs';
 import { cmpVersion, run } from '../lib/proc.mjs';
 import { PUSH_HOOK_TEXT, UNLOCK_COMMAND, encryptionContext, ensurePrePushHook, installCommand } from '../lib/vaultkey.mjs';
+import { MAX_NUDGE_LINES, planNudges } from '../lib/courses.mjs';
 
 const MAX_LINES = 25;
 const PULL_TIMEOUT_MS = 5000;
@@ -41,6 +44,11 @@ export function onboardingUnfinished(state) {
   if (!state || typeof state !== 'object') return true;
   const status = typeof state.status === 'string' ? state.status.toLowerCase() : '';
   return status === '' || status === 'not_started' || status === 'in_progress';
+}
+
+/** How many digest lines the course nudge may take: at most 3, and only what is left once the other lines and the warnings are counted. */
+export function nudgeRoom(usedLines, warningLines) {
+  return Math.max(0, Math.min(MAX_NUDGE_LINES, MAX_LINES - usedLines - warningLines));
 }
 
 /** Pull from git through git-auto. Returns a warning string, or null when all is well or skipped. */
@@ -120,8 +128,12 @@ function modelName(input) {
   return '';
 }
 
-/** Build the digest text. `input` is the SessionStart payload. */
-export function buildDigest(input = {}) {
+/**
+ * Build the digest. `input` is the SessionStart payload. Returns { text, commit }: `text` is what Claude is given, and
+ * `commit()` remembers what the digest said about new course material. Nothing is written until `commit()` is called,
+ * so a digest that fails to build or to arrive leaves no trace and the same lines come back next time.
+ */
+export function composeDigest(input = {}) {
   const now = new Date();
   const todayStr = today(now);
   const lines = ['Alterbrain digest (from the SessionStart hook)', describeNow(now)];
@@ -175,16 +187,31 @@ export function buildDigest(input = {}) {
   }
   if (sync) warnings.push(sync);
   if (devMode) warnings.push('Developer mode is on: framework files can be edited and automatic saving to git is off.');
-  if (warnings.length) lines.push('Warnings:', ...warnings.map((w) => `- ${w}`));
+  const warningBlock = warnings.length ? ['Warnings:', ...warnings.map((w) => `- ${w}`)] : [];
 
-  return lines.slice(0, MAX_LINES).join('\n');
+  // After-class nudge: only the room the warnings leave, so it never pushes a warning out. Not on compact (the
+  // conversation is already running). Cheap file reads only; a failure gives no lines.
+  const room = nudgeRoom(lines.length, warningBlock.length);
+  const nudge = input && input.source === 'compact' ? null : safe(() => planNudges({ now, maxLines: room }), null);
+  if (nudge && nudge.lines.length) lines.push(...nudge.lines);
+  lines.push(...warningBlock);
+
+  const text = lines.slice(0, MAX_LINES).join('\n');
+  return { text, commit: nudge && nudge.lines.length ? () => safe(nudge.commit, false) : () => false };
+}
+
+/** The digest text alone (no state is written). */
+export function buildDigest(input = {}) {
+  return composeDigest(input).text;
 }
 
 async function main() {
   const input = await readInput();
   if (!input) return; // malformed: fail open
-  const digest = safe(() => buildDigest(input), '');
-  if (digest) context(digest, 'SessionStart');
+  const built = safe(() => composeDigest(input), null);
+  if (!built || !built.text) return;
+  context(built.text, 'SessionStart');
+  built.commit(); // after delivery: what the nudge said is not said again
 }
 
 if (isMainModule(import.meta.url)) await runHook(main);

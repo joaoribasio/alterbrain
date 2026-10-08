@@ -1,6 +1,6 @@
 # M9 Import your existing files
 
-**Goal:** the user's existing course material (slides, readings, notes, cases) is copied into the vault with a source record, so `/ask` and `/study` can use it. This covers files already on the computer, including a zip downloaded from the school's course website (how to get one is in M3, "Bring your course material").
+**Goal:** the user's existing course material (slides, readings, notes, cases) is copied into the vault with a source record, so `/ask` and `/study` can use it. This covers files already on the computer, including a zip downloaded from the school's course website (how to get one is in `system/packs/mba/course-setup.md`, "The download steps"; for a whole course, `/course new` asks for everything and sets the course up).
 **Time:** about 10 minutes of the user's time; processing can continue in the background or later.
 **Optional.**
 **Model / effort:** copying and text extraction: `system/scripts/ingest.mjs` (script). Source notes and wiki updates: the `/ingest` skill (sonnet / medium; batches can use haiku / low for summaries).
@@ -34,7 +34,7 @@ Say at the start: "Let's bring in the files you already have. I keep an untouche
      `node system/scripts/tasks.mjs add "Turn imported files into notes. Say: /ingest pending (about 50 files each time)" --tag ingest --priority low`
      Say: "I'll turn them into notes when you ask. Type `/ingest pending`; each run takes a few minutes and does about 50 files."
    - Do not run `ingest.mjs` again on the same folders to "restart": it would only report duplicates.
-6. **Text pending.** If files show `text_status: "pending"` (no text extractor available), say: "I can still read those when needed. If you want faster search, the markitdown tool helps (see `/menu` → Settings & help)."
+6. **Text pending.** If files show `text_status: "pending"` (no text extractor available), sort them by `ext`. PDFs, images and plain text: say "I can still read those when needed." Word, PowerPoint and Excel files (`.docx .pptx .xlsx` and similar): the Read tool does not open them, so say "I kept N Word, PowerPoint or Excel files, but I cannot read inside them yet. A PDF version of each works with nothing to install." The optional document reader helps only files copied after it is installed, because `ingest.mjs` skips a file it already holds, so do not offer it as the fix for these (`system/packs/mba/course-setup.md` section 2, step 1). Never write a summary of a file you cannot read.
 
 ## Files written
 
