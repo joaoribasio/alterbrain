@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { join } from 'node:path';
 import { classifyPrePush, writeAttributeFiles } from '../../system/lib/vaultkey.mjs';
 import { cleanup, makeVaultProject, runInProject, runVk, git } from '../fixtures/scripts/vaultkey-helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const START = JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup' });
 
@@ -18,7 +19,7 @@ function digest(root, opts = {}) {
   return out.hookSpecificOutput.additionalContext;
 }
 
-test('encryption off: the digest says nothing about it', () => {
+test('encryption off: the digest says nothing about it', release(), () => {
   const p = makeVaultProject({ framework: true });
   try {
     const text = digest(p.root);
@@ -28,7 +29,7 @@ test('encryption off: the digest says nothing about it', () => {
   }
 });
 
-test('encryption on but the tool is missing: one warning with the install command', () => {
+test('encryption on but the tool is missing: one warning with the install command', release(), () => {
   const p = makeVaultProject({ framework: true, enabled: true });
   try {
     const text = digest(p.root, { tool: 'none' });
@@ -42,7 +43,7 @@ test('encryption on but the tool is missing: one warning with the install comman
   }
 });
 
-test('encryption on, tool installed, no key here: one warning with the unlock command', () => {
+test('encryption on, tool installed, no key here: one warning with the unlock command', release(), () => {
   const p = makeVaultProject({ framework: true, enabled: true });
   try {
     const text = digest(p.root);
@@ -55,7 +56,7 @@ test('encryption on, tool installed, no key here: one warning with the unlock co
   }
 });
 
-test('unlocked but the key backup is untested: one reminder, no warning; after the check, silence', () => {
+test('unlocked but the key backup is untested: one reminder, no warning; after the check, silence', release(), () => {
   const p = makeVaultProject({ framework: true });
   try {
     assert.equal(runVk(p.root, ['setup']).code, 0);
@@ -82,7 +83,7 @@ test('unlocked but the key backup is untested: one reminder, no warning; after t
 const hookFile = (root) => join(root, '.git', 'hooks', 'pre-push');
 const hookKind = (root) => (existsSync(hookFile(root)) ? classifyPrePush(readFileSync(hookFile(root), 'utf8')) : 'absent');
 
-test('encryption off: no upload check is written and the digest says nothing about it', () => {
+test('encryption off: no upload check is written and the digest says nothing about it', release(), () => {
   const p = makeVaultProject({ framework: true });
   try {
     const text = digest(p.root);
@@ -93,7 +94,7 @@ test('encryption off: no upload check is written and the digest says nothing abo
   }
 });
 
-test('encryption on: the session start puts the upload check in place without a word, and does not rewrite it next time', () => {
+test('encryption on: the session start puts the upload check in place without a word, and does not rewrite it next time', release(), () => {
   const p = makeVaultProject({ framework: true, enabled: true });
   try {
     const text = digest(p.root);
@@ -107,7 +108,7 @@ test('encryption on: the session start puts the upload check in place without a 
   }
 });
 
-test('the setting files alone (a fresh download of an encrypted vault) are enough to put the upload check in place', () => {
+test('the setting files alone (a fresh download of an encrypted vault) are enough to put the upload check in place', release(), () => {
   const p = makeVaultProject({ framework: true });
   try {
     writeAttributeFiles(p.root);
@@ -119,7 +120,7 @@ test('the setting files alone (a fresh download of an encrypted vault) are enoug
   }
 });
 
-test('the standard Git LFS hook is replaced by ours, which carries the LFS step; another tool\'s hook is left alone and the digest says so once', () => {
+test('the standard Git LFS hook is replaced by ours, which carries the LFS step; another tool\'s hook is left alone and the digest says so once', release(), () => {
   const p = makeVaultProject({ framework: true, enabled: true });
   try {
     mkdirSync(join(p.root, '.git', 'hooks'), { recursive: true });
@@ -142,7 +143,7 @@ test('the standard Git LFS hook is replaced by ours, which carries the LFS step;
   }
 });
 
-test('a shared hooks folder in the git settings: nothing is written, one warning', () => {
+test('a shared hooks folder in the git settings: nothing is written, one warning', release(), () => {
   const p = makeVaultProject({ framework: true, enabled: true });
   try {
     const shared = join(p.parent, 'shared-hooks');

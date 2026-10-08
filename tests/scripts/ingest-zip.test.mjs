@@ -10,6 +10,7 @@ import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { makeProject, runScript, read } from '../fixtures/scripts/helpers.mjs';
 import { buildZip } from '../fixtures/scripts/zip-helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   checkUnpackedCount,
   checkZipIndex,
@@ -228,7 +229,7 @@ test('a zip with a comment, and a zip64 zip, are both read', { skip: NEEDS_TOOL 
   }
 });
 
-test('a zip of 300 files is opened in one go', { skip: NEEDS_TOOL }, () => {
+test('a zip of 300 files is opened in one go', release({ skip: NEEDS_TOOL }), () => {
   const { p, box } = setup();
   try {
     const entries = [];

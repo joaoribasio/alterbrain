@@ -10,6 +10,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkTemplate, defaultTone, listTemplates, resolveTemplate, templateWarnings } from '../../system/lib/templates.mjs';
 import { missingLayouts, QUARTO_PPTX_LAYOUTS } from '../../system/scripts/template.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '..', '..');
@@ -312,7 +313,7 @@ function run(args, root) {
   return { status: res.status, stdout: res.stdout || '', stderr: res.stderr || '' };
 }
 
-test('template.mjs: list, show, resolve, check and exit codes', () => {
+test('template.mjs: list, show, resolve, check and exit codes', release(), () => {
   const p = project();
   try {
     const list = JSON.parse(run(['list', '--json'], p.dir).stdout);

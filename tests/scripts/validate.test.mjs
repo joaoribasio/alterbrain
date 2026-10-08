@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { copyFixture, makeProject, read, runScript, write } from '../fixtures/scripts/helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   buildManifest,
   classify,
@@ -566,7 +567,7 @@ test('migrations: a well-formed upgrade with its test passes and is counted', ()
   assert.equal(check().out.checked.migrations, 0, 'no migrations folder: nothing to check');
 });
 
-test('migrations: the file name must be four digits, a dash and lower-case words', () => {
+test('migrations: the file name must be four digits, a dash and lower-case words', release(), () => {
   for (const bad of ['001-short.mjs', '00001-long.mjs', '0002_underscore.mjs', '0002-Upper.mjs', '0002-two--dashes.mjs', '0002-.mjs', 'first.mjs', '0002 space.mjs']) {
     const { status, out } = check(withMigration((p) => {
       write(p, MIG(bad), GOOD_MIG);
@@ -676,7 +677,7 @@ test('release notes: with the notes in place there is nothing to say', () => {
   assert.deepEqual(r.out.release_blockers, []);
 });
 
-test('release notes: an upgrade script nobody described is a warning while developing and an error for a release', () => {
+test('release notes: an upgrade script nobody described is a warning while developing and an error for a release', release(), () => {
   const setup = (p) => {
     withMigration()(p);
     changelog('### Added\n- Something new.\n', LISTED_ALL_MOVED)(p);
@@ -702,7 +703,7 @@ test('release notes: a mention of the script in the wrong part of the changelog 
   assert.ok(has(r.out.errors, /0001-first-change is not described/));
 });
 
-test('release notes: a framework file of the last release that is gone must be listed under "### Moved"', () => {
+test('release notes: a framework file of the last release that is gone must be listed under "### Moved"', release(), () => {
   const none = releaseCheck(changelog('### Added\n- Something new.\n'), ['--release']);
   assert.equal(none.status, 1);
   assert.ok(has(none.out.errors, /CHANGELOG\.md: 3 framework files of v0\.1\.1 are gone but not listed under "### Moved" \(system\/packs\/lenses\/board\.md, system\/packs\/lenses\/grader\.md, system\/packs\/templates\/rubric\.md\)/), JSON.stringify(none.out.errors));
@@ -716,7 +717,7 @@ test('release notes: a framework file of the last release that is gone must be l
   assert.equal(all.status, 0, JSON.stringify(all.out));
 });
 
-test('release notes: a folder listed under "### Moved" covers what is inside it, and Windows slashes and capitals do not matter', () => {
+test('release notes: a folder listed under "### Moved" covers what is inside it, and Windows slashes and capitals do not matter', release(), () => {
   const folder = releaseCheck(changelog('### Moved\n- The `system/packs/lenses/` folder is now `system/packs/mba/lenses/`.\n- `system/packs/templates/rubric.md` was removed.\n'), ['--release']);
   assert.equal(folder.status, 0, JSON.stringify(folder.out));
   const windows = releaseCheck(changelog('### Moved\n- `System\\packs\\Lenses\\board.md`, `system/packs/lenses/grader.md` and `system/packs/templates/rubric.md` moved.\n'), ['--release']);
@@ -726,14 +727,14 @@ test('release notes: a folder listed under "### Moved" covers what is inside it,
   assert.equal(tooBroad.status, 1);
 });
 
-test('release notes: only the sections newer than the previous release count for "### Moved"', () => {
+test('release notes: only the sections newer than the previous release count for "### Moved"', release(), () => {
   const r = releaseCheck((p) => write(p, 'CHANGELOG.md', `# Changelog\n\n## [Unreleased]\n\n### Added\n- Something.\n\n## [0.1.1] - 2026-10-07\n\n${LISTED_ALL_MOVED}`), ['--release']);
   assert.equal(r.status, 1, 'a Moved list from a release that is already out does not cover this one');
   const newer = releaseCheck((p) => write(p, 'CHANGELOG.md', `# Changelog\n\n## [0.2.0] - 2026-10-20\n\n${LISTED_ALL_MOVED}\n## [0.1.1] - 2026-10-07\n\n### Added\n- Old.\n`), ['--release']);
   assert.equal(newer.status, 0, JSON.stringify(newer.out));
 });
 
-test('release notes: nothing is asked for when there is nothing to describe, or no CHANGELOG while developing', () => {
+test('release notes: nothing is asked for when there is nothing to describe, or no CHANGELOG while developing', release(), () => {
   // no upgrade scripts, nothing removed: even a missing CHANGELOG is fine
   const calm = releaseCheck((p) => {
     for (const f of OLD_FILES) write(p, f, 'old\n'); // nothing is gone
@@ -753,7 +754,7 @@ test('release notes: a project without git history is not asked about moved file
   assert.deepEqual(r.out.warnings, []);
 });
 
-test('release notes: signing is refused, and nothing is written, until the notes are complete', async () => {
+test('release notes: signing is refused, and nothing is written, until the notes are complete', release(), async () => {
   const { generateKeyPairSync } = await import('node:crypto');
   const { privateKey } = generateKeyPairSync('ed25519');
   const sign = (p) => ['--write-manifest', '--sign-key', p.path('keys', 'release.pem')];

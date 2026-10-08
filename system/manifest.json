@@ -46,7 +46,7 @@
     {
       "path": ".claude/rules/framework-dev.md",
       "class": "text",
-      "sha256": "d932e6c24d6fb8717cdc9cc85731b66718aeb1ddc59666a6f2dba1416435c08f"
+      "sha256": "287c0a56a81bc4756f93bdcd824eea97889ff3e2e818c628238a81576ae5de29"
     },
     {
       "path": ".claude/rules/migrations.md",
@@ -691,7 +691,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "code",
-      "sha256": "696d84d2f777cabdb130134c062955f7e56ed2752b69629e333b25cc566f5f35"
+      "sha256": "f2ac2f2c45d2ae3cc04b56c73935531b2b8f84aa89edc0aa2388fd7d6d931c5f"
     },
     {
       "path": ".gitignore",
@@ -701,7 +701,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "9356d04a46165e370d1604e32aecb30dc2df5c45f1ba0e8f9e4644764bf129fc"
+      "sha256": "2675bbf4a5dd88e127334c8cf9cac3d383377344ea83d3171fc0bbafa644b83d"
     },
     {
       "path": "CLAUDE.md",
@@ -721,7 +721,7 @@
     {
       "path": "README.md",
       "class": "text",
-      "sha256": "b7d3a1aac5db1a312bba8d2a84fffca42aa56ae73458b655609b612e41e54e35"
+      "sha256": "209d947f1f435892a561fe6f14c4c43fb9102fab5f3a3f6ced7dadfc61fb4e82"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -736,7 +736,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "cb5dd701e9b69aca1c849763d8e0dd8a6cd43601aa0de63bbbbb10621ba73dfc"
+      "sha256": "92263b816865bb2b1c838dade120038f2bd1d3db52614be1ce134151e9fb0d00"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -2884,6 +2884,11 @@
       "sha256": "a2f7aabb13654597feddc7bd18687d99d205a256cbf0e17420bd6734bfa1ea65"
     },
     {
+      "path": "tests/fixtures/scripts/release.mjs",
+      "class": "code",
+      "sha256": "bcb2854791e2d34be069f2475dab4e0cd64b35c1f0fba3db84d98431c903a57b"
+    },
+    {
       "path": "tests/fixtures/scripts/templates/project/config/brain.json",
       "class": "code",
       "sha256": "41a024d44099a7bca02e251616d2adca61d565e228b5d50cac7909ab2d89cefb"
@@ -3136,7 +3141,7 @@
     {
       "path": "tests/hooks/block_secrets.test.mjs",
       "class": "code",
-      "sha256": "2c499084aacadce8139935490ee8424fef17b9540f159b2ec3c5d9d33534c977"
+      "sha256": "8c75c9d549f9af1edba7b21c65616b57832e42ab391a222a77621423b0eb83aa"
     },
     {
       "path": "tests/hooks/courses.test.mjs",
@@ -3156,7 +3161,7 @@
     {
       "path": "tests/hooks/protect_paths.test.mjs",
       "class": "code",
-      "sha256": "c7b9ece60014743822b94a25687a678e6e982c72ea4fc018604d3579e3fa6930"
+      "sha256": "b625071969124cc653b22c86836ab45377ccf673e09b8116e47b31b156f7e0a3"
     },
     {
       "path": "tests/hooks/rate_guard.test.mjs",
@@ -3166,32 +3171,32 @@
     {
       "path": "tests/hooks/safety.test.mjs",
       "class": "code",
-      "sha256": "009ddd7e4569727667c3823bc782ab208c414f6ef3bdbf5b9f142bf24c9fab38"
+      "sha256": "cf00ff2fc0a1353c4b86328a1531be61059ec3c2b8835c9789120cf67d552540"
     },
     {
       "path": "tests/hooks/session_end.test.mjs",
       "class": "code",
-      "sha256": "40d8fdfef4716324a115634dceeeb0698d7bdbab42d1cc0a9481cd3b899f9023"
+      "sha256": "5712d5e29b2979398051bd0fdc07fe5bbef47958950711e2a64b43d92da622d3"
     },
     {
       "path": "tests/hooks/session_end_background.test.mjs",
       "class": "code",
-      "sha256": "b2208a68606274532dc41787a3cb7e517729423d8c6824c38ea221c5ff080c30"
+      "sha256": "d6c2d3b87ca98c93767054acf01db0450e33db289ad6669066491562fa71efd0"
     },
     {
       "path": "tests/hooks/session_end_encryption.test.mjs",
       "class": "code",
-      "sha256": "583863f62ee5d08177b4f5b2dea831ddcbbce2139c97f163e19cb895bf1f46e5"
+      "sha256": "ec1f272df62e0724e8f54557708b8494503a3b133a4a49bc1b5f98d7615c05ed"
     },
     {
       "path": "tests/hooks/session_end_lfs.test.mjs",
       "class": "code",
-      "sha256": "916fc03aafae6eda75e43b2afea1fd7226334874053c5f3ae653af69969b75d0"
+      "sha256": "0f7f468bf2c13ff2df31a45519b3da6af503a2db0a798fd26e4b5ba73487db60"
     },
     {
       "path": "tests/hooks/session_start.test.mjs",
       "class": "code",
-      "sha256": "caf9ad18229678f75ba13c0fc957929f87b192166d6099baf9dcb9bc6b252da6"
+      "sha256": "29918506ae2db8fe2819e235c2dbd4826d921b14b7d8ac1f7f2ac3ab33896a07"
     },
     {
       "path": "tests/hooks/session_start_courses.test.mjs",
@@ -3201,7 +3206,7 @@
     {
       "path": "tests/hooks/session_start_encryption.test.mjs",
       "class": "code",
-      "sha256": "91a7d83fd9121bc9e132e5c5af9232ee05e4c31be1cffaa809ffaca9979d71a8"
+      "sha256": "345624f8a48fc2369cf3e15ac991143d1767e234ee4e9a9b9282e1b591b87bb8"
     },
     {
       "path": "tests/hooks/session_start_routines.test.mjs",
@@ -3211,7 +3216,7 @@
     {
       "path": "tests/hooks/settings_template.test.mjs",
       "class": "code",
-      "sha256": "a866682b83faf670f939f4ec10211c04fe43b22267cbb482394c899db7fc0c09"
+      "sha256": "878dd0751d118c44108ddff9a670e2274aa5d19b2b3f1dab5856fb07a0a46ee8"
     },
     {
       "path": "tests/hooks/updatecheck.test.mjs",
@@ -3226,7 +3231,7 @@
     {
       "path": "tests/quarto/quarto.test.mjs",
       "class": "code",
-      "sha256": "f777c411d77f7cc0ae4b1c638c99200be99fa2c7bc76e7ca1d258858196e8c9c"
+      "sha256": "d3160cb602c7d3741de42df0dbc64efe984ca1365a74d6cd15e3a4c7f82b92ed"
     },
     {
       "path": "tests/scripts/built.test.mjs",
@@ -3236,7 +3241,7 @@
     {
       "path": "tests/scripts/ci-workflow.test.mjs",
       "class": "code",
-      "sha256": "090c06156c7be501f357a6889b063dc60b256cf02945bb28796ebb578ab9adc9"
+      "sha256": "15baf83d78ff7641e2029de24bb972157f548de58c27febc95422fb7b798ba96"
     },
     {
       "path": "tests/scripts/course-procedure.test.mjs",
@@ -3251,67 +3256,67 @@
     {
       "path": "tests/scripts/deliver-check.test.mjs",
       "class": "code",
-      "sha256": "1afcb7e2aeb0ee1d00debc255125fee3055459150f69983de838faa56827aa11"
+      "sha256": "eb372c29a9da86495f8d826b6ccbc13a11812955e395ba0814184d0d361abd04"
     },
     {
       "path": "tests/scripts/doctor-bigfiles.test.mjs",
       "class": "code",
-      "sha256": "256066f380344997485413fa641f0fbb4dd20a1abfe00a5dd0bc19b94826deb8"
+      "sha256": "1567d4ca58f7a2fa37e5480ccda54157f3795dd860561871d24b5170ebe16aa3"
     },
     {
       "path": "tests/scripts/doctor-encryption.test.mjs",
       "class": "code",
-      "sha256": "1d3e42b684c28fbb7df001303d59aafc3229cec68d4ccd2a5a0a1bcfce545cbb"
+      "sha256": "d03d49b8d314ffb4eb5c2566fbb5db97b810fd831187fbb118f9397e1e0f2c56"
     },
     {
       "path": "tests/scripts/doctor-lfs.test.mjs",
       "class": "code",
-      "sha256": "c2a28de6e09de5b88e2969b8989bda86640d9eae56bf0c94878379b05f1aa4e5"
+      "sha256": "b23e876134567438eb252186320525cffc155bbd306340ce700573b52962b2f4"
     },
     {
       "path": "tests/scripts/doctor-routines.test.mjs",
       "class": "code",
-      "sha256": "bdae1cefbc551341c8e1e9866787bf13dae9185478c5268b2665d501c6af9708"
+      "sha256": "20f5c2ca84bc4ebc4054b9b9beec6d8a77e9456b70b8e3138627ad73c359d2ca"
     },
     {
       "path": "tests/scripts/doctor.test.mjs",
       "class": "code",
-      "sha256": "99785391b4f5bb5dc972958cc1379ad58af919d7a3602c247a4d5a512d6fc2b4"
+      "sha256": "10a6f4259d0bdb554bf7a6a81ee610fc2bd4a5af155fe94438076ac416ff4258"
     },
     {
       "path": "tests/scripts/git-auto-background.test.mjs",
       "class": "code",
-      "sha256": "268e1ff8a3ffc741b49863b53f36767da1bb17731517f7ad6ada150c9a2974d2"
+      "sha256": "e8b2244bec8f3784dfa1c2607f0bc240b3d23e2a2d9a3b2d9956f95520a0381a"
     },
     {
       "path": "tests/scripts/git-auto-lfs-flows.test.mjs",
       "class": "code",
-      "sha256": "55c0a98118f39d39363f0865b9685cf30c19e8345ad7e622420493c4a18d6f82"
+      "sha256": "b63975ee2717733b54089624b10b0d4ed85cab11e4a5dbd99829065d2e6def89"
     },
     {
       "path": "tests/scripts/git-auto-lfs.test.mjs",
       "class": "code",
-      "sha256": "953aa8d36f144f029d5d863b529bd582a13ed17cf29a2041f169644bff600df0"
+      "sha256": "f7b093741d089b51859cc5b972d5dae07e3573aa6215bd019179e7284d56c965"
     },
     {
       "path": "tests/scripts/git-auto-obsidian.test.mjs",
       "class": "code",
-      "sha256": "a9906e03d9ab96b434d7dd939bff73e3e6841e1e3cc039d43e1b27e5cb22cd09"
+      "sha256": "53e90cf6ad6f524fa0154dbd4eb75b5eed6af97df1255f54dd7b677cf2ecbca4"
     },
     {
       "path": "tests/scripts/git-auto-oversized.test.mjs",
       "class": "code",
-      "sha256": "1c9f86478bd356946b4a72bea0a34ab5d211d888ca2736cb96e95a323b3ffaff"
+      "sha256": "993fd52ed4dd5429497fb52b0424d31aad51217f323bc67cbfc5c79707d69d14"
     },
     {
       "path": "tests/scripts/git-auto.test.mjs",
       "class": "code",
-      "sha256": "b0417cabf007684935f77f9f705f4f39e1bd70d64b95d53fbd8a565c2fb2d31c"
+      "sha256": "59143a2d1d494101e95bf96b1bb319f62ef33df1f9f14cf6cac11722d36d980a"
     },
     {
       "path": "tests/scripts/git-bigfiles-lib.test.mjs",
       "class": "code",
-      "sha256": "ad4aca5eecac68de6a3f77a2b3f3d097d38e221f083ec605b4427bbb7aae847a"
+      "sha256": "d862dc4fc242f732764a18b5bfccfa8e7776b1e1969ff7de3b779286cfbf0d78"
     },
     {
       "path": "tests/scripts/git-lfs-rules.test.mjs",
@@ -3321,7 +3326,7 @@
     {
       "path": "tests/scripts/ingest-zip.test.mjs",
       "class": "code",
-      "sha256": "0e54f6b9cc81cd5bdc86da0e373045d557a1707594816c0ac60de8fba4db9006"
+      "sha256": "863a48447ab5d85828ba9a6324fcbae6ee6998de516006b7e99b6c111563d0d2"
     },
     {
       "path": "tests/scripts/ingest.test.mjs",
@@ -3361,7 +3366,7 @@
     {
       "path": "tests/scripts/migrations/0004-old-pack-paths.test.mjs",
       "class": "code",
-      "sha256": "49b7e830e54cfaf4b2e2b5a370dd5097885031e2eb2d73b92bf05428c77755a9"
+      "sha256": "23306a61a2eb68290706210d47e48578123b1aaa54fe4e0259e56ae550d83675"
     },
     {
       "path": "tests/scripts/migrations/0005-moved-file-edits.test.mjs",
@@ -3371,17 +3376,17 @@
     {
       "path": "tests/scripts/migrations/all-migrations.test.mjs",
       "class": "code",
-      "sha256": "8b9c0616f91b88d9621a575776ef0f85ef128f000e5f4f82f3c6f53d788a072d"
+      "sha256": "1b997f4a4a1afd8621da6651f62d5af7889eaf991c5c715cd68bda94d1ab3ccb"
     },
     {
       "path": "tests/scripts/migrations/guided.test.mjs",
       "class": "code",
-      "sha256": "87f284d4313142266ce7ca1e217f4200c632d8843809540008be009bb3024469"
+      "sha256": "d3eedd3f64c4a40e5f57d1065336ee2fdc7e0f5846d5012467be345f0b7ffbcd"
     },
     {
       "path": "tests/scripts/migrations/update-flow.test.mjs",
       "class": "code",
-      "sha256": "9259c1d54d5d73e1834eaf7de49b56930f73358746ee43cc2687156b7434c2ac"
+      "sha256": "4277a8ab939f2a526a3be8e0bb8db55e39ef34dee4bc8d384b3f1a1b76f5703a"
     },
     {
       "path": "tests/scripts/obsidian-setup.test.mjs",
@@ -3401,17 +3406,17 @@
     {
       "path": "tests/scripts/pages.test.mjs",
       "class": "code",
-      "sha256": "e333410b49faf7048b5c85ce5193a781cd685988760da26bf112103f1c38b980"
+      "sha256": "b1b5ded4ae4d6253ccdea2fe752f94e1e913c025b2dcd70a5505747c93e9d436"
     },
     {
       "path": "tests/scripts/people.test.mjs",
       "class": "code",
-      "sha256": "2b2203cee0ff0daa7d40a4340727e80554cf151a1ed4880a3f17a38d64aa26df"
+      "sha256": "4c5465f79391a22f35259a69f33281486a3d66c5fabc9d8f43f0b81af171ac36"
     },
     {
       "path": "tests/scripts/pre-push-hook.test.mjs",
       "class": "code",
-      "sha256": "6d4feb03c4964cfcd6ee3c4495164b6c57b484c44267485240b59dd6ff5f19e9"
+      "sha256": "a9eb83965c6c65325a0498e801bb531428b36875fee6a1c803d7c888ebea2775"
     },
     {
       "path": "tests/scripts/proposals.test.mjs",
@@ -3429,6 +3434,11 @@
       "sha256": "b4729c7127b97f79f355be835fff83cd3be9895288fd68f0e7d81dc3834e44e0"
     },
     {
+      "path": "tests/scripts/release-helper.test.mjs",
+      "class": "code",
+      "sha256": "0639591501e8bd4619c5741e72869181bf468b856e3204021fcdcea7bf5e461b"
+    },
+    {
       "path": "tests/scripts/release-scan.test.mjs",
       "class": "code",
       "sha256": "9bff843c6a29ffbef86c47c9eb19ee6200eb396f62e97f7ebdf19963ebb0c8f5"
@@ -3441,7 +3451,7 @@
     {
       "path": "tests/scripts/setup-github.test.mjs",
       "class": "code",
-      "sha256": "b311290a2abd69a04f1b29a5ceb0bd2412044994e6afaa81d91c03c7d32ab2e4"
+      "sha256": "0ed72ffd742d22035047343f282acf4e4e04f049328453b1e0553999316295c7"
     },
     {
       "path": "tests/scripts/slop-check.test.mjs",
@@ -3456,17 +3466,17 @@
     {
       "path": "tests/scripts/templates.test.mjs",
       "class": "code",
-      "sha256": "4b698af95e84abeacb76ed658dc72eb75b0fa70f89ca95e69cde69720691143b"
+      "sha256": "57ec3f90b2cfcd1d25955a90b1bd9a3ca3e912f0d3e447e922705549dd74cd3b"
     },
     {
       "path": "tests/scripts/update.test.mjs",
       "class": "code",
-      "sha256": "ea69b85452cc6d700fd12ad5067d155ac3af67419c3f646dde5338fe34341dc7"
+      "sha256": "e009590182ef7b9d60c1f39240c013bd421543406de767bf26049a14fe7f06bd"
     },
     {
       "path": "tests/scripts/ux-flows.test.mjs",
       "class": "code",
-      "sha256": "83767846220375566a77bfb95b212e143235a342fb2800718ee26bafbdfb3286"
+      "sha256": "491f02409d7ef8eb53b9f1e26f4dee7aa9be656aeab9d63eb5230dd44a0b54f9"
     },
     {
       "path": "tests/scripts/validate-v020.test.mjs",
@@ -3476,22 +3486,22 @@
     {
       "path": "tests/scripts/validate.test.mjs",
       "class": "code",
-      "sha256": "52e076ee59479fb752544e27c3b16b6a35474be99be7a8e08a28cb7bfe7e79f5"
+      "sha256": "60d0b13571d294a01b56ee1ca63feb0ca958647593c133ae787e0e091d0cc3de"
     },
     {
       "path": "tests/scripts/vault-key.test.mjs",
       "class": "code",
-      "sha256": "0e86c8a0aadd1e888aa0ca8c2f1e6ad11a46276b4df225e589fa6003b5b89d96"
+      "sha256": "d90a6613f8bb5601236c603083e524fe3700b44e9abe290da82b03b64adb0597"
     },
     {
       "path": "tests/scripts/vaultkey-audit.test.mjs",
       "class": "code",
-      "sha256": "8e55c58fb9a4aecbb75131911bbe54c8d9c287faf62225dfb4c7c3685d76c023"
+      "sha256": "537bf1b2c547166b649e9794abccd2921799d005a72d2c755e634bb2153d9b5b"
     },
     {
       "path": "tests/scripts/vaultkey-lib.test.mjs",
       "class": "code",
-      "sha256": "7de884a1080ebeed6013b6dedbfa802e2d1f381c4732e4a7249b0398c178d3c2"
+      "sha256": "74db2a6f04fc0faca93a6c24082a8b33311ebb6932a9e1d176dbe9fffb4aed08"
     },
     {
       "path": "tests/scripts/voice-stats.test.mjs",

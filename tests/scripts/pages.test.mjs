@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parsePages, parseArgs, findPdftoppm, findLibreOffice, toolCheck, renderPdf, exportToPdf, PS_SCRIPTS, FONT_WARNING } from '../../system/scripts/pages.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const SCRIPT = fileURLToPath(new URL('../../system/scripts/pages.mjs', import.meta.url));
 const dir = mkdtempSync(join(tmpdir(), 'ab-pages-'));
@@ -57,7 +58,7 @@ test('findLibreOffice finds soffice in a program folder', () => {
   assert.ok(findLibreOffice({ pathEnv: join(dir, 'empty'), programFiles: [pf] }));
 });
 
-test('toolCheck has the expected shape', () => {
+test('toolCheck has the expected shape', release(), () => {
   const c = toolCheck({ pathEnv: join(dir, 'empty'), localAppData: '' });
   assert.ok('pdftoppm' in c && 'libreoffice' in c);
   assert.deepEqual(Object.keys(c.office).sort(), ['excel', 'powerpoint', 'word']);
@@ -107,7 +108,7 @@ test('command: usage errors exit 2, missing renderer exits 1', () => {
   if (r.code === 1) assert.match(r.err, /Poppler/);
 });
 
-test('check --json prints the tool report', () => {
+test('check --json prints the tool report', release(), () => {
   const r = cli(['check', '--json']);
   assert.ok([0, 1].includes(r.code));
   const j = JSON.parse(r.out);

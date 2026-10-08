@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeProject, runHook } from '../fixtures/hooks/helpers.mjs';
 import { THROTTLE_MS } from '../../system/hooks/session_end.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const STAMP = 'state/local/last-auto-commit';
 const STOP = { hook_event_name: 'Stop', stop_hook_active: false };
@@ -152,7 +153,7 @@ test('malformed input is not an error and does not stop the save', (t) => {
   assert.ok(p.gitCalls().length >= 2);
 });
 
-test('never prints, whatever happens', (t) => {
+test('never prints, whatever happens', release(), (t) => {
   const p = makeProject({ gitAuto: true });
   t.after(p.cleanup);
   for (const env of [{}, { FAKE_GIT_EXIT_COMMIT: '1' }, { FAKE_GIT_EXIT_PUSH: '2' }, { FAKE_GIT_MESSAGE: 'x'.repeat(5000) }]) {

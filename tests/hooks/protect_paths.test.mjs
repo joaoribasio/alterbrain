@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { decisionOf, edit, makeProject, multiEdit, notebookEdit, reasonOf, runHook, write } from '../fixtures/hooks/helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const PROTECTED = 'This is a protected Alterbrain system file. Ask me to propose a change instead.';
 
@@ -31,7 +32,7 @@ test('denies edits to the always-protected framework files', (t) => {
   }
 });
 
-test('denies code-class files from the manifest, allows text-class and unlisted files', (t) => {
+test('denies code-class files from the manifest, allows text-class and unlisted files', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   assert.equal(decisionOf(ask(p, write(p.path('tests', 'example.test.mjs')))), 'deny');

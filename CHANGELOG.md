@@ -3,6 +3,11 @@
 All notable changes to Alterbrain are listed here. Newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Framework developers only: the regular test run is much shorter. The 288 slowest tests (2 seconds or more each, about 89% of the time) are now release tests: they are skipped unless the environment variable `ALTERBRAIN_SLOW_TESTS` is `1`, and are run by hand before a release. The automatic checks (CI) now start only when `system/`, `.claude/`, `tests/`, `.github/`, `CHANGELOG.md`, `CLAUDE.md`, `.gitattributes` or `.gitignore` change, and run the quick set. Nothing changes for learners.
+
 ## [0.2.1] - 2026-10-08
 
 ### Fixed

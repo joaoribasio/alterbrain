@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   SKIP, TEST_LIMIT, blobAt, bytes, childEnv, cleanup, exists, git, gitTry, inHead, isPointer, lfsObjectPath, logOf, makeProject,
   read, readText, runAuto, sha256, tasksOf, write,
@@ -31,7 +32,7 @@ function commitCode(root, args, env = LIMIT_ENV) {
   return { code: res.status, stdout: res.stdout || '', stderr: res.stderr || '' };
 }
 
-test('git-auto hook installs the big-file check, and a second run changes nothing', () => {
+test('git-auto hook installs the big-file check, and a second run changes nothing', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     const first = runAuto(root, 'hook');
@@ -52,7 +53,7 @@ test('git-auto hook installs the big-file check, and a second run changes nothin
   }
 });
 
-test('the automatic save installs the check by itself, but not in developer mode', () => {
+test('the automatic save installs the check by itself, but not in developer mode', release(), () => {
   const normal = makeProject({ framework: true });
   const dev = makeProject({ framework: true });
   try {
@@ -69,7 +70,7 @@ test('the automatic save installs the check by itself, but not in developer mode
   }
 });
 
-test('Obsidian Git: a big file added by a plain "git add -A" and "git commit" is stored through Git LFS and uploads', { skip: SKIP }, () => {
+test('Obsidian Git: a big file added by a plain "git add -A" and "git commit" is stored through Git LFS and uploads', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true, framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -98,7 +99,7 @@ test('Obsidian Git: a big file added by a plain "git add -A" and "git commit" is
   }
 });
 
-test('Obsidian Git: a plain "git push" uploads the file too once Git LFS is set up, and GitHub would accept every blob', { skip: SKIP }, () => {
+test('Obsidian Git: a plain "git push" uploads the file too once Git LFS is set up, and GitHub would accept every blob', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true, framework: true, lfs: 'full' });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -116,7 +117,7 @@ test('Obsidian Git: a plain "git push" uploads the file too once Git LFS is set 
   }
 });
 
-test('"git commit -a" is covered too: a changed big file becomes a pointer again, and the rule is not repeated', { skip: SKIP }, () => {
+test('"git commit -a" is covered too: a changed big file becomes a pointer again, and the rule is not repeated', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -136,7 +137,7 @@ test('"git commit -a" is covered too: a changed big file becomes a pointer again
   }
 });
 
-test('names with spaces, brackets and non-ASCII letters are matched exactly, and only those files, in one save with small look-alikes', { skip: SKIP }, () => {
+test('names with spaces, brackets and non-ASCII letters are matched exactly, and only those files, in one save with small look-alikes', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -154,7 +155,7 @@ test('names with spaces, brackets and non-ASCII letters are matched exactly, and
   }
 });
 
-test('the project folder may have spaces in its name (a Windows user folder such as "Alex Doe")', { skip: SKIP }, () => {
+test('the project folder may have spaces in its name (a Windows user folder such as "Alex Doe")', release({ skip: SKIP }), () => {
   const { parent, root: plain, bare } = makeProject({ remote: true, framework: true });
   const root = join(parent, 'Alex Doe', 'My Alterbrain');
   try {
@@ -172,7 +173,7 @@ test('the project folder may have spaces in its name (a Windows user folder such
   }
 });
 
-test('a rule already covers the file but it was staged without the Git LFS filter: it is staged again through the filter', { skip: SKIP }, () => {
+test('a rule already covers the file but it was staged without the Git LFS filter: it is staged again through the filter', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -192,7 +193,7 @@ test('a rule already covers the file but it was staged without the Git LFS filte
   }
 });
 
-test('without Git LFS the big file is left out of the save, the notes are saved, and one task says what to do', () => {
+test('without Git LFS the big file is left out of the save, the notes are saved, and one task says what to do', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -212,7 +213,7 @@ test('without Git LFS the big file is left out of the save, the notes are saved,
   }
 });
 
-test('when the big file is all there is to save, git says there is nothing to save instead of making an empty commit', () => {
+test('when the big file is all there is to save, git says there is nothing to save instead of making an empty commit', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -229,7 +230,7 @@ test('when the big file is all there is to save, git says there is nothing to sa
   }
 });
 
-test('a big file outside the vault is left out, with a task that names it', { skip: SKIP }, () => {
+test('a big file outside the vault is left out, with a task that names it', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -244,7 +245,7 @@ test('a big file outside the vault is left out, with a task that names it', { sk
   }
 });
 
-test('the check never stops a save: if it cannot run, the save goes ahead', { skip: SKIP }, () => {
+test('the check never stops a save: if it cannot run, the save goes ahead', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     assert.equal(runAuto(root, 'hook').code, 0);
@@ -262,7 +263,7 @@ test('the check never stops a save: if it cannot run, the save goes ahead', { sk
   }
 });
 
-test('someone else\'s pre-commit hook is never touched, and a shared hooks folder is left alone', () => {
+test('someone else\'s pre-commit hook is never touched, and a shared hooks folder is left alone', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     const theirs = '#!/bin/sh\necho "their check"\nexit 0\n';
@@ -290,7 +291,7 @@ test('someone else\'s pre-commit hook is never touched, and a shared hooks folde
   }
 });
 
-test('an old copy of the hook is refreshed, and an empty hook file is replaced', () => {
+test('an old copy of the hook is refreshed, and an empty hook file is replaced', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     write(root, HOOK, '');
@@ -305,7 +306,7 @@ test('an old copy of the hook is refreshed, and an empty hook file is replaced',
   }
 });
 
-test('pre-commit does nothing, quietly, when there is nothing big to deal with', () => {
+test('pre-commit does nothing, quietly, when there is nothing big to deal with', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     write(root, 'vault/Ideas.md', '# Ideas\n');

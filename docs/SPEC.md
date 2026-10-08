@@ -65,7 +65,7 @@ alterbrain/
 ├─ state/                             [U]  onboarding.json, proposals.json, built.json, migrations.json (section 10), release-origin.json (section 15); local/ is gitignored
 ├─ .mcp.json                          [U generated]  by system/scripts/mcp-gen.mjs
 ├─ docs/                              [F text]  SPEC.md (this file), adr/ (decisions), research/
-├─ tests/                             [F code]  node --test suites + fixtures (synthetic)
+├─ tests/                             [F code]  node --test suites + fixtures (synthetic); slow tests are release tests, run only with `ALTERBRAIN_SLOW_TESTS=1`
 ├─ .github/workflows/ci.yml           [F code]
 └─ vault/                             [U]  the Obsidian vault (Obsidian opens THIS folder); vault/.gitattributes holds the user's own Git rules (§3); vault/80_me/templates/<slug>/ holds the user's own templates (§19)
 ```

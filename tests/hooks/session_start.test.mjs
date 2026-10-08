@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { REPO, contextOf, makeProject, runHook } from '../fixtures/hooks/helpers.mjs';
 import { describeNow, onboardingUnfinished } from '../../system/hooks/session_start.mjs';
 import { today } from '../../system/lib/fsx.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const dayOffset = (n) => today(new Date(Date.now() + n * 86_400_000));
@@ -170,7 +171,7 @@ test('a skipped or crashing pull never breaks the digest', (t) => {
   assert.ok(contextOf(crashed));
 });
 
-test('a slow pull is cut off after about 5 seconds', { timeout: 40_000 }, (t) => {
+test('a slow pull is cut off after about 5 seconds', release({ timeout: 40_000 }), (t) => {
   const p = makeProject({ gitAuto: true });
   t.after(p.cleanup);
   const r = start(p, { source: 'startup' }, { env: { FAKE_GIT_SLEEP_MS: '15000' } });

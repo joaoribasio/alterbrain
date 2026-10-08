@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, symlinkSync, writeFil
 import { dirname, join } from 'node:path';
 import { runVaultKey } from '../../system/scripts/vault-key.mjs';
 import { GITCRYPT_HEADER, KEY_LOSS_WARNING, SCOPE_LABELS, classifyPrePush, ensurePrePushHook, resolveGitCrypt, wrapKey } from '../../system/lib/vaultkey.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   FAKE_GIT_CRYPT, NOTES, REAL_GIT_CRYPT, blobAt, cleanup, exists, fakeKeyBytes, fakePassword, git, gitTry, makeVaultProject, read, runVk, write,
 } from '../fixtures/scripts/vaultkey-helpers.mjs';
@@ -89,7 +90,7 @@ const vk = (root, argv, io = {}) =>
 
 /* ------------------------------ usage ------------------------------ */
 
-test('usage errors exit with 2 and say what to do', () => {
+test('usage errors exit with 2 and say what to do', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     for (const args of [[], ['explode'], ['status', 'extra'], ['status', '--nope'], ['check'], ['unlock'], ['status', '--out', 'x'], ['check', '--key', 'x', '--password'], ['export', '--key', 'k'], ['export', '--out']]) {
@@ -102,7 +103,7 @@ test('usage errors exit with 2 and say what to do', () => {
   }
 });
 
-test('a password is never accepted on the command line', () => {
+test('a password is never accepted on the command line', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     const word = fakePassword();
@@ -136,7 +137,7 @@ test('the password is not read from the environment or from piped input either',
 
 /* ------------------------------ status ------------------------------ */
 
-test('status says encryption is off, in words and as JSON', () => {
+test('status says encryption is off, in words and as JSON', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     const plain = runVk(root, ['status']);
@@ -155,7 +156,7 @@ test('status says encryption is off, in words and as JSON', () => {
 
 /* ------------------------------ setup ------------------------------ */
 
-test('setup without git-crypt installed prints the install command, changes nothing and exits 1', () => {
+test('setup without git-crypt installed prints the install command, changes nothing and exits 1', release(), () => {
   const { parent, root } = makeVaultProject({ remote: true });
   try {
     seedNotes(root);
@@ -192,7 +193,7 @@ test('setup refuses while the folder still points at the public Alterbrain page'
   }
 });
 
-test('setup turns encryption on: settings saved first, notes stored encrypted, persona files left alone', () => {
+test('setup turns encryption on: settings saved first, notes stored encrypted, persona files left alone', release(), () => {
   const { parent, root } = makeVaultProject({ remote: true });
   try {
     seedNotes(root);
@@ -236,7 +237,7 @@ test('setup turns encryption on: settings saved first, notes stored encrypted, p
   }
 });
 
-test('setup can be run again: nothing changes and nothing is saved twice', () => {
+test('setup can be run again: nothing changes and nothing is saved twice', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -254,7 +255,7 @@ test('setup can be run again: nothing changes and nothing is saved twice', () =>
   }
 });
 
-test('setup keeps lines it did not write in an existing .gitattributes file', () => {
+test('setup keeps lines it did not write in an existing .gitattributes file', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     write(root, 'vault/60_people/.gitattributes', '*.vcf text eol=crlf\n');
@@ -269,7 +270,7 @@ test('setup keeps lines it did not write in an existing .gitattributes file', ()
   }
 });
 
-test('status after setup: unlocked, every saved private note encrypted, key backup not tested yet', () => {
+test('status after setup: unlocked, every saved private note encrypted, key backup not tested yet', release(), () => {
   const p = encryptedProject();
   try {
     const r = runVk(p.root, ['status']);
@@ -289,7 +290,7 @@ test('status after setup: unlocked, every saved private note encrypted, key back
   }
 });
 
-test('status reports a private note stored as plain text, and setup repairs it', () => {
+test('status reports a private note stored as plain text, and setup repairs it', release(), () => {
   const p = encryptedProject();
   try {
     // Save a new private note with the encryption step switched off for this one command
@@ -309,7 +310,7 @@ test('status reports a private note stored as plain text, and setup repairs it',
   }
 });
 
-test('status on a copy that has no key says it is locked and how to unlock', () => {
+test('status on a copy that has no key says it is locked and how to unlock', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -328,7 +329,7 @@ test('status on a copy that has no key says it is locked and how to unlock', () 
 
 /* ------------------------------ export ------------------------------ */
 
-test('export saves the key outside the project, prints the key-loss warning twice over, and never prints the key', () => {
+test('export saves the key outside the project, prints the key-loss warning twice over, and never prints the key', release(), () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.key');
@@ -354,7 +355,7 @@ test('export saves the key outside the project, prints the key-loss warning twic
   }
 });
 
-test('export refuses to put the key inside the project, however the path is written', () => {
+test('export refuses to put the key inside the project, however the path is written', release(), () => {
   const p = encryptedProject();
   try {
     const cases = [
@@ -395,7 +396,7 @@ test('export refuses to put the key inside the project, however the path is writ
   }
 });
 
-test('export with a password refuses when there is no keyboard, before anything is exported', () => {
+test('export with a password refuses when there is no keyboard, before anything is exported', release(), () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.abkey');
@@ -414,7 +415,7 @@ test('export with a password refuses when there is no keyboard, before anything 
   }
 });
 
-test('export with a password asks twice, needs 10 characters, and the file opens only with that password', async () => {
+test('export with a password asks twice, needs 10 characters, and the file opens only with that password', release(), async () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.abkey');
@@ -451,7 +452,7 @@ test('export with a password asks twice, needs 10 characters, and the file opens
   }
 });
 
-test('export gives up after three bad passwords and saves nothing', async () => {
+test('export gives up after three bad passwords and saves nothing', release(), async () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.abkey');
@@ -463,7 +464,7 @@ test('export gives up after three bad passwords and saves nothing', async () => 
   }
 });
 
-test('export on a locked copy says there is no key to copy', () => {
+test('export on a locked copy says there is no key to copy', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -481,7 +482,7 @@ test('export on a locked copy says there is no key to copy', () => {
 
 /* ------------------------------ check (the recovery drill) ------------------------------ */
 
-test('check proves a plain key copy works and notes the date', async () => {
+test('check proves a plain key copy works and notes the date', release(), async () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.key');
@@ -499,7 +500,7 @@ test('check proves a plain key copy works and notes the date', async () => {
   }
 });
 
-test('check with a password: right password works, wrong password and a changed file give plain messages', async () => {
+test('check with a password: right password works, wrong password and a changed file give plain messages', release(), async () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.abkey');
@@ -543,7 +544,7 @@ test('check with a password: right password works, wrong password and a changed 
   }
 });
 
-test('check refuses a key file that does not match this computer', async () => {
+test('check refuses a key file that does not match this computer', release(), async () => {
   const p = encryptedProject();
   const other = makeVaultProject();
   try {
@@ -565,7 +566,7 @@ test('check refuses a key file that does not match this computer', async () => {
   }
 });
 
-test('check of a wrapped key without a keyboard refuses and asks for a real terminal', async () => {
+test('check of a wrapped key without a keyboard refuses and asks for a real terminal', release(), async () => {
   const p = encryptedProject();
   try {
     const file = join(p.parent, 'keys', 'vault-key-test.abkey');
@@ -598,7 +599,7 @@ function newComputer(p) {
   return clone;
 }
 
-test('what GitHub holds is encrypted, and a new computer sees it locked', () => {
+test('what GitHub holds is encrypted, and a new computer sees it locked', release(), () => {
   const p = encryptedProject();
   try {
     const clone = newComputer(p);
@@ -613,7 +614,7 @@ test('what GitHub holds is encrypted, and a new computer sees it locked', () => 
   }
 });
 
-test('unlock with a plain key copy decrypts the notes on a new computer', () => {
+test('unlock with a plain key copy decrypts the notes on a new computer', release(), () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.key');
@@ -641,7 +642,7 @@ test('unlock with a plain key copy decrypts the notes on a new computer', () => 
   }
 });
 
-test('unlock with a password-protected copy, and with unsaved changes in the folder', async () => {
+test('unlock with a password-protected copy, and with unsaved changes in the folder', release(), async () => {
   const p = encryptedProject();
   try {
     const out = join(p.parent, 'keys', 'vault-key-test.abkey');
@@ -669,7 +670,7 @@ test('unlock with a password-protected copy, and with unsaved changes in the fol
   }
 });
 
-test('setup on a copy that holds encrypted notes made elsewhere refuses and points to unlock', () => {
+test('setup on a copy that holds encrypted notes made elsewhere refuses and points to unlock', release(), () => {
   const p = encryptedProject();
   try {
     const clone = newComputer(p);
@@ -685,7 +686,7 @@ test('setup on a copy that holds encrypted notes made elsewhere refuses and poin
 
 /* ------------------------------ documents and pictures ------------------------------ */
 
-test('setup also encrypts documents and pictures in the private folders; other files are not touched', () => {
+test('setup also encrypts documents and pictures in the private folders; other files are not touched', release(), () => {
   const p = makeVaultProject({ remote: true });
   try {
     seedNotes(p.root);
@@ -719,7 +720,7 @@ test('setup also encrypts documents and pictures in the private folders; other f
   }
 });
 
-test('documents and pictures come back byte for byte on a new computer', () => {
+test('documents and pictures come back byte for byte on a new computer', release(), () => {
   const p = makeVaultProject({ remote: true });
   try {
     seedNotes(p.root);
@@ -745,7 +746,7 @@ test('documents and pictures come back byte for byte on a new computer', () => {
 
 /* ------------------------------ the real tool ------------------------------ */
 
-test('with the real git-crypt: setup, export, check, then unlock on a new computer', { skip: !REAL_GIT_CRYPT && 'git-crypt is not installed' }, () => {
+test('with the real git-crypt: setup, export, check, then unlock on a new computer', release({ skip: !REAL_GIT_CRYPT && 'git-crypt is not installed' }), () => {
   const p = makeVaultProject({ remote: true });
   try {
     seedNotes(p.root);

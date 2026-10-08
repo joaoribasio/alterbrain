@@ -34,7 +34,7 @@ You are editing Alterbrain itself. (This rule loads only for developer folders: 
 - **Windows first, macOS equal:** `path.join`, `os.tmpdir()`, no bash-only syntax, no symlinks, no `/tmp`, no `python3`, LF line endings.
 - **Hooks:** read JSON from stdin; root from `CLAUDE_PROJECT_DIR`, never cwd; fail open on bad input (exit 0, no output), except `outbound_guard`, which fails closed. Tests in `tests/hooks/`.
 - **Scripts:** plain-language output, `--json` option, exit 0 ok / 1 problems / 2 usage error.
-- **Tests:** `node --test`, synthetic fixtures only, must pass on Windows. Temp files under `state/local/tmp/`.
+- **Tests:** `node --test`, synthetic fixtures only, must pass on Windows. Temp files under `state/local/tmp/`. **Release tests:** a test that takes 2 s or more is marked with `release()` from `tests/fixtures/scripts/release.mjs` as its options argument (`test(name, release(), fn)`; `release({ skip: ... })` when it already has options). It is skipped, with the reason "release test: run with ALTERBRAIN_SLOW_TESTS=1 before a release", unless `ALTERBRAIN_SLOW_TESTS` is `1`. Never delete a slow test; mark it. CI and the regular run skip these.
 - Never write a real secret, even in tests: build fake ones by string concatenation at runtime.
 
 ## Changing user data or config (migrations)
@@ -67,7 +67,8 @@ A release replaces framework files, but the user's data stays as it is. A change
 - **Ported or adapted files** carry `Adapted from <project> (<licence>) — <url> @ <sha>` (first line, or last line for Markdown), and get listed in `THIRD_PARTY_NOTICES.md` and `UPSTREAM-SYNC.md`. Never vendor Anthropic's proprietary skills.
 
 ## Before you finish
-- Run `node system/scripts/validate.mjs` and `node --test "tests/**/*.test.mjs"` (the quoted glob; plain `node --test tests/` fails on Node 22).
+- Run `node system/scripts/validate.mjs` and the quick set, `node --test "tests/**/*.test.mjs"` (the quoted glob; plain `node --test tests/` fails on Node 22). The release tests are skipped in this run; that is expected.
+- Before a release, also run the release tests (everything, slow tests included). PowerShell: `$env:ALTERBRAIN_SLOW_TESTS = '1'; node --test "tests/**/*.test.mjs"`. bash: `ALTERBRAIN_SLOW_TESTS=1 node --test "tests/**/*.test.mjs"`. CI runs only the quick set, so this is the only run that covers them.
 - Changed the shape of user data or config? Ship a migration or a documented fallback (see above), with its CHANGELOG lines.
 - Preparing a release? Run `node system/scripts/validate.mjs --release` first (it needs the git tag of the previous release, for example `v0.1.1`). A release also needs the ADR for this policy and its SPEC section.
 - Git: never branches or worktrees. In dev mode, commits are made deliberately by the developer, not by hooks.

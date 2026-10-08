@@ -8,6 +8,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { REPO, abs, changedPaths, cleanup, copyFixture, exists, read, readJsonIn, snapshot } from '../../fixtures/migrations/helpers.mjs';
+import { release } from '../../fixtures/scripts/release.mjs';
 
 after(cleanup);
 
@@ -131,7 +132,7 @@ test('the 0003 file follows the guided format, and an unanswered or skipped one 
   assert.equal(exists(root, 'vault/20_areas/programmes'), false);
 });
 
-test('guided savepoint reuses the update tag, makes a new one when it is gone, and refuses without Git', () => {
+test('guided savepoint reuses the update tag, makes a new one when it is gone, and refuses without Git', release(), () => {
   const root = make();
   const git = (...a) => spawnSync('git', a, { cwd: root, encoding: 'utf8', windowsHide: true });
   git('init', '-q');

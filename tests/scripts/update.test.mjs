@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, cpSync, mkdirSync, symlinkSync, unlinkSync, rmSync } from 'node:fs';
 import { generateKeyPairSync, sign as cryptoSign } from 'node:crypto';
 import { relative, sep } from 'node:path';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   makeProject, runScript, git, gitTry, write, sha, cleanup, tmp, FIXTURES, join,
 } from '../fixtures/ops/helpers.mjs';
@@ -69,7 +70,7 @@ const jsonOf = (r) => JSON.parse(r.stdout.trim());
 const actionOf = (plan, path) => plan.files.find((f) => f.path === path)?.action;
 const readRoot = (root, p) => readFileSync(join(root, ...p.split('/')), 'utf8');
 
-test('check compares the installed release with the latest one', () => {
+test('check compares the installed release with the latest one', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -86,7 +87,7 @@ test('check compares the installed release with the latest one', () => {
   }
 });
 
-test('plan decides every case correctly and stages verified files', () => {
+test('plan decides every case correctly and stages verified files', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   const baseDir = OLD;
@@ -125,7 +126,7 @@ test('plan decides every case correctly and stages verified files', () => {
   }
 });
 
-test('apply-safe, then finish: the full happy path', () => {
+test('apply-safe, then finish: the full happy path', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -185,7 +186,7 @@ test('apply-safe, then finish: the full happy path', () => {
   }
 });
 
-test('a tampered release file is rejected at plan time and nothing is applied', () => {
+test('a tampered release file is rejected at plan time and nothing is applied', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease((dir) => {
     // change the file AFTER the manifest hash was computed (see manifestFor call order below)
@@ -211,7 +212,7 @@ test('a tampered release file is rejected at plan time and nothing is applied', 
   }
 });
 
-test('a staged file changed after the plan is caught before anything is written', () => {
+test('a staged file changed after the plan is caught before anything is written', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -226,7 +227,7 @@ test('a staged file changed after the plan is caught before anything is written'
   }
 });
 
-test('a text file the user edits between plan and apply is left alone', () => {
+test('a text file the user edits between plan and apply is left alone', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -241,7 +242,7 @@ test('a text file the user edits between plan and apply is left alone', () => {
   }
 });
 
-test('paths that point at the user\'s own folders or outside the project are rejected', () => {
+test('paths that point at the user\'s own folders or outside the project are rejected', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease((dir, manifest) => {
     for (const bad of ['vault/Home.md', 'config/brain.json', 'state/onboarding.json', '../escape.txt', '.git/config', '.claude/skills/my-thing/SKILL.md']) {
@@ -275,7 +276,7 @@ test('a file listed in the manifest but missing from the release is an error', (
   }
 });
 
-test('a failing migration stops finish and leaves the old manifest in place', () => {
+test('a failing migration stops finish and leaves the old manifest in place', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease((dir, manifest) => {
     const p = 'system/scripts/migrations/001-example.mjs';
@@ -296,7 +297,7 @@ test('a failing migration stops finish and leaves the old manifest in place', ()
   }
 });
 
-test('finish runs the health check and reports its result', () => {
+test('finish runs the health check and reports its result', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -313,7 +314,7 @@ test('finish runs the health check and reports its result', () => {
   }
 });
 
-test('finish refuses to run before apply-safe', () => {
+test('finish refuses to run before apply-safe', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -372,7 +373,7 @@ test('no Git and an upgrade to run: apply-safe stops before it changes a single 
   }
 });
 
-test('an upgrade script that came with the install is recorded as done, never run, and never listed again', () => {
+test('an upgrade script that came with the install is recorded as done, never run, and never listed again', release(), () => {
   const { parent, root } = makeInstalled();
   // this install is the release that already had 001-example.mjs: the script is on disk and in its manifest
   const script = readFileSync(join(NEW, 'system', 'scripts', 'migrations', '001-example.mjs'));
@@ -401,7 +402,7 @@ test('an upgrade script that came with the install is recorded as done, never ru
   }
 });
 
-test('a script that is in the install manifest but is not the file on disk is not taken for one that came with the install', () => {
+test('a script that is in the install manifest but is not the file on disk is not taken for one that came with the install', release(), () => {
   const { parent, root } = makeInstalled();
   const script = readFileSync(join(NEW, 'system', 'scripts', 'migrations', '001-example.mjs'));
   write(join(root, 'system', 'scripts', 'migrations', '001-example.mjs'), 'process.exit(0);\n// somebody changed it\n');
@@ -488,7 +489,7 @@ test('isValidRepo accepts owner/name only', () => {
   for (const bad of ['', '../x', 'a/..', 'a/b/c', 'a b/c', 'a/b?x=1', 'a/b;rm', '/x', 'x/', null]) assert.equal(isValidRepo(bad), false, String(bad));
 });
 
-test('another release folder or repo is refused unless the person switches it on', () => {
+test('another release folder or repo is refused unless the person switches it on', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -511,7 +512,7 @@ test('another release folder or repo is refused unless the person switches it on
   }
 });
 
-test('a code file in the plan is listed for review', () => {
+test('a code file in the plan is listed for review', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -528,7 +529,7 @@ test('a code file in the plan is listed for review', () => {
   }
 });
 
-test('finish only runs migrations that the verified manifest lists', () => {
+test('finish only runs migrations that the verified manifest lists', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -555,7 +556,7 @@ test('finish only runs migrations that the verified manifest lists', () => {
   }
 });
 
-test('a pinned signing key makes plan demand a valid signature on the manifest', () => {
+test('a pinned signing key makes plan demand a valid signature on the manifest', release(), () => {
   const { publicKey, privateKey } = generateKeyPairSync('ed25519');
   const raw = publicKey.export({ format: 'der', type: 'spki' }).subarray(-32).toString('base64');
   const { parent, root } = makeInstalled();
@@ -682,7 +683,7 @@ test('plan leaves out upgrades that are already recorded as done', () => {
   }
 });
 
-test('finish tells the person, in plain words, what each upgrade did', () => {
+test('finish tells the person, in plain words, what each upgrade did', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease((dir, manifest) => {
     addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Prints two lines.\nconsole.log("First thing done.");\nconsole.log("Second thing done.");\n');
@@ -704,7 +705,7 @@ test('finish tells the person, in plain words, what each upgrade did', () => {
   }
 });
 
-test('a long note from an upgrade is cut to 2,000 characters', () => {
+test('a long note from an upgrade is cut to 2,000 characters', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease((dir, manifest) => addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Talks a lot.\nconsole.log("y".repeat(5000));\n'));
   try {
@@ -717,7 +718,7 @@ test('a long note from an upgrade is cut to 2,000 characters', () => {
   }
 });
 
-test('a failing upgrade is named, its own sentence is shown, and earlier upgrades stay recorded', () => {
+test('a failing upgrade is named, its own sentence is shown, and earlier upgrades stay recorded', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease((dir, manifest) => {
     addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Works.\nconsole.log("Did the first part.");\n');
@@ -746,7 +747,7 @@ test('a failing upgrade is named, its own sentence is shown, and earlier upgrade
   }
 });
 
-test('the text of a failing upgrade names it, shows its sentence, and lists what already ran', () => {
+test('the text of a failing upgrade names it, shows its sentence, and lists what already ran', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease((dir, manifest) => {
     addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Works.\nconsole.log("Did the first part.");\n');
@@ -782,7 +783,7 @@ test('migrationSummary reads the description from the first three lines only', a
   }
 });
 
-test('fallback: a record entry without "kind" is a script and one without "outcome" is done', () => {
+test('fallback: a record entry without "kind" is a script and one without "outcome" is done', release(), () => {
   const { parent, root } = makeInstalled();
   // the record as the 0.1.x updater wrote it: no kind, no outcome
   write(join(root, 'state', 'migrations.json'), JSON.stringify({ schema: 1, applied: [{ id: '001-example.mjs', at: '2026-01-01T00:00:00.000Z', tag: 'v0.1.0' }] }));
@@ -813,7 +814,7 @@ test('fallback: a record entry without "kind" is a script and one without "outco
   }
 });
 
-test('guided: usage errors exit 2, an unknown or changed upgrade is refused with exit 1 and nothing is recorded', () => {
+test('guided: usage errors exit 2, an unknown or changed upgrade is refused with exit 1 and nothing is recorded', release(), () => {
   const { parent, root } = makeInstalled();
   try {
     for (const args of [['guided'], ['guided', 'done'], ['guided', 'skip', 'a', 'b'], ['guided', 'list', 'x'], ['guided', 'done', 'x.md', '--all'], ['guided', 'nope']]) {
@@ -864,7 +865,7 @@ test('no Git and only an upgrade question in the release: apply-safe still stops
   }
 });
 
-test('finish refuses without the restore point when an upgrade question is waiting', () => {
+test('finish refuses without the restore point when an upgrade question is waiting', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = guidedOnlyRelease();
   try {
@@ -885,7 +886,7 @@ test('finish refuses without the restore point when an upgrade question is waiti
 // A half-finished rebase stops the automatic save (git-auto commit exits 1).
 const blockSave = (root) => mkdirSync(join(root, '.git', 'rebase-merge'), { recursive: true });
 
-test('apply-safe refuses and changes nothing when unsaved work cannot be saved', () => {
+test('apply-safe refuses and changes nothing when unsaved work cannot be saved', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -912,7 +913,7 @@ test('apply-safe refuses and changes nothing when unsaved work cannot be saved',
   }
 });
 
-test('apply-safe goes on when the save is blocked but nothing is unsaved: the tag is the restore point', () => {
+test('apply-safe goes on when the save is blocked but nothing is unsaved: the tag is the restore point', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -928,7 +929,7 @@ test('apply-safe goes on when the save is blocked but nothing is unsaved: the ta
   }
 });
 
-test('apply-safe refuses unsaved work when automatic saving is switched off, and says so', () => {
+test('apply-safe refuses unsaved work when automatic saving is switched off, and says so', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {
@@ -957,7 +958,7 @@ test('apply-safe refuses unsaved work when automatic saving is switched off, and
   }
 });
 
-test('finish reports a failed final save as a problem, with a task', () => {
+test('finish reports a failed final save as a problem, with a task', release(), () => {
   const { parent, root } = makeInstalled();
   const rel = makeRelease();
   try {

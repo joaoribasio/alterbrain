@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   FAKE_GIT_CRYPT, NOTES, REPO, childEnv, cleanup, git, makeVaultProject, runVk, write,
 } from '../fixtures/scripts/vaultkey-helpers.mjs';
@@ -18,7 +19,7 @@ function doctor(root, { tool = 'fake', args = [] } = {}) {
 const check = (out, id) => out.checks.find((c) => c.id === id);
 const encryptionChecks = (out) => out.checks.filter((c) => c.id.startsWith('encryption-'));
 
-test('doctor stays quiet about encryption when it is off', () => {
+test('doctor stays quiet about encryption when it is off', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     assert.deepEqual(encryptionChecks(doctor(root)), []);
@@ -27,7 +28,7 @@ test('doctor stays quiet about encryption when it is off', () => {
   }
 });
 
-test('doctor reports a computer that is on but locked, with a one-line fix for each problem', () => {
+test('doctor reports a computer that is on but locked, with a one-line fix for each problem', release(), () => {
   const { parent, root } = makeVaultProject({ enabled: true });
   try {
     const out = doctor(root);
@@ -49,7 +50,7 @@ test('doctor reports a computer that is on but locked, with a one-line fix for e
   }
 });
 
-test('doctor: set up, then a stored plain note, then the key backup tested', () => {
+test('doctor: set up, then a stored plain note, then the key backup tested', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     write(root, NOTES.person, '# Jamie\n');
@@ -85,7 +86,7 @@ test('doctor: set up, then a stored plain note, then the key backup tested', () 
   }
 });
 
-test('doctor --ci does not look at this computer\'s encryption', () => {
+test('doctor --ci does not look at this computer\'s encryption', release(), () => {
   const { parent, root } = makeVaultProject({ enabled: true });
   try {
     assert.deepEqual(encryptionChecks(doctor(root, { args: ['--ci'] })), []);

@@ -5,6 +5,7 @@ import {
   makeProject, runScript, git, write, cleanup, existsSync, join,
 } from '../fixtures/ops/helpers.mjs';
 import { judgeOrigin, parseArgs } from '../../system/scripts/setup-github.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const RELEASE = { name: 'alterbrain', version: '0.1.0', tag: 'v0.1.0', repo: 'joaoribasio/alterbrain' };
 
@@ -19,7 +20,7 @@ function project(origin) {
 
 const ids = (out) => out.steps.map((s) => s.id);
 
-test('dry run: origin pointing at the public Alterbrain repo is recorded and removed (planned only)', () => {
+test('dry run: origin pointing at the public Alterbrain repo is recorded and removed (planned only)', release(), () => {
   const { parent, root } = project('https://github.com/joaoribasio/alterbrain.git');
   try {
     const r = runScript('setup-github.mjs', ['--dry-run', '--json', '--name', 'my-brain'], root);
@@ -40,7 +41,7 @@ test('dry run: origin pointing at the public Alterbrain repo is recorded and rem
   }
 });
 
-test('dry run: someone else\'s repo is treated the same way', () => {
+test('dry run: someone else\'s repo is treated the same way', release(), () => {
   const { parent, root } = project('git@github.com:someone-else/their-fork.git');
   try {
     const out = JSON.parse(runScript('setup-github.mjs', ['--dry-run', '--json'], root).stdout);
@@ -51,7 +52,7 @@ test('dry run: someone else\'s repo is treated the same way', () => {
   }
 });
 
-test('dry run: no origin means just create', () => {
+test('dry run: no origin means just create', release(), () => {
   const { parent, root } = project(null);
   try {
     const out = JSON.parse(runScript('setup-github.mjs', ['--dry-run', '--json'], root).stdout);
@@ -63,7 +64,7 @@ test('dry run: no origin means just create', () => {
   }
 });
 
-test('dry run: plain-language text output', () => {
+test('dry run: plain-language text output', release(), () => {
   const { parent, root } = project(null);
   try {
     const r = runScript('setup-github.mjs', ['--dry-run'], root);
@@ -86,7 +87,7 @@ test('developer mode leaves origin alone', () => {
   }
 });
 
-test('bad repo names are a usage error', () => {
+test('bad repo names are a usage error', release(), () => {
   const { parent, root } = project(null);
   try {
     assert.equal(runScript('setup-github.mjs', ['--dry-run', '--name', 'bad name!'], root).code, 2);

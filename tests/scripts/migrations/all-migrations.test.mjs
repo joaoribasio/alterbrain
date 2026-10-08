@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FIXTURE_NAMES, MIGRATIONS_DIR, cleanup, copyFixture, listGuided, listMigrations, runMigration, snapshot } from '../../fixtures/migrations/helpers.mjs';
+import { release } from '../../fixtures/scripts/release.mjs';
 
 after(cleanup);
 
@@ -22,7 +23,7 @@ test('guided upgrades (.md) are not scripts: the harness never runs them, and th
 });
 
 for (const name of FIXTURE_NAMES) {
-  test(`every upgrade runs twice on ${name}: first without errors, then with "Nothing to do." and no change`, () => {
+  test(`every upgrade runs twice on ${name}: first without errors, then with "Nothing to do." and no change`, name === 'v0.2-online' ? release() : {}, () => {
     const root = copyFixture(name);
     const fresh = name.startsWith('v0.2');
     const start = snapshot(root);
@@ -47,7 +48,7 @@ for (const name of FIXTURE_NAMES) {
   });
 }
 
-test('every upgrade stays in step with a dry run: it says what it would do and writes nothing', () => {
+test('every upgrade stays in step with a dry run: it says what it would do and writes nothing', release(), () => {
   for (const name of FIXTURE_NAMES) {
     const root = copyFixture(name);
     const before = snapshot(root);

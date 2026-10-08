@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
 import { makeProject, runScript, copyFixture, write } from '../fixtures/scripts/helpers.mjs';
 import { addDays, computeDue, isRealDate } from '../../system/scripts/people.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const TODAY = '2026-10-08';
 const names = (res) => res.due.map((d) => d.name);
@@ -178,7 +179,7 @@ test('locked (git-crypt) contact notes are reported and exit 1', () => {
   }
 });
 
-test('caps: only the first 2000 notes are read, and only the first 16 KiB of a note', () => {
+test('caps: only the first 2000 notes are read, and only the first 16 KiB of a note', release(), () => {
   const p = makeProject();
   try {
     for (let i = 0; i < 2001; i++) write(p, `vault/60_people/N${String(i).padStart(4, '0')}.md`, '---\ntype: "person"\n---\n');

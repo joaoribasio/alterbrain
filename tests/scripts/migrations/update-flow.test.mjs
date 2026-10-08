@@ -7,6 +7,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } fr
 import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { REPO, abs, changedPaths, cleanup, copyFixture, listGuided, listMigrations, read, readJsonIn, snapshot } from '../../fixtures/migrations/helpers.mjs';
+import { release } from '../../fixtures/scripts/release.mjs';
 
 const TAG = 'v0.2.0';
 const LIBS = ['migrate.mjs', 'paths.mjs', 'fsx.mjs', 'tasks.mjs', 'frontmatter.mjs'];
@@ -89,7 +90,7 @@ function update(root, args) {
   return { code: res.status, stdout: res.stdout || '', stderr: res.stderr || '' };
 }
 
-test('an MBA install from 0.1.0 is upgraded by the real migrations, and the plan listed them first', () => {
+test('an MBA install from 0.1.0 is upgraded by the real migrations, and the plan listed them first', release(), () => {
   const root = installOld('v0.1.0');
   const release = makeRelease(root);
 
@@ -142,7 +143,7 @@ test('an MBA install from 0.1.0 is upgraded by the real migrations, and the plan
   assert.equal(tasksAgain.length, 1, 'the upgrade task is not added twice');
 });
 
-test('a fresh 0.2 install is told about no upgrade: the plan is silent and finish runs and prints nothing', () => {
+test('a fresh 0.2 install is told about no upgrade: the plan is silent and finish runs and prints nothing', release(), () => {
   for (const fixture of ['v0.2-professional', 'v0.2-online']) {
     const root = installFresh(fixture);
     const release = makeRelease(root, { version: '0.2.1', tag: 'v0.2.1' });
@@ -177,7 +178,7 @@ test('a fresh 0.2 install is told about no upgrade: the plan is silent and finis
   }
 });
 
-test('a fresh 0.2 install that gets one new upgrade is told about that one only, and it runs alone', () => {
+test('a fresh 0.2 install that gets one new upgrade is told about that one only, and it runs alone', release(), () => {
   const root = installFresh('v0.2-online');
   const release = makeRelease(root, { version: '0.2.1', tag: 'v0.2.1', extraMigrations: { [FAKE_NEW]: FAKE_NEW_BODY } });
 
@@ -225,7 +226,7 @@ test('no restore point, no upgrade: apply-safe refuses before it changes anythin
   assert.equal(readJsonIn(root, 'system/release.json').version, '0.1.1');
 });
 
-test('finish does not touch notes or settings when the restore point is gone', () => {
+test('finish does not touch notes or settings when the restore point is gone', release(), () => {
   const root = installOld('v0.1.0');
   const release = makeRelease(root);
   assert.equal(update(root, ['plan', TAG, '--source-dir', release]).code, 0);
@@ -272,7 +273,7 @@ test('an update with no upgrades to run does not need a restore point', () => {
   assert.equal(fin.safety_tag, null);
 });
 
-test('apply-safe run again after a stopped finish keeps the first restore point', () => {
+test('apply-safe run again after a stopped finish keeps the first restore point', release(), () => {
   const root = installOld('v0.1.0');
   writeFileSync(abs(root, 'config/brain.json'), '{oops');
   const release = makeRelease(root);
@@ -288,7 +289,7 @@ test('apply-safe run again after a stopped finish keeps the first restore point'
   assert.equal(git(root, ['rev-parse', `pre-update-${TAG}`]).stdout.trim(), firstCommit);
 });
 
-test('an upgrade that cannot read the settings stops the update and the person sees why', () => {
+test('an upgrade that cannot read the settings stops the update and the person sees why', release(), () => {
   const root = installOld('v0.1.0');
   writeFileSync(abs(root, 'config/brain.json'), '{oops');
   const release = makeRelease(root);

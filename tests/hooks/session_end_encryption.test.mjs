@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { chmodSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { GITCRYPT_HEADER, SCOPE_LABELS, writeAttributeFiles } from '../../system/lib/vaultkey.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   NOTES, blobAt, cleanup, git, gitTry, makeVaultProject, read, runInProject, runVk, write,
 } from '../fixtures/scripts/vaultkey-helpers.mjs';
@@ -48,7 +49,7 @@ const countOf = (text, needle) => text.split(needle).length - 1;
 const remoteHead = (p) => git(p.bare, ['rev-parse', 'main']);
 const everInHistory = (root, path) => git(root, ['log', '--all', '--name-only', '--format=']).split('\n').includes(path);
 
-test('a locked copy saves everything except the private notes, uploads, and leaves one task', () => {
+test('a locked copy saves everything except the private notes, uploads, and leaves one task', release(), () => {
   const p = lockedProject();
   try {
     for (const f of PRIVATE) write(p.root, f, 'Private text.\n');
@@ -80,7 +81,7 @@ test('a locked copy saves everything except the private notes, uploads, and leav
   }
 });
 
-test('a locked copy with no private changes adds no task', () => {
+test('a locked copy with no private changes adds no task', release(), () => {
   const p = lockedProject();
   try {
     write(p.root, PUBLIC_NOTE, '# Porter\n');
@@ -92,7 +93,7 @@ test('a locked copy with no private changes adds no task', () => {
   }
 });
 
-test('with git-crypt missing the private notes are left out too, and the task says how to install it', () => {
+test('with git-crypt missing the private notes are left out too, and the task says how to install it', release(), () => {
   const p = unlockedProject();
   try {
     for (const f of PRIVATE) write(p.root, f, 'Private text.\n');
@@ -111,7 +112,7 @@ test('with git-crypt missing the private notes are left out too, and the task sa
   }
 });
 
-test('an unlocked copy saves private notes encrypted, and what is uploaded is encrypted', () => {
+test('an unlocked copy saves private notes encrypted, and what is uploaded is encrypted', release(), () => {
   const p = unlockedProject();
   try {
     for (const f of PRIVATE) write(p.root, f, 'Private text.\n');
@@ -131,7 +132,7 @@ test('an unlocked copy saves private notes encrypted, and what is uploaded is en
   }
 });
 
-test('a private note that would be stored as plain text is left out of the save, and the rest goes up', () => {
+test('a private note that would be stored as plain text is left out of the save, and the rest goes up', release(), () => {
   const p = unlockedProject();
   try {
     // The encryption step stops working (a broken setting): git would store the text as it is.
@@ -152,7 +153,7 @@ test('a private note that would be stored as plain text is left out of the save,
   }
 });
 
-test('a plain private note in a commit stops the upload, adds a high-priority task, and the rest waits', () => {
+test('a plain private note in a commit stops the upload, adds a high-priority task, and the rest waits', release(), () => {
   const p = unlockedProject();
   try {
     const before = remoteHead(p);
@@ -182,7 +183,7 @@ test('a plain private note in a commit stops the upload, adds a high-priority ta
   }
 });
 
-test('a plain note that a later commit replaced still stops the upload, because the history goes up too', () => {
+test('a plain note that a later commit replaced still stops the upload, because the history goes up too', release(), () => {
   const p = unlockedProject();
   try {
     const before = remoteHead(p);
@@ -200,7 +201,7 @@ test('a plain note that a later commit replaced still stops the upload, because 
   }
 });
 
-test('the upload check fails closed: if it cannot run, nothing is uploaded', () => {
+test('the upload check fails closed: if it cannot run, nothing is uploaded', release(), () => {
   const p = unlockedProject();
   try {
     const before = remoteHead(p);
@@ -227,7 +228,7 @@ test('the upload check fails closed: if it cannot run, nothing is uploaded', () 
   }
 });
 
-test('with encryption off nothing changes: notes are saved and uploaded as before', () => {
+test('with encryption off nothing changes: notes are saved and uploaded as before', release(), () => {
   const p = makeVaultProject({ remote: true, framework: true });
   try {
     write(p.root, PRIVATE[0], 'Private text.\n');
@@ -241,7 +242,7 @@ test('with encryption off nothing changes: notes are saved and uploaded as befor
   }
 });
 
-test('joining the online copy on a locked computer does not save the private notes either', () => {
+test('joining the online copy on a locked computer does not save the private notes either', release(), () => {
   const p = lockedProject();
   try {
     const other = join(p.parent, 'other');
@@ -267,7 +268,7 @@ test('joining the online copy on a locked computer does not save the private not
   }
 });
 
-test('git-auto status mentions a locked copy', () => {
+test('git-auto status mentions a locked copy', release(), () => {
   const p = lockedProject();
   try {
     const r = gitAuto(p.root, ['status', '--json']);
@@ -286,7 +287,7 @@ test('git-auto status mentions a locked copy', () => {
   }
 });
 
-test('the settings record only paths, never key material', () => {
+test('the settings record only paths, never key material', release(), () => {
   const p = unlockedProject();
   try {
     const text = readFileSync(join(p.root, 'config', 'brain.json'), 'utf8');

@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeProject, runScript, write, cleanup, join } from '../fixtures/ops/helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const note = (over = {}) => {
   const d = {
@@ -14,7 +15,7 @@ const check = (root, args = []) => {
   return JSON.parse(r.stdout).checks.find((c) => c.id === 'routines');
 };
 
-test('no routines folder: ok, nothing to do', () => {
+test('no routines folder: ok, nothing to do', release(), () => {
   const { parent, root } = makeProject({ repo: false });
   try {
     const c = check(root);
@@ -26,7 +27,7 @@ test('no routines folder: ok, nothing to do', () => {
   }
 });
 
-test('an overdue routine is a warning with a plain fix', () => {
+test('an overdue routine is a warning with a plain fix', release(), () => {
   const { parent, root } = makeProject({ repo: false });
   try {
     write(join(root, 'vault', '90_routines', 'Keep in touch.md'), note());
@@ -39,7 +40,7 @@ test('an overdue routine is a warning with a plain fix', () => {
   }
 });
 
-test('a never-run overdue routine is not described as having run', () => {
+test('a never-run overdue routine is not described as having run', release(), () => {
   const { parent, root } = makeProject({ repo: false });
   try {
     write(join(root, 'vault', '90_routines', 'Brief.md'), note({ last_run: '', created: '2026-01-05' }));
@@ -52,7 +53,7 @@ test('a never-run overdue routine is not described as having run', () => {
   }
 });
 
-test('an invalid routine note is named with its first problem', () => {
+test('an invalid routine note is named with its first problem', release(), () => {
   const { parent, root } = makeProject({ repo: false });
   try {
     write(join(root, 'vault', '90_routines', 'Sender.md'), note({ may: 'send emails', status: 'paused' }));
@@ -66,7 +67,7 @@ test('an invalid routine note is named with its first problem', () => {
   }
 });
 
-test('a note with broken frontmatter is a warning that names it and the reason', () => {
+test('a note with broken frontmatter is a warning that names it and the reason', release(), () => {
   const { parent, root } = makeProject({ repo: false });
   try {
     write(join(root, 'vault', '90_routines', 'Torn.md'), '---\ntype: "routine"\nstatus: "active"\n# never closed\n');
@@ -80,7 +81,7 @@ test('a note with broken frontmatter is a warning that names it and the reason',
   }
 });
 
-test('a healthy routine is ok; --ci skips it', () => {
+test('a healthy routine is ok; --ci skips it', release(), () => {
   const { parent, root } = makeProject({ repo: false });
   try {
     const d = new Date();

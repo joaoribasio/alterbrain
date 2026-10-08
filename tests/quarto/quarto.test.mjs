@@ -312,7 +312,7 @@ function prepare(typeKey, name) {
 
 const render = { skip: QUARTO ? false : 'Quarto is not installed' };
 
-test('report: renders a PDF within its page limit and leaves the folder clean', render, () => {
+test('report: renders a PDF within its page limit and leaves the folder clean', release(render), () => {
   const dir = prepare('report');
   try {
     const r = renderDocument({ source: join(dir, 'report.qmd'), type: 'report', maxPages: 3 });
@@ -328,7 +328,7 @@ test('report: renders a PDF within its page limit and leaves the folder clean', 
   }
 });
 
-test('report: a page limit that is too small is reported in plain words', render, () => {
+test('report: a page limit that is too small is reported in plain words', release(render), () => {
   const dir = prepare('report');
   try {
     const r = renderDocument({ source: join(dir, 'report.qmd'), type: 'report', maxPages: 1 });
@@ -341,7 +341,7 @@ test('report: a page limit that is too small is reported in plain words', render
   }
 });
 
-test('report: line spacing and margins change the length as expected', render, () => {
+test('report: line spacing and margins change the length as expected', release(render), () => {
   const dir = scratch('spacing');
   try {
     const para = 'The terminal handles containers for several shipping lines and the plan has to balance cost, risk and timing across many years of uncertain demand. '.repeat(6);
@@ -366,7 +366,7 @@ test('report: line spacing and margins change the length as expected', render, (
   }
 });
 
-test('report: a missing picture gives a plain explanation', render, () => {
+test('report: a missing picture gives a plain explanation', release(render), () => {
   const dir = scratch('broken');
   try {
     writeFileSync(join(dir, 'broken.qmd'), '---\ntitle: "Broken"\n---\n\n## One\n\n![A chart.](missing-chart.png)\n');
@@ -379,7 +379,7 @@ test('report: a missing picture gives a plain explanation', render, () => {
   }
 });
 
-test('cv (designed): renders and fills every section from cv-data.yml', render, () => {
+test('cv (designed): renders and fills every section from cv-data.yml', release(render), () => {
   const dir = prepare('cv');
   try {
     const r = renderDocument({ source: join(dir, 'cv.qmd'), type: 'cv', maxPages: 2 });
@@ -390,7 +390,7 @@ test('cv (designed): renders and fills every section from cv-data.yml', render, 
   }
 });
 
-test('cv (ATS-plain): renders on one page', render, () => {
+test('cv (ATS-plain): renders on one page', release(render), () => {
   const dir = prepare('cv-ats');
   try {
     const r = renderDocument({ source: join(dir, 'cv-ats.qmd'), type: 'cv-ats', maxPages: 1 });
@@ -401,7 +401,7 @@ test('cv (ATS-plain): renders on one page', render, () => {
   }
 });
 
-test('cv: special characters in the data do not break the build', render, () => {
+test('cv: special characters in the data do not break the build', release(render), () => {
   const dir = prepare('cv');
   try {
     const data = readFileSync(join(dir, 'cv-data.yml'), 'utf8').replace(
@@ -416,7 +416,7 @@ test('cv: special characters in the data do not break the build', render, () => 
   }
 });
 
-test('letter: renders on one page', render, () => {
+test('letter: renders on one page', release(render), () => {
   const dir = prepare('letter');
   try {
     const r = renderDocument({ source: join(dir, 'letter.qmd'), type: 'letter', maxPages: 1 });
@@ -427,7 +427,7 @@ test('letter: renders on one page', render, () => {
   }
 });
 
-test('deck: renders one self-contained HTML file', render, () => {
+test('deck: renders one self-contained HTML file', release(render), () => {
   const dir = prepare('deck');
   try {
     const r = renderDocument({ source: join(dir, 'deck.qmd'), type: 'deck' });
@@ -441,7 +441,7 @@ test('deck: renders one self-contained HTML file', render, () => {
   }
 });
 
-test('--out and --name put the file exactly where another skill asks for it', render, () => {
+test('--out and --name put the file exactly where another skill asks for it', release(render), () => {
   const dir = prepare('letter', 'outbox');
   const outbox = join(dir, 'outbox');
   try {
@@ -453,7 +453,7 @@ test('--out and --name put the file exactly where another skill asks for it', re
   }
 });
 
-test('--release keeps every version in releases/<today>/', render, () => {
+test('--release keeps every version in releases/<today>/', release(render), () => {
   const dir = prepare('report', 'release');
   try {
     const a = renderDocument({ source: join(dir, 'report.qmd'), type: 'report', release: true });
@@ -472,7 +472,7 @@ test('--release keeps every version in releases/<today>/', render, () => {
   }
 });
 
-test('a starter file that names _brand.yml before it exists still renders, with the real brand', render, () => {
+test('a starter file that names _brand.yml before it exists still renders, with the real brand', release(render), () => {
   const dir = prepare('report', 'brandline');
   try {
     const q = readFileSync(join(dir, 'report.qmd'), 'utf8').replace('---\n', '---\nbrand: _brand.yml\n');
@@ -484,7 +484,7 @@ test('a starter file that names _brand.yml before it exists still renders, with 
   }
 });
 
-test('a brand font that is not installed gives a plain note and still renders', render, () => {
+test('a brand font that is not installed gives a plain note and still renders', release(render), () => {
   const dir = prepare('letter', 'nofont');
   try {
     writeFileSync(
@@ -499,7 +499,7 @@ test('a brand font that is not installed gives a plain note and still renders', 
   }
 });
 
-test('a report can also be made as a Word file', render, () => {
+test('a report can also be made as a Word file', release(render), () => {
   const dir = prepare('report', 'word');
   try {
     const r = renderDocument({ source: join(dir, 'report.qmd'), type: 'report', format: 'docx' });
@@ -511,7 +511,7 @@ test('a report can also be made as a Word file', render, () => {
   }
 });
 
-test('an Obsidian note (.md) is converted and rendered', render, () => {
+test('an Obsidian note (.md) is converted and rendered', release(render), () => {
   const converter = join(repoRoot(), 'system', 'scripts', 'qmd-prerender.mjs');
   if (!existsSync(converter)) return; // another package provides it
   const dir = scratch('note');
@@ -541,6 +541,7 @@ test('a source that does not exist gives a plain message, not a crash', () => {
 
 import { spawnSync } from 'node:child_process';
 import { installedFonts } from '../../system/quarto/tools/fonts.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const TOOLS = join(HERE, '..', '..', 'system', 'quarto', 'tools');
 const node = (args) => spawnSync(process.execPath, args, { encoding: 'utf8', windowsHide: true });
@@ -595,7 +596,7 @@ test('explain: a file outside the project root is not blamed on the brand file',
   assert.doesNotMatch(items[0].message, /brand/);
 });
 
-test('template csl in another folder is staged into the source folder, used and removed', render, () => {
+test('template csl in another folder is staged into the source folder, used and removed', release(render), () => {
   const root = scratch('tplcsl');
   const dir = join(root, 'doc');
   const tpl = join(root, 'tpl', 'my-rep');
@@ -738,7 +739,7 @@ test('documentFormat honours a format an extension provides, and flags one nothi
   }
 });
 
-test('report: a document that names a format from an extension next to it uses that format', render, () => {
+test('report: a document that names a format from an extension next to it uses that format', release(render), () => {
   const dir = scratch('ownfmt');
   try {
     writeSynthExtension(dir);
@@ -755,7 +756,7 @@ test('report: a document that names a format from an extension next to it uses t
   }
 });
 
-test('report: a document with no format of its own still gets Typst, and --format still wins', render, () => {
+test('report: a document with no format of its own still gets Typst, and --format still wins', release(render), () => {
   const dir = scratch('nofmt');
   try {
     writeSynthExtension(dir);

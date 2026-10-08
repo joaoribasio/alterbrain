@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { REPO, bytes, childEnv, cleanup, git, makeProject, runAuto, write } from '../fixtures/scripts/lfs-helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 function doctor(root, { env = {}, args = [] } = {}) {
   const res = spawnSync(process.execPath, [join(REPO, 'system', 'scripts', 'doctor.mjs'), '--json', ...args], {
@@ -14,7 +15,7 @@ function doctor(root, { env = {}, args = [] } = {}) {
 }
 const check = (out, id) => out.checks.find((c) => c.id === id);
 
-test('doctor: the big-file check for Obsidian Git is a warning with one fix line until it is installed, then ok', () => {
+test('doctor: the big-file check for Obsidian Git is a warning with one fix line until it is installed, then ok', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     const before = check(doctor(root), 'big-file-hook');
@@ -33,7 +34,7 @@ test('doctor: the big-file check for Obsidian Git is a warning with one fix line
   }
 });
 
-test('doctor: someone else\'s pre-commit hook, and a shared hooks folder, are warnings that say what is at stake', () => {
+test('doctor: someone else\'s pre-commit hook, and a shared hooks folder, are warnings that say what is at stake', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     write(root, '.git/hooks/pre-commit', '#!/bin/sh\nexit 0\n');
@@ -55,7 +56,7 @@ test('doctor: someone else\'s pre-commit hook, and a shared hooks folder, are wa
   }
 });
 
-test('doctor: in developer mode a missing check is fine, and a folder without Git is skipped', () => {
+test('doctor: in developer mode a missing check is fine, and a folder without Git is skipped', release(), () => {
   const { parent, root } = makeProject({ framework: true });
   try {
     write(root, 'state/local/dev-mode', 'test checkout\n');
@@ -68,7 +69,7 @@ test('doctor: in developer mode a missing check is fine, and a folder without Gi
   }
 });
 
-test('doctor: a saved file that GitHub would refuse is a failure with a fix, and it is gone once the repair is done', () => {
+test('doctor: a saved file that GitHub would refuse is a failure with a fix, and it is gone once the repair is done', release(), () => {
   const { parent, root } = makeProject({ remote: true });
   try {
     const env = { ALTERBRAIN_BLOB_LIMIT_BYTES: '4000' };
@@ -100,7 +101,7 @@ test('doctor: a saved file that GitHub would refuse is a failure with a fix, and
   }
 });
 
-test('doctor: no online copy means nothing to check for upload', () => {
+test('doctor: no online copy means nothing to check for upload', release(), () => {
   const { parent, root } = makeProject();
   try {
     const c = check(doctor(root), 'big-blobs');

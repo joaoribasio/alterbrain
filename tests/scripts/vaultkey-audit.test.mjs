@@ -8,6 +8,7 @@ import {
   BLOB_READ_LIMITS, GITCRYPT_HEADER, auditCommits, auditIndex, auditStaged, auditUnpushed, hasGitCryptHeader, readBlobs,
 } from '../../system/lib/vaultkey.mjs';
 import { cleanup, git, gitTry, makeVaultProject, write } from '../fixtures/scripts/vaultkey-helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const encryptedBytes = (text = 'secret') => Buffer.concat([GITCRYPT_HEADER, Buffer.alloc(12, 7), Buffer.from(text)]);
 /** Write raw bytes into a project file (the shared helper writes text). */
@@ -20,7 +21,7 @@ const parentsOf = (root, rev) => git(root, ['rev-list', '--parents', '-n', '1', 
 
 /* ------------------------------ merge commits ------------------------------ */
 
-test('a merge commit is checked for what the merge itself wrote, not for what the other side brought in', () => {
+test('a merge commit is checked for what the merge itself wrote, not for what the other side brought in', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     git(root, ['checkout', '-q', '-b', 'other']);
@@ -65,7 +66,7 @@ test('a merge commit is checked for what the merge itself wrote, not for what th
   }
 });
 
-test('a merge that takes one side of a file the other side changed adds nothing new to check', () => {
+test('a merge that takes one side of a file the other side changed adds nothing new to check', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     putBytes(root, 'vault/60_people/Sam.md', encryptedBytes('one'));
@@ -92,7 +93,7 @@ test('a merge that takes one side of a file the other side changed adds nothing 
   }
 });
 
-test('auditUnpushed: a note that a phone already put online is not counted after a merge, and the computer\'s own plain note still is', () => {
+test('auditUnpushed: a note that a phone already put online is not counted after a merge, and the computer\'s own plain note still is', release(), () => {
   const { parent, root, bare } = makeVaultProject({ remote: true });
   try {
     const phone = join(parent, 'phone');
@@ -123,7 +124,7 @@ test('auditUnpushed: a note that a phone already put online is not counted after
   }
 });
 
-test('an octopus merge (three parents) is read too', () => {
+test('an octopus merge (three parents) is read too', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     for (const name of ['one', 'two']) {
@@ -159,7 +160,7 @@ function withReadLimits(limits, fn) {
   }
 }
 
-test('readBlobs reads small files in groups and only the start of big ones, and gives the same answers either way', () => {
+test('readBlobs reads small files in groups and only the start of big ones, and gives the same answers either way', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     const filler = (n) => Buffer.alloc(n, 0x41);
@@ -195,7 +196,7 @@ test('readBlobs reads small files in groups and only the start of big ones, and 
   }
 });
 
-test('the audits stay correct when the stored files are bigger than the read limits', () => {
+test('the audits stay correct when the stored files are bigger than the read limits', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     // Twelve private documents that are encrypted, then one that is plain
@@ -227,7 +228,7 @@ test('the audits stay correct when the stored files are bigger than the read lim
   }
 });
 
-test('a stored file that is missing, or an id that is not one, is an error and never a clean result', () => {
+test('a stored file that is missing, or an id that is not one, is an error and never a clean result', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     const gone = 'f'.repeat(40);

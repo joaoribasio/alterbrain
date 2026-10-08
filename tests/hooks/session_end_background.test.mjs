@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeProject, runHook } from '../fixtures/hooks/helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   SKIP, blobAt, bytes, cleanup, exists, git, isPointer, lfsObjectPath, logOf, makeProject as makeRealProject, runSessionEnd, sha256, tasksOf, write,
 } from '../fixtures/scripts/lfs-helpers.mjs';
@@ -34,7 +35,7 @@ function stubProject() {
 }
 const SHORT = { ALTERBRAIN_HOOK_PUSH_TIMEOUT_MS: '1500' };
 
-test('a push that runs out of the hook\'s time is not a crash: no task, a log line, and the upload is handed to the background', (t) => {
+test('a push that runs out of the hook\'s time is not a crash: no task, a log line, and the upload is handed to the background', release(), (t) => {
   const p = stubProject();
   t.after(p.cleanup);
   const r = runHook(p, 'session_end', END, { env: { ...SHORT, STUB_SLEEP_PUSH: '20000' } });
@@ -56,7 +57,7 @@ test('a push that finishes in time is asked for once, with the background offer,
   assert.equal(p.exists('state/local/git.log'), false);
 });
 
-test('a hand-over that itself crashes is reported like any crash, and one that runs out of time is not', (t) => {
+test('a hand-over that itself crashes is reported like any crash, and one that runs out of time is not', release(), (t) => {
   const p = stubProject();
   t.after(p.cleanup);
   runHook(p, 'session_end', END, { env: { ...SHORT, STUB_SLEEP_PUSH: '20000', STUB_EXIT_PUSH_NOW: '3' } });
@@ -99,7 +100,7 @@ async function waitFor(check, what, ms = 60_000) {
   assert.fail(`timed out waiting for ${what}`);
 }
 
-test('a big file: the real hook returns at once, silently, and the upload finishes in the background', { skip: SKIP }, async () => {
+test('a big file: the real hook returns at once, silently, and the upload finishes in the background', release({ skip: SKIP }), async () => {
   const { parent, root, bare } = makeRealProject({ remote: true, framework: true });
   try {
     const mov = bytes(6000);
@@ -125,7 +126,7 @@ test('a big file: the real hook returns at once, silently, and the upload finish
   }
 });
 
-test('a big upload that is already running is not started again by the next save, and the notes are still saved', { skip: SKIP }, async () => {
+test('a big upload that is already running is not started again by the next save, and the notes are still saved', release({ skip: SKIP }), async () => {
   const { parent, root, bare } = makeRealProject({ remote: true, framework: true });
   try {
     write(root, 'vault/recordings/week 1.mov', bytes(6000));

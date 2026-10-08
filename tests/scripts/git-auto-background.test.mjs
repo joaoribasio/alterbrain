@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   SKIP, blobAt, bytes, cleanup, exists, git, isPointer, lfsObjectPath, logOf, makeProject, runAuto, sha256, tasksOf, write,
 } from '../fixtures/scripts/lfs-helpers.mjs';
@@ -37,7 +38,7 @@ function projectWithPendingUpload(size = 6000) {
 const online = (p) => git(p.bare, ['rev-parse', 'main']) === git(p.root, ['rev-parse', 'HEAD']);
 const uploaded = (p) => existsSync(lfsObjectPath(join(p.bare, 'lfs'), sha256(p.mov)));
 
-test('a big upload is started in the background, finishes by itself, and gives the lock back', { skip: SKIP }, async () => {
+test('a big upload is started in the background, finishes by itself, and gives the lock back', release({ skip: SKIP }), async () => {
   const p = projectWithPendingUpload();
   try {
     const started = Date.now();
@@ -61,7 +62,7 @@ test('a big upload is started in the background, finishes by itself, and gives t
   }
 });
 
-test('a small upload is done right away, not in the background', { skip: SKIP }, () => {
+test('a small upload is done right away, not in the background', release({ skip: SKIP }), () => {
   const p = projectWithPendingUpload();
   try {
     const r = runAuto(p.root, 'push', { env: { ALTERBRAIN_PUSH_BACKGROUND: '1' } }); // the real limit is 16 MB: 6000 bytes is quick
@@ -76,7 +77,7 @@ test('a small upload is done right away, not in the background', { skip: SKIP },
   }
 });
 
-test('without a request for the background, a big upload is done in the foreground, as a person running it by hand expects', { skip: SKIP }, () => {
+test('without a request for the background, a big upload is done in the foreground, as a person running it by hand expects', release({ skip: SKIP }), () => {
   const p = projectWithPendingUpload();
   try {
     const r = runAuto(p.root, 'push', { env: { ALTERBRAIN_BACKGROUND_UPLOAD_BYTES: '1' } });
@@ -88,7 +89,7 @@ test('without a request for the background, a big upload is done in the foregrou
   }
 });
 
-test('while an upload is running, another push waits instead of starting a second upload', { skip: SKIP }, () => {
+test('while an upload is running, another push waits instead of starting a second upload', release({ skip: SKIP }), () => {
   const p = projectWithPendingUpload();
   try {
     // This test process stands in for the running upload: its process number is alive.
@@ -111,7 +112,7 @@ test('while an upload is running, another push waits instead of starting a secon
   }
 });
 
-test('a lock left behind by a process that is gone, one that is far too old, and a broken one are ignored and removed', { skip: SKIP }, () => {
+test('a lock left behind by a process that is gone, one that is far too old, and a broken one are ignored and removed', release({ skip: SKIP }), () => {
   const gone = spawnSync(process.execPath, ['-e', ''], { windowsHide: true });
   assert.ok(gone.pid > 0);
   const cases = {
@@ -138,7 +139,7 @@ test('a lock left behind by a process that is gone, one that is far too old, and
   }
 });
 
-test('"now" starts the background upload whatever the size (used when a push ran out of time)', { skip: SKIP }, async () => {
+test('"now" starts the background upload whatever the size (used when a push ran out of time)', release({ skip: SKIP }), async () => {
   const p = makeProject({ remote: true });
   try {
     write(p.root, 'vault/Ideas.md', '# Ideas\n');
@@ -156,7 +157,7 @@ test('"now" starts the background upload whatever the size (used when a push ran
   }
 });
 
-test('a file GitHub would refuse is reported at once, not in a background process that nobody reads', { skip: SKIP }, () => {
+test('a file GitHub would refuse is reported at once, not in a background process that nobody reads', release({ skip: SKIP }), () => {
   const p = makeProject({ remote: true });
   try {
     write(p.root, 'vault/recordings/week 1.mov', bytes(6000));
@@ -171,7 +172,7 @@ test('a file GitHub would refuse is reported at once, not in a background proces
   }
 });
 
-test('when the background upload fails, the lock is still given back and the failure is reported as usual', { skip: SKIP }, async () => {
+test('when the background upload fails, the lock is still given back and the failure is reported as usual', release({ skip: SKIP }), async () => {
   const p = projectWithPendingUpload();
   try {
     // The online copy refuses every change (a server-side check says no): the background push cannot succeed.

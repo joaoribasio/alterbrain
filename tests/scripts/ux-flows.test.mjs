@@ -9,6 +9,7 @@ import {
 } from '../fixtures/ops/helpers.mjs';
 import { compute, isoWeek, parseArgs, parseDay } from '../../system/scripts/date.mjs';
 import { isOwnPath } from '../../system/scripts/built.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const RELEASE = { name: 'alterbrain', version: '0.1.0', tag: 'v0.1.0', repo: 'joaoribasio/alterbrain' };
 
@@ -27,7 +28,7 @@ test('date.mjs: local date, plus days, ISO week, bad input', () => {
   assert.equal(parseArgs(['--nope']), null);
 });
 
-test('date.mjs CLI prints one line and exits 2 on bad input', () => {
+test('date.mjs CLI prints one line and exits 2 on bad input', release(), () => {
   const { parent, root } = makeProject();
   try {
     const ok = runScript('date.mjs', ['--from', '2026-10-20', '--plus', '-5'], root);
@@ -42,7 +43,7 @@ test('date.mjs CLI prints one line and exits 2 on bad input', () => {
   }
 });
 
-test('check-json.mjs: valid, invalid, missing and --length', () => {
+test('check-json.mjs: valid, invalid, missing and --length', release(), () => {
   const { parent, root } = makeProject();
   try {
     write(join(root, 'config', 'good.json'), '{"a":1}\n');
@@ -116,7 +117,7 @@ function projectWithOrigin(origin) {
   return p;
 }
 
-test('setup-github --detach-only removes the public origin without GitHub, and leaves other origins alone', () => {
+test('setup-github --detach-only removes the public origin without GitHub, and leaves other origins alone', release(), () => {
   const pub = projectWithOrigin('https://github.com/joaoribasio/alterbrain.git');
   try {
     const dry = JSON.parse(runScript('setup-github.mjs', ['--detach-only', '--dry-run', '--json'], pub.root).stdout);
@@ -142,7 +143,7 @@ test('setup-github --detach-only removes the public origin without GitHub, and l
   }
 });
 
-test('git-auto pull and push refuse to talk to the public Alterbrain repo', () => {
+test('git-auto pull and push refuse to talk to the public Alterbrain repo', release(), () => {
   const { parent, root } = projectWithOrigin('https://github.com/joaoribasio/alterbrain.git');
   try {
     for (const cmd of ['pull', 'push']) {
@@ -173,7 +174,7 @@ test('onboard-seed creates .env.local from .env.example once and never overwrite
   }
 });
 
-test('doctor warns when the keys file was saved as .env.local.txt, and says nothing otherwise', () => {
+test('doctor warns when the keys file was saved as .env.local.txt, and says nothing otherwise', release(), () => {
   const { parent, root } = makeProject();
   try {
     const ids = () => JSON.parse(runScript('doctor.mjs', ['--json'], root).stdout).checks.map((c) => c.id);

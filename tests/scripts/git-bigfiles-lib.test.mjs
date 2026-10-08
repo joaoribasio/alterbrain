@@ -9,6 +9,7 @@ import {
   ensurePreCommitHook, lfsPendingUpload, preCommitHookStatus, preCommitShim, pushCurrent,
 } from '../../system/lib/git.mjs';
 import { SKIP, bytes, cleanup, git, makeProject, runAuto, write } from '../fixtures/scripts/lfs-helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 function withEnv(vars, fn) {
   const saved = {};
@@ -73,7 +74,7 @@ test('limits: GitHub\'s is 95 MiB for the check, the background threshold is 16 
   });
 });
 
-test('ensurePreCommitHook and preCommitHookStatus agree, a stale copy is refreshed, and a folder that is not a repository is never written into', () => {
+test('ensurePreCommitHook and preCommitHookStatus agree, a stale copy is refreshed, and a folder that is not a repository is never written into', release(), () => {
   const { parent, root } = makeProject();
   try {
     assert.equal(preCommitHookStatus(root).state, 'missing');
@@ -96,7 +97,7 @@ test('ensurePreCommitHook and preCommitHookStatus agree, a stale copy is refresh
   }
 });
 
-test('lfsPendingUpload: counts the Git LFS files that are saved but not online yet, and is quiet when there are none', { skip: SKIP }, () => {
+test('lfsPendingUpload: counts the Git LFS files that are saved but not online yet, and is quiet when there are none', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ remote: true });
   try {
     withEnv({ ALTERBRAIN_GIT_LFS: undefined }, () => {
@@ -121,7 +122,7 @@ test('lfsPendingUpload: counts the Git LFS files that are saved but not online y
   }
 });
 
-test('pushCurrent: a push stopped by its time limit comes back as "timeout", which is only logged and tried again later', () => {
+test('pushCurrent: a push stopped by its time limit comes back as "timeout", which is only logged and tried again later', release(), () => {
   const { parent, root, bare } = makeProject({ remote: true });
   try {
     // The online copy takes a long time to answer (a server-side check that sleeps).

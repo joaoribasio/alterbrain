@@ -10,6 +10,7 @@ import {
 } from '../fixtures/scripts/lfs-helpers.mjs';
 import { FAKE_GIT_CRYPT, runVk } from '../fixtures/scripts/vaultkey-helpers.mjs';
 import { spawnSync } from 'node:child_process';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const RULES = 'vault/.gitattributes';
 const ruleLines = (root) => (exists(root, RULES) ? readText(root, RULES).split(/\r?\n/).filter((l) => l && !l.startsWith('#')) : []);
@@ -17,7 +18,7 @@ const taskLines = (root, needle) => tasksOf(root).split('\n').filter((l) => l.in
 
 /* ---------------- existing installs: files that were stored through the old root rules ---------------- */
 
-test('self-healing: an LFS file keeps its rule after the root rules are gone, so the next save does not store it as a full copy', { skip: SKIP }, () => {
+test('self-healing: an LFS file keeps its rule after the root rules are gone, so the next save does not store it as a full copy', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ rules: 'old', lfs: 'full' });
   try {
     // 1. The old framework: every PDF and Word file in the vault goes through Git LFS, whatever its size.
@@ -67,7 +68,7 @@ test('self-healing: an LFS file keeps its rule after the root rules are gone, so
   }
 });
 
-test('self-healing leaves alone a file that is not stored through Git LFS today, and an install without LFS files', { skip: SKIP }, () => {
+test('self-healing leaves alone a file that is not stored through Git LFS today, and an install without LFS files', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     write(root, 'vault/Ideas.md', '# Ideas\n');
@@ -83,7 +84,7 @@ test('self-healing leaves alone a file that is not stored through Git LFS today,
 
 /* ---------------- private folders (git-crypt wins there, so a big file cannot use Git LFS) ---------------- */
 
-test('a very large private file is kept on this computer with a task that names no file; other big files still go to Git LFS', { skip: SKIP }, () => {
+test('a very large private file is kept on this computer with a task that names no file; other big files still go to Git LFS', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     const env = { ALTERBRAIN_GIT_CRYPT: FAKE_GIT_CRYPT };
@@ -121,7 +122,7 @@ test('a very large private file is kept on this computer with a task that names 
 
 /* ---------------- the round trip through a bare repository ---------------- */
 
-test('push uploads the Git LFS files first, even when the folder has no LFS hook; a second computer gets the file back', { skip: SKIP }, () => {
+test('push uploads the Git LFS files first, even when the folder has no LFS hook; a second computer gets the file back', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true });
   try {
     const mov = bytes(6000);
@@ -154,7 +155,7 @@ test('push uploads the Git LFS files first, even when the folder has no LFS hook
   }
 });
 
-test('joining the online copy saves a new big file first (as a pointer) and does not upload it twice', { skip: SKIP }, () => {
+test('joining the online copy saves a new big file first (as a pointer) and does not upload it twice', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true });
   try {
     // The other computer adds a note.
@@ -186,7 +187,7 @@ test('joining the online copy saves a new big file first (as a pointer) and does
   }
 });
 
-test('an upload that fails is reported as a failed push and nothing is forced', { skip: SKIP }, () => {
+test('an upload that fails is reported as a failed push and nothing is forced', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     git(root, ['remote', 'add', 'origin', 'http://127.0.0.1:9/nothing.git']); // nobody listens here
@@ -202,7 +203,7 @@ test('an upload that fails is reported as a failed push and nothing is forced', 
   }
 });
 
-test('two computers that each add big-file rules join without a conflict (the rules file is merged as a union)', { skip: SKIP }, () => {
+test('two computers that each add big-file rules join without a conflict (the rules file is merged as a union)', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ rules: 'old', lfs: 'full', remote: true });
   try {
     const a = bytes(3000);

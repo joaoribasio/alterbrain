@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { abs, changedPaths, cleanup, copyFixture, read, runMigration, snapshot, write } from '../../fixtures/migrations/helpers.mjs';
+import { release } from '../../fixtures/scripts/release.mjs';
 
 after(cleanup);
 const FILE = '0004-old-pack-paths.mjs';
@@ -190,7 +191,7 @@ test('0004: a big file next to a real hit gives both tasks', () => {
   assert.equal(taskLines(root).length, 2);
 });
 
-test('0004: more than 2000 files is said out loud, and the files before the limit are still searched', () => {
+test('0004: more than 2000 files is said out loud, and the files before the limit are still searched', release(), () => {
   const root = copyFixture('v0.1.1');
   write(root, '.claude/skills/my-a/a-first.md', `x = "${OLD}"\n`);
   for (let i = 0; i < 2001; i++) write(root, `.claude/skills/my-a/f${String(i).padStart(4, '0')}.txt`, 'plain\n');

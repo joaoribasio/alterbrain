@@ -8,6 +8,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { SKIP, blobAt, bytes, cleanup, git, gitTry, isPointer, lfsObjectPath, logOf, makeProject, runAuto, sha256, tasksOf, write } from '../fixtures/scripts/lfs-helpers.mjs';
 import { unpushedOversizedBlobs } from '../../system/lib/git.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const BLOB_ENV = { ALTERBRAIN_BLOB_LIMIT_BYTES: '4000' };
 const taskLines = (root, needle) => tasksOf(root).split('\n').filter((l) => l.includes(needle));
@@ -19,7 +20,7 @@ function saveAsOrdinaryFile(root, rel = 'vault/recordings/week 1.mov', size = 60
   git(root, ['commit', '-q', '-m', 'auto (obsidian on a phone)']);
 }
 
-test('an ordinary file too big for GitHub in a saved change stops the upload with a clear task, before anything is sent', () => {
+test('an ordinary file too big for GitHub in a saved change stops the upload with a clear task, before anything is sent', release(), () => {
   const { parent, root, bare } = makeProject({ remote: true });
   try {
     const onlineBefore = git(bare, ['rev-parse', 'main']);
@@ -48,7 +49,7 @@ test('an ordinary file too big for GitHub in a saved change stops the upload wit
   }
 });
 
-test('the repair for commits that were never uploaded: fold them into the next save, and the file goes through Git LFS', { skip: SKIP }, () => {
+test('the repair for commits that were never uploaded: fold them into the next save, and the file goes through Git LFS', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true });
   try {
     const mov = bytes(6000);
@@ -79,7 +80,7 @@ test('the repair for commits that were never uploaded: fold them into the next s
   }
 });
 
-test('a file stored through Git LFS is never flagged, and neither is a big file that is already online', { skip: SKIP }, () => {
+test('a file stored through Git LFS is never flagged, and neither is a big file that is already online', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true });
   try {
     // Already online as an ordinary file (it was uploaded back when it was allowed): not in the changes that are about to go up.
@@ -102,7 +103,7 @@ test('a file stored through Git LFS is never flagged, and neither is a big file 
   }
 });
 
-test('unpushedOversizedBlobs: lists the files, with sizes, for a folder whose branch was never uploaded and for one that was', () => {
+test('unpushedOversizedBlobs: lists the files, with sizes, for a folder whose branch was never uploaded and for one that was', release(), () => {
   const { parent, root } = makeProject({ remote: true });
   try {
     const saved = process.env.ALTERBRAIN_BLOB_LIMIT_BYTES;
@@ -126,7 +127,7 @@ test('unpushedOversizedBlobs: lists the files, with sizes, for a folder whose br
   }
 });
 
-test('the limit is about 100 MB for GitHub: a file below it is never flagged', () => {
+test('the limit is about 100 MB for GitHub: a file below it is never flagged', release(), () => {
   const { parent, root } = makeProject({ remote: true });
   try {
     saveAsOrdinaryFile(root, 'vault/recordings/week 1.mov', 6000);

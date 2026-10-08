@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, rmSync } from 'node:fs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   makeProject, makeBareRemote, cloneOther, runScript, runScriptAsync, git, gitTry,
   write, readText, cleanup, join,
@@ -10,7 +11,7 @@ const tasksOf = (root) => readText(join(root, 'vault', '00_inbox', 'Tasks.md'));
 const logOf = (root) => readText(join(root, 'state', 'local', 'git.log'));
 const json = (r) => JSON.parse(r.stdout.trim());
 
-test('usage errors exit with 2', () => {
+test('usage errors exit with 2', release(), () => {
   const { parent, root } = makeProject();
   try {
     assert.equal(runScript('git-auto.mjs', [], root).code, 2);
@@ -20,7 +21,7 @@ test('usage errors exit with 2', () => {
   }
 });
 
-test('commit saves changes with the agreed message', () => {
+test('commit saves changes with the agreed message', release(), () => {
   const { parent, root } = makeProject();
   try {
     write(join(root, 'vault', 'a.md'), 'one\n');
@@ -38,7 +39,7 @@ test('commit saves changes with the agreed message', () => {
   }
 });
 
-test('commit with nothing new does nothing', () => {
+test('commit with nothing new does nothing', release(), () => {
   const { parent, root } = makeProject();
   try {
     const before = git(root, ['rev-parse', 'HEAD']);
@@ -51,7 +52,7 @@ test('commit with nothing new does nothing', () => {
   }
 });
 
-test('commit still works when git has no name or email set', () => {
+test('commit still works when git has no name or email set', release(), () => {
   const { parent, root } = makeProject();
   try {
     git(root, ['config', '--unset', 'user.name']);
@@ -65,7 +66,7 @@ test('commit still works when git has no name or email set', () => {
   }
 });
 
-test('skips in dev mode', () => {
+test('skips in dev mode', release(), () => {
   const { parent, root } = makeProject({ dev: true });
   try {
     write(join(root, 'vault', 'a.md'), 'one\n');
@@ -81,7 +82,7 @@ test('skips in dev mode', () => {
   }
 });
 
-test('skips when git.auto_commit is false, and push skips when auto_push is false', () => {
+test('skips when git.auto_commit is false, and push skips when auto_push is false', release(), () => {
   const off = makeProject({ brain: { git: { auto_commit: false, auto_push: true } } });
   const noPush = makeProject({ brain: { git: { auto_commit: true, auto_push: false } } });
   try {
@@ -106,7 +107,7 @@ test('a folder without git is skipped politely', () => {
   }
 });
 
-test('push and pull work against a local remote', () => {
+test('push and pull work against a local remote', release(), () => {
   const { parent, root } = makeProject();
   try {
     const bare = makeBareRemote(parent);
@@ -146,7 +147,7 @@ test('push and pull work against a local remote', () => {
   }
 });
 
-test('a rebase conflict is never forced: work stays intact, a task and a log line appear', () => {
+test('a rebase conflict is never forced: work stays intact, a task and a log line appear', release(), () => {
   const { parent, root } = makeProject();
   try {
     const bare = makeBareRemote(parent);
@@ -195,7 +196,7 @@ test('a rebase conflict is never forced: work stays intact, a task and a log lin
   }
 });
 
-test('index.lock: gives up after retries without deleting the lock, then reports', () => {
+test('index.lock: gives up after retries without deleting the lock, then reports', release(), () => {
   const { parent, root } = makeProject();
   try {
     write(join(root, 'vault', 'a.md'), 'one\n');
@@ -211,7 +212,7 @@ test('index.lock: gives up after retries without deleting the lock, then reports
   }
 });
 
-test('index.lock that clears during the retries lets the commit through', async () => {
+test('index.lock that clears during the retries lets the commit through', release(), async () => {
   const { parent, root } = makeProject();
   try {
     write(join(root, 'vault', 'a.md'), 'one\n');
@@ -234,7 +235,7 @@ test('index.lock that clears during the retries lets the commit through', async 
   }
 });
 
-test('being offline is logged but does not nag with a task', () => {
+test('being offline is logged but does not nag with a task', release(), () => {
   const { parent, root } = makeProject();
   try {
     git(root, ['remote', 'add', 'origin', 'http://127.0.0.1:9/nothing.git']);
@@ -263,7 +264,7 @@ test('a half-finished merge stops everything and says so', () => {
 
 /* ---------------- code-safety hardening ---------------- */
 
-test('F07: a pull over uncommitted edits never leaves conflict markers in a note, and nothing is stashed', () => {
+test('F07: a pull over uncommitted edits never leaves conflict markers in a note, and nothing is stashed', release(), () => {
   const { parent, root } = makeProject();
   try {
     const bare = makeBareRemote(parent);
@@ -299,7 +300,7 @@ test('F07: a pull over uncommitted edits never leaves conflict markers in a note
   }
 });
 
-test('F07: commit refuses while a file is half-merged, even without a merge in progress', () => {
+test('F07: commit refuses while a file is half-merged, even without a merge in progress', release(), () => {
   const { parent, root } = makeProject();
   try {
     write(join(root, 'vault', 'a.md'), 'base\n');
@@ -326,7 +327,7 @@ test('F07: commit refuses while a file is half-merged, even without a merge in p
   }
 });
 
-test('F08: a folder that still points at the public repo never pulls from it or pushes to it', () => {
+test('F08: a folder that still points at the public repo never pulls from it or pushes to it', release(), () => {
   const { parent, root } = makeProject();
   try {
     write(join(root, 'system', 'release.json'), JSON.stringify({ repo: 'joaoribasio/alterbrain' }));
@@ -355,7 +356,7 @@ test('F08: a folder that still points at the public repo never pulls from it or 
   }
 });
 
-test('F17: a settings file with a byte order mark is still read, and a broken one pauses the online backup', () => {
+test('F17: a settings file with a byte order mark is still read, and a broken one pauses the online backup', release(), () => {
   const { parent, root } = makeProject();
   try {
     const bare = makeBareRemote(parent);
@@ -390,7 +391,7 @@ test('F17: a settings file with a byte order mark is still read, and a broken on
   }
 });
 
-test('F15: a note that holds a key is left out of the save, the others are saved, and a task says which', () => {
+test('F15: a note that holds a key is left out of the save, the others are saved, and a task says which', release(), () => {
   const { parent, root } = makeProject();
   try {
     const pem = '-----BEGIN ' + 'RSA PRIVATE KEY-----';

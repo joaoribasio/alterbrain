@@ -9,6 +9,7 @@ import { findPdftotext } from '../../system/scripts/release-scan.mjs';
 import { checkFiles, checkTitle, checkSlides, qmdSlides, isDeckQmd } from '../../system/scripts/deliver-check.mjs';
 import { zipTool } from '../../system/lib/ooxml.mjs';
 import { makeDocx, makePptx, makeXlsx, cleanSheets } from '../fixtures/scripts/deliverables/builders.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const SCRIPT = fileURLToPath(new URL('../../system/scripts/deliver-check.mjs', import.meta.url));
 const skip = zipTool() ? false : 'no bsdtar on this computer';
@@ -127,7 +128,7 @@ test('a three-word title and a chart slide with no Source line fail', { skip }, 
   assert.deepEqual(checks, ['slide-title@slide 2', 'source-line@slide 3']);
 });
 
-test('command: exit codes and json', { skip }, () => {
+test('command: exit codes and json', release({ skip }), () => {
   const d = fresh();
   const ok = makeDocx(join(d, 'ok.docx'), ['fine']);
   assert.equal(spawnSync(process.execPath, [SCRIPT, ok], { encoding: 'utf8' }).status, 0);
@@ -184,7 +185,7 @@ test('a placeholder in the cover details of a report qmd fails', { skip }, () =>
   assert.deepEqual(r.files[0].problems.map((p) => p.location), ['line 2', 'line 3']);
 });
 
-test('--allow-titles and --skip-checks waive a check and say so', { skip }, () => {
+test('--allow-titles and --skip-checks waive a check and say so', release({ skip }), () => {
   const d = fresh();
   const f = makePptx(join(d, 'd.pptx'), [
     { title: 'Cover', texts: [] },

@@ -17,6 +17,7 @@ import { readJson, readJsonChecked, readText, stripBom } from '../../system/lib/
 import { checkCommand as gitCheck } from '../../system/hooks/block_dangerous_git.mjs';
 import { checkCommandDecision, findSecret, wordLike } from '../../system/hooks/block_secrets.mjs';
 import { classify, decide, isLocalServer, shellOutbound } from '../../system/hooks/outbound_guard.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const WIN = process.platform === 'win32';
 const secrets = fakeSecrets();
@@ -41,7 +42,7 @@ const hit = (command, shell = 'bash', opts = {}) => shellProtectHit(command, she
 /* F01: the dev-mode marker cannot be created by the agent             */
 /* ------------------------------------------------------------------ */
 
-test('F01: no tool can create or edit state/local/dev-mode, in normal mode or in dev mode', (t) => {
+test('F01: no tool can create or edit state/local/dev-mode, in normal mode or in dev mode', release(), (t) => {
   for (const devMode of [false, true]) {
     const p = makeProject({ devMode });
     t.after(p.cleanup);
@@ -237,7 +238,7 @@ test('F05: winAliasNormalise folds the Windows spellings of one file', () => {
   assert.equal(n('a\\..foo'), 'a\\..foo');
 });
 
-test('F05: aliases of a protected file are refused (trailing dot or space, stream, extended path)', (t) => {
+test('F05: aliases of a protected file are refused (trailing dot or space, stream, extended path)', release(), (t) => {
   if (!WIN) return t.skip('Windows path spellings');
   const p = makeProject();
   t.after(p.cleanup);
@@ -262,7 +263,7 @@ test('F05: aliases of a protected file are refused (trailing dot or space, strea
   assert.equal(runHook(p, 'protect_paths', write('..foo.md')).stdout, '');
 });
 
-test('F05: 8.3 short names of protected files are refused', (t) => {
+test('F05: 8.3 short names of protected files are refused', release(), (t) => {
   if (!WIN) return t.skip('8.3 names exist on Windows only');
   const p = makeProject();
   t.after(p.cleanup);
@@ -375,7 +376,7 @@ test('F06: every hook and the scripts still answer when the project is reached t
   assert.equal(JSON.parse(status.stdout).command, 'status', `no output through a link: ${status.stderr}`);
 });
 
-test('F06: doctor reports hooks that start but stay silent', (t) => {
+test('F06: doctor reports hooks that start but stay silent', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   const doctor = () => {
@@ -734,7 +735,7 @@ test('F20: the shell guard follows the autonomy level', (t) => {
   assert.deepEqual(splitWords('claude-in-chrome'), ['claude', 'in', 'chrome']);
 });
 
-test('F20: file tools of the vault servers cannot write raw sources, Obsidian plugin code or .git', (t) => {
+test('F20: file tools of the vault servers cannot write raw sources, Obsidian plugin code or .git', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   const denied = [

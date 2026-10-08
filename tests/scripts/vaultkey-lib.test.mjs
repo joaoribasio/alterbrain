@@ -8,6 +8,7 @@ import { mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   CancelledError, DOCUMENT_EXTENSIONS, ENCRYPTED_EXTENSIONS, EXAMPLE_WORDS, GITCRYPT_HEADER, KeyFileError, NOTE_EXTENSIONS, NoTerminalError,
   SCRYPT_DEFAULT, SCOPE_LABELS, attributeBlock, attributeFilesMissing, attributesPresent, auditCommits, auditIndex, auditStaged, auditUnpushed,
@@ -264,7 +265,7 @@ test('the scope recorded in settings holds paths only', () => {
   ]);
 });
 
-test('attribute files: git-crypt covers notes, documents and pictures in the private folders; persona files and other folders are left alone', () => {
+test('attribute files: git-crypt covers notes, documents and pictures in the private folders; persona files and other folders are left alone', release(), () => {
   // The root file has no Git LFS rules (ordinary documents are normal git files), so this does not depend on the framework's own .gitattributes.
   const { parent, root } = makeVaultProject();
   try {
@@ -303,7 +304,7 @@ test('attribute files: git-crypt covers notes, documents and pictures in the pri
   }
 });
 
-test('a private folder rule wins over a Git LFS rule in the root file', () => {
+test('a private folder rule wins over a Git LFS rule in the root file', release(), () => {
   // A computer that still has the old root file (documents in Git LFS) must still encrypt documents in the private folders.
   const { parent, root } = makeVaultProject();
   try {
@@ -319,7 +320,7 @@ test('a private folder rule wins over a Git LFS rule in the root file', () => {
   }
 });
 
-test('with the framework\'s own root .gitattributes, whichever version it is, documents in the private folders get git-crypt', () => {
+test('with the framework\'s own root .gitattributes, whichever version it is, documents in the private folders get git-crypt', release(), () => {
   const { parent, root } = makeVaultProject({ rootAttributes: 'framework' });
   try {
     writeAttributeFiles(root);
@@ -410,7 +411,7 @@ test('header check tells encrypted bytes from plain text', () => {
   assert.equal(isEncryptedBlob(Buffer.from('plain')), false);
 });
 
-test('readBlobs and the audits look at the stored bytes, not at git-crypt output', () => {
+test('readBlobs and the audits look at the stored bytes, not at git-crypt output', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     write(root, NOTES.fact, 'Nationality: example\n'); // plain, in an encrypted path
@@ -447,7 +448,7 @@ test('readBlobs and the audits look at the stored bytes, not at git-crypt output
   }
 });
 
-test('auditUnpushed checks every commit that would go up, even a plain file a later commit replaced', () => {
+test('auditUnpushed checks every commit that would go up, even a plain file a later commit replaced', release(), () => {
   const { parent, root } = makeVaultProject({ remote: true });
   try {
     assert.deepEqual(auditUnpushed(root), { plain: [], checked: 0, error: null });
@@ -480,7 +481,7 @@ test('auditUnpushed checks every commit that would go up, even a plain file a la
   }
 });
 
-test('auditUnpushed covers the first upload (no remote branch yet) and ignores deleted files', () => {
+test('auditUnpushed covers the first upload (no remote branch yet) and ignores deleted files', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     git(root, ['remote', 'add', 'origin', join(parent, 'not-yet.git')]);
@@ -546,7 +547,7 @@ test('an unreadable brain.json is not overwritten, and counts as unreadable', ()
   }
 });
 
-test('encryption counts as on when either the settings or the attribute files say so', () => {
+test('encryption counts as on when either the settings or the attribute files say so', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     assert.equal(encryptionEnabled(root), false);
@@ -563,7 +564,7 @@ test('encryption counts as on when either the settings or the attribute files sa
   }
 });
 
-test('getStatus is quiet when encryption is off and honest when it is on without the tool or the key', () => {
+test('getStatus is quiet when encryption is off and honest when it is on without the tool or the key', release(), () => {
   const off = makeVaultProject();
   try {
     const st = getStatus(off.root);
@@ -735,7 +736,7 @@ test('a real git-crypt installed with winget is found although the running app d
 
 /* ------------------------------ checking a list of commits ------------------------------ */
 
-test('auditCommits names the plain private files in exactly the commits it is given', () => {
+test('auditCommits names the plain private files in exactly the commits it is given', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     const start = git(root, ['rev-parse', 'HEAD']);

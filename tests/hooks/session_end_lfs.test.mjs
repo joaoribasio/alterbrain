@@ -4,11 +4,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   SKIP, blobAt, bytes, cleanup, git, inHead, isPointer, lfsObjectPath, logOf, makeProject, runSessionEnd, sha256, tasksOf, write,
 } from '../fixtures/scripts/lfs-helpers.mjs';
 
-test('SessionEnd stores a big file through Git LFS, uploads it, and stays silent', { skip: SKIP }, () => {
+test('SessionEnd stores a big file through Git LFS, uploads it, and stays silent', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true, framework: true });
   try {
     const mov = bytes(6000);
@@ -26,7 +27,7 @@ test('SessionEnd stores a big file through Git LFS, uploads it, and stays silent
   }
 });
 
-test('SessionEnd without Git LFS saves and uploads the rest, leaves the big file out and adds one task', { skip: SKIP }, () => {
+test('SessionEnd without Git LFS saves and uploads the rest, leaves the big file out and adds one task', release({ skip: SKIP }), () => {
   const { parent, root, bare } = makeProject({ remote: true, framework: true });
   try {
     write(root, 'vault/40_sources/raw/2026/lecture recording.mov', bytes(6000));

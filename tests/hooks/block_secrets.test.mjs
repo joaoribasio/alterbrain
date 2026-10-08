@@ -7,6 +7,7 @@ import {
   REPO, bash, decisionOf, edit, fakeSecrets, makeProject, multiEdit, notebookEdit, powershell, reasonOf, runHook, write,
 } from '../fixtures/hooks/helpers.mjs';
 import { checkCommand, entropy, findSecret, isEnvFileArg } from '../../system/hooks/block_secrets.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const secrets = fakeSecrets();
 
@@ -67,7 +68,7 @@ test('entropy is higher for random-looking strings', () => {
   assert.ok(entropy('abababababababab') < 1.1);
 });
 
-test('denies each kind of secret in a Write, without echoing it', (t) => {
+test('denies each kind of secret in a Write, without echoing it', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   for (const [name, value] of Object.entries(secrets)) {
@@ -141,7 +142,7 @@ test('a clean git commit passes, and so do other commands that merely carry text
   assert.equal(ask(p, bash(`echo ${secrets.skKey} > /dev/null`)).stdout, ''); // not a commit: out of scope
 });
 
-test('git add of .env files is denied, templates are fine', (t) => {
+test('git add of .env files is denied, templates are fine', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   for (const cmd of [
@@ -221,7 +222,7 @@ test('the framework sources and tests do not trip the secret check themselves', 
 
 const outsideDir = join(tmpdir(), 'ab-key-copies').replace(/\\/g, '/');
 
-test('a vault key file is never written into the project, whatever it contains', (t) => {
+test('a vault key file is never written into the project, whatever it contains', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   // A password-protected key copy is JSON with base64 fields: no secret pattern would catch it, the name does.
@@ -247,7 +248,7 @@ test('a vault key file is never written into the project, whatever it contains',
   assert.equal(ask(p, write(p.path('vault', 'keys-notes.md'), 'about keys')).stdout, '');
 });
 
-test('shell commands cannot write, read, copy or add a vault key file', (t) => {
+test('shell commands cannot write, read, copy or add a vault key file', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   const denied = [
@@ -274,7 +275,7 @@ test('shell commands cannot write, read, copy or add a vault key file', (t) => {
   }
 });
 
-test('git-crypt export-key is allowed only to a place outside the project, never to the screen', (t) => {
+test('git-crypt export-key is allowed only to a place outside the project, never to the screen', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   const inside = p.root.replace(/\\/g, '/');

@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { REPO, bash, makeProject, mcp, write } from '../fixtures/hooks/helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 const settings = JSON.parse(readFileSync(join(REPO, 'system', 'templates', 'claude-settings.json'), 'utf8'));
 const entries = (event) => settings.hooks[event].flatMap((group) => group.hooks.map((h) => ({ matcher: group.matcher, ...h })));
@@ -144,7 +145,7 @@ test('events, matchers and hooks match the spec', () => {
   assert.ok(new RegExp('mcp__.*').test('mcp__claude_ai_Gmail__send_message'));
 });
 
-test('the hooks run exactly as the template starts them', (t) => {
+test('the hooks run exactly as the template starts them', release(), (t) => {
   const p = makeProject();
   t.after(p.cleanup);
   const probes = {

@@ -9,6 +9,7 @@ import {
 } from '../../system/scripts/doctor.mjs';
 import { REPO, childEnv, cleanup, makeProject, write } from '../fixtures/scripts/lfs-helpers.mjs';
 import { FAKE_GIT_CRYPT, makeVaultProject, runVk } from '../fixtures/scripts/vaultkey-helpers.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 
 function doctor(root, { env = {}, args = [] } = {}) {
   const res = spawnSync(process.execPath, [join(REPO, 'system', 'scripts', 'doctor.mjs'), '--json', ...args], {
@@ -75,7 +76,7 @@ test('renderCheck prints a "Fix:" for a problem and a "Tip:" for advice on a che
 
 /* ---------------- the real check ---------------- */
 
-test('doctor: Git LFS is described as the home of files of 50 MB or more, and a missing one is a warning with one fix line', () => {
+test('doctor: Git LFS is described as the home of files of 50 MB or more, and a missing one is a warning with one fix line', release(), () => {
   const { parent, root } = makeProject();
   try {
     const here = check(doctor(root), 'git-lfs');
@@ -101,7 +102,7 @@ test('doctor: Git LFS is described as the home of files of 50 MB or more, and a 
   }
 });
 
-test('doctor: the backup size check reads the real repository, and is skipped in CI mode and without a repository', () => {
+test('doctor: the backup size check reads the real repository, and is skipped in CI mode and without a repository', release(), () => {
   const { parent, root } = makeProject();
   try {
     const size = check(doctor(root), 'repo-size');
@@ -121,7 +122,7 @@ test('doctor: the backup size check reads the real repository, and is skipped in
   }
 });
 
-test('doctor: when encryption is on, the upload check inside git is reported, with one line of advice when it is not in place', () => {
+test('doctor: when encryption is on, the upload check inside git is reported, with one line of advice when it is not in place', release(), () => {
   const { parent, root } = makeVaultProject({ enabled: true });
   try {
     const env = { ALTERBRAIN_GIT_CRYPT: FAKE_GIT_CRYPT };
@@ -141,7 +142,7 @@ test('doctor: when encryption is on, the upload check inside git is reported, wi
   }
 });
 
-test('doctor: no row about the upload check while encryption is off', () => {
+test('doctor: no row about the upload check while encryption is off', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     assert.equal(check(doctor(root), 'encryption-push-hook'), undefined);

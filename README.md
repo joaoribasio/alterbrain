@@ -255,7 +255,7 @@ node system/scripts/validate.mjs
 node system/scripts/doctor.mjs --ci
 ```
 
-  The same checks run in GitHub Actions on Windows and macOS (Node 22).
+  The same quick set runs in GitHub Actions on Windows and macOS (Node 22), and only when framework files change (`system/`, `.claude/`, `tests/`, `.github/` and a few root files). The slow tests are release tests: they are skipped unless `ALTERBRAIN_SLOW_TESTS=1`, and you run them by hand before a release (PowerShell: `$env:ALTERBRAIN_SLOW_TESTS = '1'; node --test "tests/**/*.test.mjs"`; bash: `ALTERBRAIN_SLOW_TESTS=1 node --test "tests/**/*.test.mjs"`).
 - Skills and agents follow the authoring contracts in the spec (sections 7 and 8). Every one declares `model` and `effort`.
 - A change to the shape of user data or config (a setting, a note's header, a folder, a path that people's own files point to) ships a migration or a documented fallback in the same release: see section 15a of the spec and `.claude/rules/framework-dev.md`.
 - When you port third-party content, add the attribution line from section 18 of the spec, keep the licence notice, and list it in `UPSTREAM-SYNC.md`.

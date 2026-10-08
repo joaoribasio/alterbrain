@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   makeProject, runScript, write, sha, cleanup, existsSync, join, git, gitTry,
 } from '../fixtures/ops/helpers.mjs';
@@ -37,7 +38,7 @@ const byId = (out, id) => out.checks.find((c) => c.id === id);
 
 const MACHINE_IDS = ['git-repo', 'git-lfs', 'gh', 'origin', 'quarto', 'obsidian-app', 'obsidian-config', 'claude-code', 'onboarding', 'vault', 'disk', 'git-in-progress', 'pdf-pages'];
 
-test('--ci passes on a healthy repository and skips every machine-specific check', () => {
+test('--ci passes on a healthy repository and skips every machine-specific check', release(), () => {
   const { parent, root } = healthy();
   try {
     const r = doctor(root, ['--ci']);
@@ -56,7 +57,7 @@ test('--ci passes on a healthy repository and skips every machine-specific check
   }
 });
 
-test('a changed code file fails the manifest check (and only warns in developer mode)', () => {
+test('a changed code file fails the manifest check (and only warns in developer mode)', release(), () => {
   const normal = healthy();
   const dev = healthy({ dev: true });
   try {
@@ -74,7 +75,7 @@ test('a changed code file fails the manifest check (and only warns in developer 
   }
 });
 
-test('a deleted code file fails the manifest check; CRLF line endings do not', () => {
+test('a deleted code file fails the manifest check; CRLF line endings do not', release(), () => {
   const { parent, root } = healthy();
   try {
     write(join(root, 'system', 'hooks', 'x.mjs'), HOOK.replace(/\n/g, '\r\n'));
@@ -89,7 +90,7 @@ test('a deleted code file fails the manifest check; CRLF line endings do not', (
   }
 });
 
-test('a missing manifest is a warning, not a failure', () => {
+test('a missing manifest is a warning, not a failure', release(), () => {
   const { parent, root } = healthy();
   try {
     cleanup(join(root, 'system', 'manifest.json'));
@@ -101,7 +102,7 @@ test('a missing manifest is a warning, not a failure', () => {
   }
 });
 
-test('settings: wrong model warns locally and fails in CI; broken JSON always fails', () => {
+test('settings: wrong model warns locally and fails in CI; broken JSON always fails', release(), () => {
   const { parent, root } = healthy({ model: 'opus' });
   try {
     assert.equal(byId(doctor(root).out, 'settings').status, 'warn');
@@ -117,7 +118,7 @@ test('settings: wrong model warns locally and fails in CI; broken JSON always fa
   }
 });
 
-test('validate.mjs: its problems are surfaced, success passes', () => {
+test('validate.mjs: its problems are surfaced, success passes', release(), () => {
   const { parent, root } = healthy();
   try {
     write(join(root, 'system', 'scripts', 'validate.mjs'), 'console.log(JSON.stringify({ ok: false, problems: ["skill ask: missing effort", {file: "a.md", message: "bad"}] })); process.exit(1);\n');
@@ -136,7 +137,7 @@ test('validate.mjs: its problems are surfaced, success passes', () => {
   }
 });
 
-test('.mcp.json: valid passes, invalid fails', () => {
+test('.mcp.json: valid passes, invalid fails', release(), () => {
   const { parent, root } = healthy();
   try {
     write(join(root, '.mcp.json'), JSON.stringify({ mcpServers: { fetch: { command: 'npx', args: ['-y', 'x'] }, web: { url: 'https://example.invalid/mcp' } } }));
@@ -152,7 +153,7 @@ test('.mcp.json: valid passes, invalid fails', () => {
   }
 });
 
-test('uv is only checked when a connection that needs it is configured', () => {
+test('uv is only checked when a connection that needs it is configured', release(), () => {
   const { parent, root } = healthy();
   try {
     write(join(root, '.mcp.json'), JSON.stringify({ mcpServers: { a: { command: 'npx', args: ['-y', 'x'] } } }));
@@ -165,7 +166,7 @@ test('uv is only checked when a connection that needs it is configured', () => {
   }
 });
 
-test('full mode reports every check; every non-ok check carries a one-line fix', () => {
+test('full mode reports every check; every non-ok check carries a one-line fix', release(), () => {
   const { parent, root } = healthy();
   try {
     const r = doctor(root);
@@ -185,7 +186,7 @@ test('full mode reports every check; every non-ok check carries a one-line fix',
   }
 });
 
-test('onboarding counts as fine once the essential steps are done (minimum_done)', () => {
+test('onboarding counts as fine once the essential steps are done (minimum_done)', release(), () => {
   const { parent, root } = healthy();
   try {
     write(join(root, 'state', 'onboarding.json'), JSON.stringify({ status: 'in_progress' }));
@@ -199,7 +200,7 @@ test('onboarding counts as fine once the essential steps are done (minimum_done)
   }
 });
 
-test('vault skeleton and onboarding state are understood', () => {
+test('vault skeleton and onboarding state are understood', release(), () => {
   const { parent, root } = healthy();
   try {
     for (const d of ['00_inbox', '10_projects', '20_areas', '30_wiki', '40_sources', '50_learning', '60_people', '70_journal', '80_me']) {
@@ -220,7 +221,7 @@ test('vault skeleton and onboarding state are understood', () => {
   }
 });
 
-test('obsidian settings check understands a prepared vault', () => {
+test('obsidian settings check understands a prepared vault', release(), () => {
   const { parent, root } = healthy();
   try {
     const dir = join(root, 'vault', '.obsidian');
@@ -241,7 +242,7 @@ test('obsidian settings check understands a prepared vault', () => {
   }
 });
 
-test('text output is readable and exit codes follow the contract', () => {
+test('text output is readable and exit codes follow the contract', release(), () => {
   const { parent, root } = healthy();
   try {
     const ok = runScript('doctor.mjs', ['--ci'], root);
@@ -260,7 +261,7 @@ test('text output is readable and exit codes follow the contract', () => {
   }
 });
 
-test('git-in-progress: clean repository is ok; a half-finished rebase or merge warns with the one command that clears it', () => {
+test('git-in-progress: clean repository is ok; a half-finished rebase or merge warns with the one command that clears it', release(), () => {
   const { parent, root } = healthy();
   try {
     assert.equal(byId(doctor(root).out, 'git-in-progress').status, 'ok');
@@ -280,7 +281,7 @@ test('git-in-progress: clean repository is ok; a half-finished rebase or merge w
   }
 });
 
-test('git-in-progress: a real unfinished merge is found; --ci skips the check', () => {
+test('git-in-progress: a real unfinished merge is found; --ci skips the check', release(), () => {
   const { parent, root } = healthy();
   try {
     git(root, ['checkout', '-b', 'other']);
@@ -300,7 +301,7 @@ test('git-in-progress: a real unfinished merge is found; --ci skips the check', 
   }
 });
 
-test('pdf-pages: a tip when the renderer is missing, quietly ok when present, skipped in CI', () => {
+test('pdf-pages: a tip when the renderer is missing, quietly ok when present, skipped in CI', release(), () => {
   const { parent, root } = healthy();
   try {
     const fake = join(parent, 'pdftoppm-fake');

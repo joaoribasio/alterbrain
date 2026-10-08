@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   OLD_ROOT_RULES, REPO, SKIP, TEST_LIMIT, blobAt, bytes, cleanup, exists, git, gitTry, inHead, isPointer, lfsObjectPath,
   logOf, makeProject, newRootRules, read, readText, runAuto, sha256, tasksOf, write,
@@ -23,7 +24,7 @@ test('the root .gitattributes holds no LFS rules, and marks binary documents as 
   for (const ext of ['pdf', 'docx', 'pptx', 'xlsx', 'png', 'jpg', 'mp4', 'zip']) assert.match(rules, new RegExp(`^\\*\\.${ext}\\s+binary$`, 'm'), ext);
 });
 
-test('everyday documents are saved as ordinary files, byte for byte', { skip: SKIP }, () => {
+test('everyday documents are saved as ordinary files, byte for byte', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     // A "PDF" with line endings inside, which git must never convert.
@@ -50,7 +51,7 @@ test('everyday documents are saved as ordinary files, byte for byte', { skip: SK
   }
 });
 
-test('a file at or above the limit goes through Git LFS with an exact-path rule, whatever its type', { skip: SKIP }, () => {
+test('a file at or above the limit goes through Git LFS with an exact-path rule, whatever its type', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     const mov = bytes(TEST_LIMIT + 1000);
@@ -100,7 +101,7 @@ test('a file at or above the limit goes through Git LFS with an exact-path rule,
   }
 });
 
-test('file names with spaces, brackets and non-ASCII letters are matched exactly, and only those files', { skip: SKIP }, () => {
+test('file names with spaces, brackets and non-ASCII letters are matched exactly, and only those files', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     const big = [
@@ -135,7 +136,7 @@ test('file names with spaces, brackets and non-ASCII letters are matched exactly
 
 const taskLines = (root, needle) => tasksOf(root).split('\n').filter((l) => l.includes(needle));
 
-test('a big file outside the vault is left out with one task, and is saved once it moves into the vault', { skip: SKIP }, () => {
+test('a big file outside the vault is left out with one task, and is saved once it moves into the vault', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     write(root, 'state/lecture-recording.bin', bytes(TEST_LIMIT + 500));
@@ -164,7 +165,7 @@ test('a big file outside the vault is left out with one task, and is saved once 
   }
 });
 
-test('without Git LFS a big file stays out of the save, one task says how to fix it, and a later save picks it up', { skip: SKIP }, () => {
+test('without Git LFS a big file stays out of the save, one task says how to fix it, and a later save picks it up', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     const noLfs = { env: { ALTERBRAIN_GIT_LFS: 'none' } };
@@ -198,7 +199,7 @@ test('without Git LFS a big file stays out of the save, one task says how to fix
   }
 });
 
-test('a file of 2 GB or more (here: the injected maximum) is left out with a task that names it', { skip: SKIP }, () => {
+test('a file of 2 GB or more (here: the injected maximum) is left out with a task that names it', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     write(root, 'vault/40_sources/raw/huge.mov', bytes(12_000));
@@ -219,7 +220,7 @@ test('a file of 2 GB or more (here: the injected maximum) is left out with a tas
   }
 });
 
-test('when the rule does not take effect, the file is left out instead of being saved as an ordinary copy', { skip: SKIP }, () => {
+test('when the rule does not take effect, the file is left out instead of being saved as an ordinary copy', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     // A deeper attribute file wins over vault/.gitattributes, so the LFS rule cannot apply here.
@@ -236,7 +237,7 @@ test('when the rule does not take effect, the file is left out instead of being 
   }
 });
 
-test('a copy that was staged by hand as an ordinary file is stored through Git LFS instead', { skip: SKIP }, () => {
+test('a copy that was staged by hand as an ordinary file is stored through Git LFS instead', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     const mov = bytes(TEST_LIMIT + 77);
@@ -252,7 +253,7 @@ test('a copy that was staged by hand as an ordinary file is stored through Git L
   }
 });
 
-test('the size limit comes from git.lfs_min_mb in config/brain.json when no test override is set', { skip: SKIP }, () => {
+test('the size limit comes from git.lfs_min_mb in config/brain.json when no test override is set', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject({ brain: { git: { auto_commit: true, auto_push: true, lfs_min_mb: 1 } } });
   try {
     const over = bytes(1024 * 1024 + 10);
@@ -269,7 +270,7 @@ test('the size limit comes from git.lfs_min_mb in config/brain.json when no test
   }
 });
 
-test('the default limit is 50 MB: a file well under it is an ordinary file', { skip: SKIP }, () => {
+test('the default limit is 50 MB: a file well under it is an ordinary file', release({ skip: SKIP }), () => {
   const { parent, root } = makeProject();
   try {
     write(root, 'vault/40_sources/deck.pptx', bytes(3 * 1024 * 1024));

@@ -14,6 +14,7 @@ import {
 } from '../../system/lib/vaultkey.mjs';
 import { lfsInstallCommand } from '../../system/lib/git.mjs';
 import { checkPush, parsePushLines } from '../../system/scripts/git-hooks/pre-push.mjs';
+import { release } from '../fixtures/scripts/release.mjs';
 import {
   FAKE_GIT_CRYPT, NOTES, blobAt, childEnv, cleanup, git, gitTry, makeVaultProject, read, runVk, write,
 } from '../fixtures/scripts/vaultkey-helpers.mjs';
@@ -135,7 +136,7 @@ test('the hook text runs under a POSIX shell (syntax check)', () => {
 
 /* ------------------------------ installing it ------------------------------ */
 
-test('ensurePrePushHook installs our hook, and a second call changes nothing and costs one small read', () => {
+test('ensurePrePushHook installs our hook, and a second call changes nothing and costs one small read', release(), () => {
   const { parent, root } = makeVaultProject();
   try {
     assert.equal(prePushHookStatus(root).state, 'missing');
@@ -177,7 +178,7 @@ test('ensurePrePushHook works when the hooks folder is gone, and refreshes a hoo
   }
 });
 
-test('a hook that is not ours and not the standard Git LFS one is never touched; the status says so', () => {
+test('a hook that is not ours and not the standard Git LFS one is never touched; the status says so', release(), () => {
   const { parent, root } = makeVaultProject({ enabled: true });
   try {
     mkdirSync(join(root, '.git', 'hooks'), { recursive: true });
@@ -200,7 +201,7 @@ test('a hook that is not ours and not the standard Git LFS one is never touched;
   }
 });
 
-test('when git is set to use a shared hooks folder, nothing is written there or here', () => {
+test('when git is set to use a shared hooks folder, nothing is written there or here', release(), () => {
   const { parent, root } = makeVaultProject({ enabled: true });
   try {
     const shared = join(parent, 'shared-hooks');
@@ -216,7 +217,7 @@ test('when git is set to use a shared hooks folder, nothing is written there or 
   }
 });
 
-test('an empty hook file is replaced; the status of a missing hook is a fixable problem', () => {
+test('an empty hook file is replaced; the status of a missing hook is a fixable problem', release(), () => {
   const { parent, root } = makeVaultProject({ enabled: true });
   try {
     mkdirSync(join(root, '.git', 'hooks'), { recursive: true });
@@ -247,7 +248,7 @@ test('encryption off: nothing about the hook in the status', () => {
 
 /* ------------------------------ vault-key setup, status and unlock ------------------------------ */
 
-test('setup installs the upload check; status reports it; running setup again leaves it alone', () => {
+test('setup installs the upload check; status reports it; running setup again leaves it alone', release(), () => {
   const p = encryptedProject();
   try {
     assert.equal(classifyPrePush(hookText(p.root)), 'ours');
@@ -265,7 +266,7 @@ test('setup installs the upload check; status reports it; running setup again le
   }
 });
 
-test('the first setup says it installed the check, in plain words', () => {
+test('the first setup says it installed the check, in plain words', release(), () => {
   const p = makeVaultProject({ remote: true });
   try {
     seedNotes(p.root);
@@ -278,7 +279,7 @@ test('the first setup says it installed the check, in plain words', () => {
   }
 });
 
-test('status on a computer without the hook says what to run, and setup puts it back', () => {
+test('status on a computer without the hook says what to run, and setup puts it back', release(), () => {
   const p = encryptedProject();
   try {
     rmSync(hookFile(p.root));
@@ -295,7 +296,7 @@ test('status on a computer without the hook says what to run, and setup puts it 
   }
 });
 
-test('setup still turns encryption on when another tool owns the hook, leaves that hook alone and says so', () => {
+test('setup still turns encryption on when another tool owns the hook, leaves that hook alone and says so', release(), () => {
   const p = makeVaultProject({ remote: true });
   try {
     seedNotes(p.root);
@@ -319,7 +320,7 @@ test('setup still turns encryption on when another tool owns the hook, leaves th
   }
 });
 
-test('unlock on a new computer installs the check; unlocking again refreshes it', () => {
+test('unlock on a new computer installs the check; unlocking again refreshes it', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -347,7 +348,7 @@ test('unlock on a new computer installs the check; unlocking again refreshes it'
 
 /* ------------------------------ the check itself, as git runs it ------------------------------ */
 
-test('an upload of encrypted notes and ordinary files goes through, and the online copy holds the encrypted versions', () => {
+test('an upload of encrypted notes and ordinary files goes through, and the online copy holds the encrypted versions', release(), () => {
   const p = encryptedProject();
   try {
     write(p.root, 'vault/60_people/Sam Example.md', '# Sam Example\n');
@@ -368,7 +369,7 @@ test('an upload of encrypted notes and ordinary files goes through, and the onli
   }
 });
 
-test('Obsidian Git on a computer that cannot encrypt: a private note saved as plain text is refused, nothing is sent, and one task is left', () => {
+test('Obsidian Git on a computer that cannot encrypt: a private note saved as plain text is refused, nothing is sent, and one task is left', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -402,7 +403,7 @@ test('Obsidian Git on a computer that cannot encrypt: a private note saved as pl
   }
 });
 
-test('a document saved as plain text in a private folder is refused too, and two notes are counted', () => {
+test('a document saved as plain text in a private folder is refused too, and two notes are counted', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -422,7 +423,7 @@ test('a document saved as plain text in a private folder is refused too, and two
   }
 });
 
-test('a plain note in an earlier commit still blocks a new branch, even when the last commit holds the encrypted version', () => {
+test('a plain note in an earlier commit still blocks a new branch, even when the last commit holds the encrypted version', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -446,7 +447,7 @@ test('a plain note in an earlier commit still blocks a new branch, even when the
   }
 });
 
-test('old plain notes that are already online do not block later uploads, but they do when the branch is pushed by address', () => {
+test('old plain notes that are already online do not block later uploads, but they do when the branch is pushed by address', release(), () => {
   const p = encryptedProject(); // the plain notes were pushed before encryption was turned on
   try {
     git(p.root, ['add', '-A']);
@@ -473,7 +474,7 @@ test('old plain notes that are already online do not block later uploads, but th
 
 /* ------------------------------ merges ------------------------------ */
 
-test('a plain note that a phone already put online does not block the upload after Obsidian Git merges it in', () => {
+test('a plain note that a phone already put online does not block the upload after Obsidian Git merges it in', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['config', 'pull.rebase', 'false']); // Obsidian Git's default pull is a merge
@@ -506,7 +507,7 @@ test('a plain note that a phone already put online does not block the upload aft
   }
 });
 
-test('a plain note of the computer\'s own is still refused when a merge sits on top of it', () => {
+test('a plain note of the computer\'s own is still refused when a merge sits on top of it', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['config', 'pull.rebase', 'false']);
@@ -536,7 +537,7 @@ test('a plain note of the computer\'s own is still refused when a merge sits on 
   }
 });
 
-test('a plain private note that only the merge commit itself holds (a conflict settled by hand) is refused', () => {
+test('a plain private note that only the merge commit itself holds (a conflict settled by hand) is refused', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -565,7 +566,7 @@ test('a plain private note that only the merge commit itself holds (a conflict s
   }
 });
 
-test('deleting an online branch and pushing several branches at once', () => {
+test('deleting an online branch and pushing several branches at once', release(), () => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -593,7 +594,7 @@ test('deleting an online branch and pushing several branches at once', () => {
   }
 });
 
-test('encryption off: the hook lets everything through', () => {
+test('encryption off: the hook lets everything through', release(), () => {
   const p = makeVaultProject({ remote: true });
   try {
     assert.equal(ensurePrePushHook(p.root).state, 'active');
@@ -608,7 +609,7 @@ test('encryption off: the hook lets everything through', () => {
   }
 });
 
-test('it fails closed: when the check cannot run, nothing is sent while encryption is on, and it stays out of the way when it is off', () => {
+test('it fails closed: when the check cannot run, nothing is sent while encryption is on, and it stays out of the way when it is off', release(), () => {
   const p = encryptedProject();
   const off = makeVaultProject({ remote: true });
   try {
@@ -634,7 +635,7 @@ test('it fails closed: when the check cannot run, nothing is sent while encrypti
   }
 });
 
-test('the check finds node itself when the hook\'s PATH does not list it (a desktop app started from a menu)', (t) => {
+test('the check finds node itself when the hook\'s PATH does not list it (a desktop app started from a menu)', release(), (t) => {
   const p = encryptedProject();
   try {
     git(p.root, ['add', '-A']);
@@ -682,7 +683,7 @@ const lfsObjectsOnline = (bare) => {
   return out.sort();
 };
 
-test('Git LFS: our hook replaces the standard LFS hook, runs its upload step with the same input, and big files still reach the online copy', { skip: !hasLfs && 'Git LFS is not installed' }, () => {
+test('Git LFS: our hook replaces the standard LFS hook, runs its upload step with the same input, and big files still reach the online copy', release({ skip: !hasLfs && 'Git LFS is not installed' }), () => {
   const p = makeVaultProject({ remote: true });
   try {
     // The project as the installer leaves it: Git LFS installed in the folder, one big-file rule
@@ -728,7 +729,7 @@ test('Git LFS: our hook replaces the standard LFS hook, runs its upload step wit
   }
 });
 
-test('Git LFS step is given exactly the lines git gave the hook, and its failure stops the upload', (t) => {
+test('Git LFS step is given exactly the lines git gave the hook, and its failure stops the upload', release(), (t) => {
   const p = makeVaultProject({ remote: true });
   try {
     // A stand-in for git-lfs earlier on PATH than the real one: it records what it was given
@@ -902,7 +903,7 @@ function runHookWithout(p, shell) {
 
 const LFS_RULE = '"vault/30_wiki/big scan.pdf" filter=lfs diff=lfs merge=lfs -text\n'; // the shape of the rules Alterbrain adds
 
-test('Git LFS cannot be found: a folder that keeps big files in LFS is not uploaded, as with the standard LFS hook', (t) => {
+test('Git LFS cannot be found: a folder that keeps big files in LFS is not uploaded, as with the standard LFS hook', release(), (t) => {
   const p = makeVaultProject({ remote: true });
   try {
     const shell = shellFor(t, p.parent);
@@ -929,7 +930,7 @@ test('Git LFS cannot be found: a folder that keeps big files in LFS is not uploa
   }
 });
 
-test('Git LFS cannot be found: LFS set up in this folder\'s own settings is enough to refuse', (t) => {
+test('Git LFS cannot be found: LFS set up in this folder\'s own settings is enough to refuse', release(), (t) => {
   const p = makeVaultProject({ remote: true });
   try {
     const shell = shellFor(t, p.parent);
@@ -942,7 +943,7 @@ test('Git LFS cannot be found: LFS set up in this folder\'s own settings is enou
   }
 });
 
-test('Git LFS cannot be found: a folder that does not use LFS uploads as before, even with LFS mentioned in a comment', (t) => {
+test('Git LFS cannot be found: a folder that does not use LFS uploads as before, even with LFS mentioned in a comment', release(), (t) => {
   const p = makeVaultProject({ remote: true });
   try {
     const shell = shellFor(t, p.parent);
