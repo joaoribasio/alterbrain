@@ -9,16 +9,16 @@ status: "active"
 
 ## Profile
 - **Name:** <!-- e.g. Alex Doe -->
-- **Studying:** <!-- programme, school, intake year -->
+- **Learning or working on:** <!-- programme and school, courses and provider, or role and focus -->
 - **Based in:** <!-- city, timezone -->
 - **Languages:** <!-- e.g. English (fluent), Dutch (basic) -->
 - **Background:** <!-- one line: previous roles or field -->
 
 ## Goals this year
-<!-- 2-4 lines, e.g. "Land a strategy internship in the Netherlands by March" -->
+<!-- 2-4 lines, e.g. "Finish my certification by March" -->
 
 ## Current focus
-<!-- courses or projects that matter right now; refresh in /weekly-review -->
+<!-- courses, projects or focus areas that matter right now; refresh in /weekly-review -->
 
 ## How to work with me
 <!-- e.g. "- Prefer short bullet summaries over long paragraphs. (since 2026-10-07)" -->

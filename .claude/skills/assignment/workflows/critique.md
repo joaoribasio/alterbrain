@@ -14,21 +14,21 @@ Models: each reviewer runs as the `lens` agent at the model in its brief (devil'
 ## 2. Choose the panel
 
 1. **Fan-out cap.** Read `plan_tier` from `config/brain.json` (`pro` if missing). The cap is in `system/catalogue/routing.json` under `caps` (Pro 3, Max 8). Never run more reviewers at once than the cap.
-2. **The two panels.**
-   - **Full panel:** every lens in `lenses` in `assignment.md` (by default devil's advocate, premortem, board, specialists, grader).
+2. **The two panels.** The core of both is the devil's advocate, the premortem and the grader. The specialists' seats are inferred from the subject (step 3).
+   - **Full panel:** every lens in `lenses` in `assignment.md` (by default devil's advocate, premortem, board, specialists, grader). The board has neutral seats; for a business subject with `mba` in `packs` (`config/brain.json`) it takes the presets in `system/packs/mba/critique-presets.md`.
    - **Lite panel:** devil's advocate, premortem and grader.
 3. **Recommended default.**
    - On **Max**: the full panel on round 1 and on the final round; the lite panel on the rounds in between.
    - On **Pro**: the lite panel on every round. It fits the cap in one go and saves usage. Offer the full panel as an option; it then runs in two waves.
    - Call a round "final" when the user says so, when the last critique met the stop rule, or when the deadline is three days away or less.
-4. Ask with AskUserQuestion: "Which reviewers should read it this round?" Options, the recommended one first and marked "(recommended)": "Full panel (5 reviewers)", "Lite panel (devil's advocate, premortem, grader)", "Let me pick". For "Let me pick", list the five lenses with one line each and let the user choose. Warn in one line if they leave out the grader: the stop rule needs its grade.
+4. Ask with AskUserQuestion: "Which reviewers should read it this round?" Options, the recommended one first and marked "(recommended)", each with a one-line pro and con (for example "Lite: three reviewers, fits your usage, no specialist check of the numbers" and "Full: all five, finds technical errors, uses more of your plan"): "Full panel (5 reviewers)", "Lite panel (devil's advocate, premortem, grader)", "Let me pick". For "Let me pick", list the five lenses with one line each and let the user choose. Warn in one line if they leave out the grader: the stop rule needs its grade.
 
 ## 3. Seats
 
 Only for the lenses in this round's panel.
 
-- **Specialists.** Propose three to five seats from the questions and the case (for example "valuation", "negotiation and game theory", "competition law", "retail industry economics", "a corporate-finance academic"). If an earlier round card exists, propose the same seats. Ask the user to confirm or change them (AskUserQuestion with "Use these seats (recommended)", "Change them").
-- **Board.** Keep the six default seats in `system/packs/mba/lenses/board.md`. Rename seat 2 (the decision maker) and seat 3 (the practitioner) to fit the case, for example "the acquirer's CEO" and "a deal lawyer". Infer these from the case. Do not ask; state them in one line.
+- **Specialists.** Propose three to five seats inferred from the questions and the subject: the main method of the field, the rules or standards that apply, a domain expert, an academic in the field (for a management report, say, "stakeholder analysis" and "change management"; for a statistics essay, "inference" and "study design"). When `packs` lists `mba` and the subject is business, draw on the examples in `system/packs/mba/critique-presets.md`. If an earlier round card exists, propose the same seats. Ask the user to confirm or change them (AskUserQuestion with "Use these seats (recommended)": "Fits the questions; you can still change one." / "Change them": "Costs one more question.").
+- **Board.** Keep the six default seats in `.claude/skills/assignment/references/lenses/board.md`. Rename seat 2 (the intended reader or decision maker) and seat 3 (the practitioner) to fit the assignment, for example "the programme director" and "a clinical lead", or for a business subject with the MBA pack on, names from `system/packs/mba/critique-presets.md` such as "the acquirer's CEO" and "a deal lawyer". Infer these from the questions and the case, if there is one. Do not ask; state them in one line.
 
 ## 4. Write the round card
 
@@ -42,7 +42,7 @@ status: "open"
 assignment: "[[10_projects/<folder>/assignment]]"
 round: <n>
 panel: ["devils-advocate", "premortem", "grader"]
-case_date: "<YYYY-MM-DD or none>"
+case_date: "<YYYY-MM-DD, or none when the assignment is not a case>"
 ---
 # Round <n>
 
@@ -53,17 +53,17 @@ case_date: "<YYYY-MM-DD or none>"
 - Rendered report: <abs path>/report.pdf (if it exists)
 - Decisions: <abs path>/decisions.md
 - Course note: <abs path>
-- Case text: <abs path>
+- Case text: <abs path, only if the assignment is a case>
 - Course material: <abs paths, one per line>
 - Workbook or data: <abs paths, if any>
 - Voice profile: <abs path to vault/80_me/voice/<lang>/profile.md, if it exists>
 
 ## Board seats
-1. The course lecturer
-2. <decision maker for this case>
-3. <practitioner for this case>
-4. <technical expert>
-5. Academic referee
+1. The assessor
+2. <intended reader or decision maker for this assignment>
+3. <practitioner for this assignment>
+4. <subject expert>
+5. Referee
 6. Editor
 
 ## Specialist seats
@@ -76,11 +76,11 @@ case_date: "<YYYY-MM-DD or none>"
 
 For each lens in the panel:
 
-1. Read the front matter of `system/packs/mba/lenses/<lens>.md` for its `model`.
+1. Read the front matter of `.claude/skills/assignment/references/lenses/<lens>.md` for its `model`.
 2. Launch the `lens` agent (`.claude/agents/lens.md`) with that model and exactly this prompt, nothing else:
 
    ```
-   lens_brief: <abs path to system/packs/mba/lenses/<lens>.md>
+   lens_brief: <abs path to .claude/skills/assignment/references/lenses/<lens>.md>
    target: <abs path to report.qmd>
    context: <abs path to reviews/<round>/_round.md> (the round card lists every other file to read)
    round: <n>
@@ -110,7 +110,7 @@ Do not read the reviews closely yourself and do not summarise them for the user 
 Launch a general-purpose subagent with `model: "opus"` and this prompt:
 
 ```
-Consolidation brief: <abs path to system/packs/mba/lenses/consolidation.md>
+Consolidation brief: <abs path to .claude/skills/assignment/references/lenses/consolidation.md>
 Round card: <abs path to reviews/<round>/_round.md>
 Write exactly one file: <abs path to critique-<round>.md>. Do not edit any other file.
 Read both files, then do exactly what the brief says.
@@ -138,7 +138,7 @@ Then read `critique-<round>.md` and check that its front matter has `round`, `pa
 
 ## 8. The stop rule
 
-Read `stop_rule` from `assignment.md` (default: `target_grade: 9`, `plateau_rounds: 2`) and `grade_mid` from every `critique-*.md`.
+Read `stop_rule` from `assignment.md` (`target_grade` on the 10-point scale, `plateau_rounds`; if the file has no `target_grade`, use 9, and if it has no `plateau_rounds`, use 2) and `grade_mid` from every `critique-*.md`.
 
 - **Plateau:** there are at least `plateau_rounds` rounds, the grader's `grade_mid` moved by no more than 0.25 across the last `plateau_rounds` of them, and the thesis fits one line.
 - **Plateau at or above the target:** recommend stopping. On a yes, set `status: "final"` in `assignment.md`. Next step: `/assignment ship`.

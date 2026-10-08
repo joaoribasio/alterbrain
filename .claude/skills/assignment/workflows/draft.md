@@ -14,7 +14,7 @@ Model: the main session (sonnet, medium). Read `.claude/skills/assignment/refere
 The report template lives in `system/quarto/templates/report/` (maintained by the Quarto part of the framework).
 
 1. Copy `_extensions/`, `references.bib` and the starter `report.qmd` into the assignment folder. If the template folder has a README, follow it. Do not overwrite files that already exist in the folder.
-2. Fill the starter's front matter: `title` from `assignment.md`, `subtitle` (for example "Case analysis"), `course`, `programme` (from `config/brain.json`), and `author` with the team names from `team`, or the user's name for individual work. Keep `date: today`. Never add student numbers unless the user asks for them.
+2. Fill the starter's front matter: `title` from `assignment.md`, `subtitle` (for example "Case analysis" or "Report"), `course` (the course note's title), `programme` and `author` with the team names from `team`, or the user's name for individual work. `programme` is the name of the programme note the course links with `programme: "[[...]]"`, or the course's `provider` for a standalone course. Delete the `course` line when the assignment has no course, and the `programme` line when there is neither a programme nor a provider: the template simply leaves them off the cover. Keep `date: today`. Never add student numbers unless the user asks for them.
 3. Set the page rules under `format:` from `limits` in `assignment.md`: `fontsize`, `line-spacing` and, only if the course sets them, the margins. The `brand: _brand.yml` line is handled by the `render` skill.
 4. Replace the starter's example text (it is a demo) with the outline in section 4. Keep its conventions: sections start at `##`, the summary sits in a `::: {.box}` block, `{-}` leaves a heading unnumbered, `\$` prints a dollar sign, tables and figures carry labels such as `{#tbl-options}` and an italic source note.
 5. If the course needs a format the template does not cover (for example Word), note it for `ship`. The `render` skill handles the output formats.
@@ -60,7 +60,7 @@ Work out how much space each part gets, before writing a word.
    - every number in the summary matches the body word for word;
    - every number names its base (whose, which unit, which year);
    - the thesis fits one line;
-   - no fact is later than the case date.
+   - no fact is later than the case date (when the assignment has one).
 2. **Length.** Run the `render` skill on `report.qmd` to get a draft PDF and its page count. If Quarto is not set up yet, estimate from the word count and say so. If the draft is over the limit, do not cut on your own: show where it runs long against the page plan and ask what to cut.
 3. Set `status: "draft"` in `assignment.md` and add a log line.
 4. Tell the user: pages used against the limit, the open labels, and the next step: "Next: `/assignment critique`. A panel of blind reviewers will read it and I will bring you one consolidated critique."

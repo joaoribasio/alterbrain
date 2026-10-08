@@ -12,10 +12,10 @@ Real messages you wrote, chosen because they sound like you at your best. The `g
 
 **Rules for samples**
 - Your own words only, unedited. Never an AI-written text, even one you approved.
-- Replace other people's names, emails and phone numbers with roles: `[Professor]`, `[Recruiter]`, `[Peer]`.
+- Replace other people's names, emails and phone numbers with roles or `[Name]`: `[Colleague]`, `[Recruiter]`, `[Peer]`.
 - Remove anything private you would not want copied into a new draft.
 - Aim for 3-5 per channel and recipient class; 30 in total is plenty. Swap out weak ones rather than adding more.
-- Same classes as `profile.md` (the seven in `system/packs/twin/drafting.md`): `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`.
+- Same classes as `profile.md` (defined in `system/packs/twin/drafting.md` §3; use only the ones you write to): `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`.
 
 ## Format
 
@@ -23,10 +23,10 @@ Each sample is one block like this. The heading format is fixed: `## E<two digit
 
 ~~~markdown
 ## E01 · email · faculty
-<!-- 2026-09 · gmail-sent · 52 words -->
-Dear [Professor],
+<!-- 2026-09 · gmail-sent · 39 words -->
+Dear [Name],
 
-Thank you for the session on Tuesday. Could I ask for a two-day extension on the strategy memo? Our team lost a member this week and we want to hand in work we're proud of.
+Thank you for the session on Tuesday. Could I ask for a two-day extension on the report? Our team lost a member this week and we want to hand in work we're proud of.
 
 Kind regards,
 Alex

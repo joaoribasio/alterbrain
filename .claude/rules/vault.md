@@ -11,7 +11,7 @@ paths:
 - **Notes:** human-readable Title Case names (`Porter Five Forces.md`). **Folders:** kebab-case (`strategy-101`).
 - Never create two names that differ only by case. Search before creating; update the existing note instead of making a duplicate.
 - Dated notes start with the date: `2026-10-08 Reply to Prof Smith.md`.
-- Use templates in `system/templates/notes/` when one exists for the note type. Exceptions: `assignment` and `case` notes start from `system/packs/mba/templates/` (the one template for each; the files in `notes/` only point there).
+- Use templates in `system/templates/notes/` when one exists for the note type. Exception: case notes start from `system/packs/mba/templates/case.md` (the stub in `notes/` points there).
 
 ## Frontmatter
 Every note starts with YAML frontmatter holding at least `type`, `created` (YYYY-MM-DD) and `status`. Strings are double-quoted. Keep it flat (no nested maps unless the type requires it).
@@ -22,9 +22,11 @@ Every note starts with YAML frontmatter holding at least `type`, `created` (YYYY
 | `concept` | `30_wiki/concepts/` | `sources: []` |
 | `framework` | `30_wiki/frameworks/` | `family`, `when_to_use`, `sources: []` |
 | `company` | `30_wiki/companies/` | `sources: []` |
-| `course` | `20_areas/courses/<slug>/course.md` | `code`, `term`, `school`, `ai_policy`, `ai_policy_quote`, `session_dates`, `class_days`, `term_start`, `term_end`, `class_days_asked` (class dates for the "New material?" reminder in the session digest; may be empty) |
+| `programme` | `20_areas/programmes/<Programme name>.md` | `provider`, `level`, `start`, `end`, `ai_policy`, `ai_policy_quote`, `grading_scale` (programme-wide facts; optional) |
+| `course` | `20_areas/courses/<slug>/course.md` | `code`, `term`, `programme` (a link to the programme note, `"[[MBA – RSM]]"`) or `provider` (a standalone course), both optional and replacing the old `school` (kept only as a fallback display name); `ai_policy` (`allowed`, `allowed-with-disclosure`, `restricted`, `banned`, `unknown`, `none-stated`), `ai_policy_quote`, `session_dates`, `class_days`, `term_start`, `term_end`, `class_days_asked` (class dates for the "New material?" reminder in the session digest; may be empty) |
 | `case` | `courses/<slug>/cases/` | `course`, `question`, `case_type`, `case_date` (the date the case is set; SPEC §13) |
-| `assignment` | `10_projects/<YYYY> <course> <slug>/assignment.md` | SPEC §13 |
+| `assignment` | `10_projects/<YYYY> <course-slug> <slug>/assignment.md`, or `<YYYY> <slug>/` without a course | SPEC §13 |
+| `project` | `10_projects/<YYYY> <project-slug>/project.md` | `due`, `area`; `status` is `active`, `done` or `dropped` (a professional's own project, from `system/templates/notes/project.md`) |
 | `application` | `20_areas/career/applications/` | `company`, `role`, `stage`, `source_url`, `deadline` |
 | `draft` | `00_inbox/outbox/` | `channel`, `to`, `lang`, `status`, `facts_used: []`; ghostwriter adds `recipient_class`, `facts_ok`, `facts_flagged`, `slop_check`, `voice` and, for email, `subject`, `in_reply_to`, `thread_id`, `gmail_draft_id` (SPEC and `system/packs/twin/drafting.md` §9) |
 | `proposal` | `00_inbox/proposals/` | SPEC §11 |
@@ -56,7 +58,7 @@ Always take dates from the session digest ("Today is …") or from `node system/
 
 ## Sources
 - `40_sources/raw/` is immutable. Never edit, move, rename or delete anything there.
-- New material goes in through `/ingest` (`node system/scripts/ingest.mjs <file, folder or zip> [--origin "<text>"] [--course "<Course title>"]`), which copies it raw, extracts text and logs it in `manifest.jsonl`. A zip is opened and its files are copied one by one (the zip itself is not stored). Then write one source note per new file and update `30_wiki/index.md` and `30_wiki/log.md`. For a folder or zip of course material follow `.claude/skills/ingest/references/course-material.md`. For a whole course (course note, AI rule, deadlines, the Material list) follow `system/packs/mba/course-setup.md`. There is no connection to any learning platform: the user downloads the files.
+- New material goes in through `/ingest` (`node system/scripts/ingest.mjs <file, folder or zip> [--origin "<text>"] [--course "<Course title>"]`), which copies it raw, extracts text and logs it in `manifest.jsonl`. A zip is opened and its files are copied one by one (the zip itself is not stored). Then write one source note per new file and update `30_wiki/index.md` and `30_wiki/log.md`. For a folder or zip of course material follow `.claude/skills/ingest/references/course-material.md`. For a whole course (course note, AI rule, deadlines, the Material list) follow `.claude/skills/course/references/course-setup.md`. There is no connection to any learning platform: the user downloads the files.
 - A source over 100 MB is kept in `40_sources/raw/_local/`, on this computer only; ingest does that, never you.
 
 ## Git rules inside the vault
@@ -69,6 +71,7 @@ Always take dates from the session digest ("Today is …") or from `node system/
 - Tick (`- [x]`) tasks you complete. Never delete the user's tasks.
 
 ## Special notes
+- **Programmes** (`20_areas/programmes/`): programme notes hold programme-wide facts once; a course note repeats only what differs. Courses link to their programme with the `programme` property.
 - **People** (`60_people/`): business facts by default (role, organisation, how you met, topics). Every fact has a source and date. Respect `dnc: true` (do not contact). Another person's sensitive details (health, family, beliefs, politics, home address) are stored only if the user explicitly asks, go under a `## Private` heading, and never go into outbound text.
 - **Decisions** (`70_journal/decisions/`): write the options and evidence; never fill in the Decision field yourself.
 - **Drafts** (`00_inbox/outbox/`): `status` is `draft` until the user approves. Never mark a draft `sent` unless it really was sent.

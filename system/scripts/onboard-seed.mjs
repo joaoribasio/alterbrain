@@ -5,12 +5,17 @@
 //   node system/scripts/onboard-seed.mjs [--dry-run] [--json]
 //
 // Copies (only when the target file is missing):
-//   system/templates/vault/**          -> vault/
-//   system/templates/config/*.json     -> config/
-//   system/templates/identity/*        -> vault/80_me/
-//   system/packs/mba/frameworks/*.md   -> vault/30_wiki/frameworks/
-//   .env.example                       -> .env.local (empty template for keys, so the user only
-//                                         edits a file that already exists with the right name)
+//   system/templates/vault/**               -> vault/
+//   system/templates/config/*.json          -> config/
+//   system/templates/identity/*             -> vault/80_me/
+//   system/packs/<id>/frameworks/*.md       -> vault/30_wiki/frameworks/   for every pack id in
+//                                              config/brain.json "packs" except "core" (a pack
+//                                              without a frameworks folder adds nothing)
+//   .env.example                            -> .env.local (empty template for keys, so the user only
+//                                              edits a file that already exists with the right name)
+// Pack ids must look like folder names (lower-case letters, digits, hyphens); anything else is
+// ignored. A listed pack whose folder is missing is reported. If config/brain.json cannot be read,
+// only the core files are seeded and the output says so.
 // In copied .md and .base files, {{date}} becomes today's date and {{title}}
 // becomes the file name without its extension; an empty `created: ""` gets today.
 //
@@ -20,18 +25,51 @@ import { existsSync, readdirSync, readFileSync, statSync, copyFileSync, mkdirSyn
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { projectRoot, isMainModule } from '../lib/paths.mjs';
-import { today, writeText } from '../lib/fsx.mjs';
+import { today, writeText, readJsonChecked } from '../lib/fsx.mjs';
 
 const TEXT_EXT = new Set(['.md', '.base']);
 const JUNK = new Set(['.DS_Store', 'Thumbs.db', 'desktop.ini']);
 
-/** The four copy jobs, relative to the project root. */
+/** The fixed copy jobs, relative to the project root. The pack jobs come after them (see seed). */
 export const JOBS = [
   { label: 'vault skeleton', from: ['system', 'templates', 'vault'], to: ['vault'], recursive: true },
   { label: 'settings', from: ['system', 'templates', 'config'], to: ['config'], recursive: false, ext: ['.json'] },
   { label: 'identity files', from: ['system', 'templates', 'identity'], to: ['vault', '80_me'], recursive: false },
-  { label: 'MBA frameworks', from: ['system', 'packs', 'mba', 'frameworks'], to: ['vault', '30_wiki', 'frameworks'], recursive: false, ext: ['.md'] },
 ];
+
+/** A pack id is a folder name under system/packs/. */
+export const PACK_ID = /^[a-z0-9-]+$/;
+
+function isDir(p) {
+  try {
+    return statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Pack ids to seed: the "packs" array in config/brain.json, without "core" (always on, nothing to copy),
+ * without names that are not valid folder names, and without repeats. A missing config file falls back
+ * to the template (so a dry run reports what a real run would do). A file that exists but cannot be read,
+ * or has no packs array, gives core only. `unreadable` is true in the first case, so the caller can say so.
+ */
+export function packsFromConfig(root) {
+  let checked = readJsonChecked(join(root, 'config', 'brain.json'));
+  if (!checked.exists) checked = readJsonChecked(join(root, 'system', 'templates', 'config', 'brain.json'));
+  if (checked.exists && !checked.ok) return { ids: [], unreadable: true };
+  const list = Array.isArray(checked.value?.packs) ? checked.value.packs : [];
+  return { ids: cleanPackIds(list), unreadable: false };
+}
+
+/** Valid, distinct pack ids other than "core", in the order given. */
+export function cleanPackIds(list) {
+  const out = [];
+  for (const id of list) {
+    if (typeof id === 'string' && PACK_ID.test(id) && id !== 'core' && !out.includes(id)) out.push(id);
+  }
+  return out;
+}
 
 function listFiles(dir, recursive) {
   const out = [];
@@ -57,19 +95,17 @@ export function fillPlaceholders(text, file, date) {
 }
 
 /**
- * Run all copy jobs. Returns { created: [], kept: [], missingSources: [] }
- * with project-relative forward-slash paths.
+ * Run all copy jobs. Returns { created: [], kept: [], missingSources: [], notes: [] }
+ * with project-relative forward-slash paths. `packs` (an array of ids) overrides what
+ * config/brain.json says; it is meant for tests.
  */
-export function seed({ root = projectRoot(), dryRun = false, date = today() } = {}) {
+export function seed({ root = projectRoot(), dryRun = false, date = today(), packs } = {}) {
   const rel = (p) => relative(root, p).split(sep).join('/');
-  const result = { created: [], kept: [], missingSources: [] };
-  for (const job of JOBS) {
+  const result = { created: [], kept: [], missingSources: [], notes: [] };
+
+  function runJob(job) {
     const src = join(root, ...job.from);
     const dst = join(root, ...job.to);
-    if (!existsSync(src)) {
-      result.missingSources.push(job.from.join('/'));
-      continue;
-    }
     for (const file of listFiles(src, job.recursive)) {
       if (job.ext && !job.ext.includes(extname(file).toLowerCase())) continue;
       const target = join(dst, relative(src, file));
@@ -88,6 +124,35 @@ export function seed({ root = projectRoot(), dryRun = false, date = today() } = 
       result.created.push(rel(target));
     }
   }
+
+  for (const job of JOBS) {
+    if (!existsSync(join(root, ...job.from))) {
+      result.missingSources.push(job.from.join('/'));
+      continue;
+    }
+    runJob(job);
+  }
+
+  // The packs the user switched on. The settings job above has put config/brain.json in place by now.
+  let ids;
+  if (Array.isArray(packs)) {
+    ids = cleanPackIds(packs);
+  } else {
+    const found = packsFromConfig(root);
+    ids = found.ids;
+    if (found.unreadable) result.notes.push('config/brain.json could not be read, so I set up the core files only. Run /health-check.');
+  }
+  for (const id of ids) {
+    const packDir = join(root, 'system', 'packs', id);
+    if (!isDir(packDir)) {
+      result.missingSources.push(`system/packs/${id}`);
+      continue;
+    }
+    if (isDir(join(packDir, 'frameworks'))) {
+      runJob({ from: ['system', 'packs', id, 'frameworks'], to: ['vault', '30_wiki', 'frameworks'], recursive: false, ext: ['.md'] });
+    }
+  }
+
   // The keys file: created once from the template, never overwritten.
   const example = join(root, '.env.example');
   const envLocal = join(root, '.env.local');
@@ -116,7 +181,13 @@ function main(argv) {
   } else {
     const verb = dryRun ? 'Would create' : 'Created';
     console.log(`${verb} ${res.created.length} starter files. Kept ${res.kept.length} files you already had (nothing was overwritten).`);
-    for (const m of res.missingSources) console.log(`Missing framework folder: ${m}. Run /health-check, or /update-alterbrain to restore it.`);
+    for (const n of res.notes) console.log(n);
+    for (const m of res.missingSources) {
+      const pack = /^system\/packs\/([^/]+)$/.exec(m);
+      console.log(pack
+        ? `Missing pack folder: ${pack[1]}. Run /health-check, or /update-alterbrain to restore it.`
+        : `Missing starter folder: ${m}. Run /health-check, or /update-alterbrain to restore it.`);
+    }
   }
   return res.missingSources.length ? 1 : 0;
 }

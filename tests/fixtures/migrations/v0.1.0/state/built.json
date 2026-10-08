@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "items": [
+    {
+      "name": "my-canvas-sync",
+      "kind": "blueprint",
+      "blueprint": "canvas-sync",
+      "paths": [".claude/skills/my-canvas-sync/"],
+      "mcp": ["canvas-mcp"],
+      "channels": [],
+      "proposal": null,
+      "model": "sonnet",
+      "effort": "medium",
+      "built": "2026-10-01T10:00:00.000Z",
+      "note": ""
+    }
+  ]
+}

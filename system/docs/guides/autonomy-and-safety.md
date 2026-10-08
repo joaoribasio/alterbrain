@@ -11,9 +11,9 @@ You decide how much Alterbrain does on its own. The starting point is the safest
 
 | Level | What happens | Example |
 |---|---|---|
-| **Draft** (default) | Alterbrain writes the email, letter or post and puts it in your outbox (or as a Gmail draft). You send it. | A reply to your professor waits in Gmail drafts, with a task to review it. |
+| **Draft** (default) | Alterbrain writes the email, letter or post and puts it in your outbox (or as a Gmail draft). You send it. | A reply to your tutor or manager waits in Gmail drafts, with a task to review it. |
 | **Approve** (needs an add-on) | Alterbrain prepares it and asks "send now?" every time. Nothing goes without your click. | It shows the final email and you press allow. |
-| **Auto** (needs an add-on) | Alterbrain sends by itself, within limits you set (for example 5 a day, only to your school). | Confirming study-group times. |
+| **Auto** (needs an add-on) | Alterbrain sends by itself, within limits you set (for example 5 a day, only to people you name). | Confirming study-group times. |
 
 You can set a level per channel: email, calendar, jobs, LinkedIn, social media, chat apps and web forms. Everything starts as **Draft**, and Draft is the only level that works without extra setup. **Approve** and **Auto** only work after you build the add-on for that channel (for email: say "build Gmail send with approval"). The add-on checks the exact text with you and, for Auto, adds limits and a log. Most people never need Auto.
 
@@ -45,11 +45,13 @@ For LinkedIn the standard limits per day are: 15 connection requests (and 60 a w
 
 ## Coursework and AI rules
 
-Each course note records the course's AI policy, copied from the syllabus:
+Each course note records the course's AI rule, copied from the syllabus. A rule that holds for a whole programme or school (for example in an MBA handbook) is written once in the programme note and copied into each course when you set it up. If a course has its own rule, that one wins. A standalone course, such as one from Coursera, has the rule of its provider, if it states one.
 - **Allowed with disclosure:** Alterbrain drafts a short note saying how you used AI, for you to include.
 - **Restricted, banned or unknown:** it warns you once per assignment and asks whether to continue. Your answer is kept only on your computer, not in your backup.
+- **Allowed, or none stated:** it says nothing. "None stated" means Alterbrain found no rule in the files it read (and in the provider's terms only if you gave it those). It does not mean the provider was checked, so read their terms yourself if it matters.
+- **No course** (for example a report for work): there is no course rule to check.
 
-You are responsible for following your school's rules. When in doubt, ask your lecturer.
+You are responsible for following the rules that apply to you: your school's, your programme's and your course provider's. When in doubt, ask your assessor or provider.
 
 ## Building new skills safely
 

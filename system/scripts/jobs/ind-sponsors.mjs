@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // IND register of recognised sponsors (erkende referenten) - download, cache, look up.
-// Also reads the salary threshold table from the pack doc (never hard-coded here).
+// Also reads the salary threshold table from the Netherlands country pack, system/packs/country-nl/salary-thresholds.md (never hard-coded here).
+// This script is part of the country-nl pack but stays in system/scripts/jobs/, so permissions and self-built copies keep working.
 //
 //   node system/scripts/jobs/ind-sponsors.mjs lookup --company "Example Netherlands B.V." [--json] [--no-update]
 //   node system/scripts/jobs/ind-sponsors.mjs update [--force] [--json]
@@ -23,7 +24,12 @@ export const REGISTER_URL = 'https://ind.nl/en/public-register-recognised-sponso
 export const MAX_AGE_DAYS = 7;
 export const MIN_EXPECTED_ROWS = 1000; // the real register has ~13,000; fewer means the page is broken
 const USER_AGENT = 'Alterbrain/0.1 (personal job-search helper; weekly download of a public register)';
-export const THRESHOLD_DOC = () => rootPath('system', 'packs', 'mba', 'jobs-nl', 'salary-thresholds.md');
+export const THRESHOLD_DOC = () => rootPath('system', 'packs', 'country-nl', 'salary-thresholds.md');
+// Release 0.2.0 moved the table here from system/packs/mba/jobs-nl/. An update archives an old copy the person never edited
+// and leaves an edited one in place, where nothing reads it. The thresholds report names it so the edit is not lost silently.
+// Expand, then contract: remove this notice (and OLD_THRESHOLD_DOC) two releases after 0.2.0, together with a migration that
+// archives what is left.
+export const OLD_THRESHOLD_DOC = () => rootPath('system', 'packs', 'mba', 'jobs-nl', 'salary-thresholds.md');
 export const cacheDirDefault = () => rootPath('state', 'local', 'cache');
 
 // ---------- parsing the register ----------
@@ -205,7 +211,7 @@ export function lookup(entries, company, { limit = 10 } = {}) {
   return { status: close.length ? 'possible' : 'not_found', query: company, normalised: qNorm, matches: close.slice(0, limit) };
 }
 
-// ---------- salary thresholds (read from the pack doc) ----------
+// ---------- salary thresholds (read from the country-nl pack doc) ----------
 
 /** Parse the thresholds table between <!-- thresholds:start --> and <!-- thresholds:end -->. */
 export function parseThresholds(markdown) {
@@ -299,8 +305,14 @@ function thresholdsReport(args, now) {
   const t = loadThresholds();
   const year = now.getFullYear();
   const key = pickThresholdKey({ reduced: args.reduced, ageBand: args.ageBand });
-  const report = { valid_year: t.valid_year, stale: t.valid_year != null && year > t.valid_year, amounts: t.amounts, selected: null, note: null };
-  if (report.stale) report.note = `These amounts are for ${t.valid_year}. It is now ${year}, so they may be out of date. Check https://ind.nl/en/required-amounts-income-requirements`;
+  const report = { valid_year: t.valid_year, stale: t.valid_year != null && year > t.valid_year, amounts: t.amounts, selected: null, note: null, old_copy: null };
+  const notes = [];
+  if (report.stale) notes.push(`These amounts are for ${t.valid_year}. It is now ${year}, so they may be out of date. Check https://ind.nl/en/required-amounts-income-requirements`);
+  if (existsSync(OLD_THRESHOLD_DOC())) {
+    report.old_copy = 'system/packs/mba/jobs-nl/salary-thresholds.md';
+    notes.push(`An older salary table is still at ${report.old_copy}. I no longer read it, so any amounts you changed there do not count. Ask me to carry your changes over to system/packs/country-nl/salary-thresholds.md.`);
+  }
+  report.note = notes.length ? notes.join(' ') : null;
   const min = Number.isFinite(args.annual) ? args.annual : Number.isFinite(args.annualMin) ? args.annualMin : null;
   const max = Number.isFinite(args.annual) ? args.annual : Number.isFinite(args.annualMax) ? args.annualMax : null;
   if (key) {

@@ -4,7 +4,8 @@ created: "{{date}}"
 status: "active"
 code: ""
 term: ""
-school: ""
+programme: ""
+provider: ""
 ai_policy: "unknown"
 ai_policy_quote: ""
 session_dates: []
@@ -15,10 +16,12 @@ class_days_asked: ""
 ---
 # {{title}}
 
-<!-- The one template for vault/20_areas/courses/<course-slug>/course.md. Onboarding, /course and /assignment all use it (procedure: system/packs/mba/course-setup.md).
+<!-- The one template for vault/20_areas/courses/<course-slug>/course.md. Onboarding, /course and /assignment all use it (procedure: .claude/skills/course/references/course-setup.md).
+     programme: a link to the programme note, "[[MBA – RSM]]", for a course that belongs to a programme. provider: the school or platform name, for a standalone course (for example Coursera). Both are optional; set the one that applies. Programme-wide facts live in the programme note (vault/20_areas/programmes/); list here only what differs.
      status is active or completed (a finished course; /weekly-review then stops asking about it).
-     ai_policy is one of: allowed, allowed-with-disclosure, restricted, banned, unknown.
-     ai_policy_quote holds the policy sentence copied word for word from the syllabus or the LMS.
+     ai_policy is one of: allowed, allowed-with-disclosure, restricted, banned, unknown, none-stated.
+     unknown means not checked yet, or unclear. none-stated means no rule was found in what was read (the course files, the programme note, and the provider's terms only if they were given); it does not mean the provider was checked. Set only for an online or provider course, or when you confirm there is no rule.
+     ai_policy_quote holds the policy sentence copied word for word from the syllabus or the course site. A rule taken from the programme starts with "Programme rule: ".
      Leave "unknown" until you have seen the policy yourself.
      session_dates, class_days, term_start and term_end drive the "New material?" reminder after a class (session digest). All may stay empty.
      session_dates: dates of class meetings exactly as the syllabus states them, as "YYYY-MM-DD" (never invented; not deadlines or exams).
@@ -29,7 +32,7 @@ class_days_asked: ""
 
 ## Overview
 
-<What the course is about, in one or two lines. Lecturer names and roles only: business details, never private ones.>
+<What the course is about, in one or two lines. Instructor names and roles only: business details, never private ones.>
 
 ## AI policy
 
@@ -63,9 +66,9 @@ class_days_asked: ""
 
 <Index of this course's files, grouped by type and session. Kept by /course and /ingest from the source notes. Leave empty groups out.>
 
-## How this lecturer grades
+## How this instructor grades
 
-<What earns and loses marks, from the syllabus, slides or the lecturer's own words. Cite the source note.>
+<What earns and loses marks, from the syllabus, slides or the instructor's own words. Cite the source note.>
 
 ## Sources
 

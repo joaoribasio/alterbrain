@@ -1,6 +1,6 @@
 ---
 name: study
-description: Learn a topic from the user's own course notes and sources, turn it into flashcards, and run spaced-repetition quizzes; use for "/study <topic>", "explain X to me", "make cards for X" or "/study quiz".
+description: Learn a topic from the user's own notes and sources (with or without a course), turn it into flashcards, and run spaced-repetition quizzes; use for "/study <topic>", "explain X to me", "make cards for X" or "/study quiz".
 model: sonnet
 effort: medium
 argument-hint: "<topic> | quiz [topic]"
@@ -18,15 +18,15 @@ Learn a topic in plain words from your own notes, then remember it with short qu
 
 ## Before you start
 
-1. Read `vault/80_me/USER.md` for your name, programme and language.
+1. Read `vault/80_me/USER.md` for your name, what you are learning or working on, and your language.
 2. Pick the mode from the first word of the argument:
    - `quiz` (or "quiz me"): follow `workflows/quiz.md` straight away. Do not run clarify: quiz mode needs no topic, course, depth or exam date (a topic after `quiz` only narrows which due cards to ask).
    - anything else: learn mode, `workflows/learn.md`.
-3. **Learn mode only:** run the clarify step (`/clarify`, type `study`), and only for what is not already clear. If the topic and the course are both obvious from the request or the vault, skip it and show the one-line summary. Otherwise ask one question at a time, and skip anything you can already see in the vault:
+3. **Learn mode only:** run the clarify step (`/clarify`, type `study`), and only for what is not already clear. If the topic is obvious from the request or the vault (and the course, when one applies), skip it and show the one-line summary. Otherwise ask one question at a time, and skip anything you can already see in the vault:
    - Topic: what exactly?
-   - Course: which one? Look in `vault/20_areas/courses/` first and offer the matches as choices.
+   - Course, only if one applies: which one? Look in `vault/20_areas/courses/` first and offer the matches as choices. A topic from work or your own reading needs no course.
    - Depth: quick overview, solid understanding, or exam-ready? (default: solid understanding)
-   - Exam date, if there is one. It decides how many cards and how soon.
+   - Exam date, optional. If there is one, it decides how many cards and how soon.
 4. Get today's date from the system, never from memory: `node system/scripts/date.mjs` (local date).
 
 ## Steps
@@ -35,8 +35,8 @@ Learn a topic in plain words from your own notes, then remember it with short qu
 
 Full detail is in `workflows/learn.md`. In short:
 
-1. Clarify (above, only if the topic or course is unclear). Show a one-line summary and wait for a yes.
-2. Find the user's sources: course notes in `vault/20_areas/courses/<course>/`, source notes in `vault/40_sources/notes/`, wiki pages in `vault/30_wiki/`. Search by topic name, synonyms and the course name.
+1. Clarify (above, only if the topic is unclear, or a course applies and is unclear). Show a one-line summary and wait for a yes.
+2. Find the user's sources: course notes in `vault/20_areas/courses/<course>/` (when a course applies), source notes in `vault/40_sources/notes/`, wiki pages in `vault/30_wiki/`. Search by topic name, synonyms and, when there is one, the course name.
 3. Explain the topic Feynman style: a simple analogy, the idea in plain words, then one worked example. Use only what the sources say. Cite every claim: `[Source: [[note]] | YYYY-MM-DD | confidence: high|medium|low]`.
 4. Say clearly what is missing. Offer `/ingest` (add the slides or reading) or research (the `researcher` agent). Never fill gaps from memory without the label `[Inference]` or `[Unverified]`.
 5. Create 5 to 10 cards in `vault/50_learning/cards/<topic-slug>/` (format in `workflows/learn.md`). Mix recall questions with application questions. Each card links to its source.

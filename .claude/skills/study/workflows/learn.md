@@ -6,11 +6,11 @@ Used by `/study <topic>`. Read after the clarify step in `SKILL.md`.
 
 Search in this order. Use Grep and Glob on the vault, then Read the best hits.
 
-1. `vault/20_areas/courses/<course>/` (course.md, sessions, cases).
+1. `vault/20_areas/courses/<course>/` (course.md, sessions, cases), only when a course applies.
 2. `vault/40_sources/notes/` (one note per ingested file). Follow the `raw` and text links if the note is thin.
 3. `vault/30_wiki/` (concepts, frameworks, topics).
 
-Try the topic name, plural and singular, and two or three synonyms. Keep a list of the notes you used. Each one needs a link and a date for the citation (use its `created` or `ingested` date).
+Try the topic name, plural and singular, and two or three synonyms. Without a course, sources 2 and 3 are all there is: that is enough. Keep a list of the notes you used. Each one needs a link and a date for the citation (use its `created` or `ingested` date).
 
 If you find nothing, say so in one line. Offer two choices (AskUserQuestion, recommended first):
 
@@ -26,8 +26,8 @@ Keep it short enough to read in two minutes.
 1. **In one sentence:** what is it, as you would tell a friend?
 2. **Analogy:** one everyday comparison.
 3. **The idea in plain words:** three to six short sentences. Explain any term in one line.
-4. **Worked example:** a small, concrete case. Use the course example if the sources have one.
-5. **Common mistake:** one thing students often get wrong, if the sources say so.
+4. **Worked example:** a small, concrete case. Use the course example if the sources have one (or an example from the user's own work or reading).
+5. **Common mistake:** one thing learners often get wrong, if the sources say so.
 6. **What your notes do not cover:** a bullet list. Offer `/ingest` or research.
 
 Every factual sentence carries a citation: `[Source: [[note]] | YYYY-MM-DD | confidence: high|medium|low]`. Use `high` for direct statements in lecture or reading notes, `medium` for summaries, `low` for thin or secondhand notes. Mark anything else `[Inference]` or `[Unverified]`.

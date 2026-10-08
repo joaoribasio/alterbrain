@@ -13,6 +13,7 @@ import {
 const OLD = join(FIXTURES, 'release', 'old');
 const NEW = join(FIXTURES, 'release', 'new');
 const TAG = 'v0.2.0';
+const MIGRATION_SUMMARY = 'Writes a small marker file so the test can see that this upgrade ran.';
 
 function walk(dir, base = dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -108,6 +109,8 @@ test('plan decides every case correctly and stages verified files', () => {
     assert.equal(edited.action, 'archive');
     assert.equal(edited.needs_review, true);
     assert.equal(plan.files.find((f) => f.path === 'system/templates/notes/Course.md').base_available, true);
+    // the upgrades that finish will run are listed up front, with the sentence from the script
+    assert.deepEqual(plan.migrations_pending, [{ id: '001-example.mjs', summary: MIGRATION_SUMMARY }]);
 
     const stage = join(root, 'state', 'local', 'update', TAG);
     assert.ok(existsSync(join(stage, 'plan.json')));
@@ -158,6 +161,9 @@ test('apply-safe, then finish: the full happy path', () => {
     assert.equal(f.code, 0, f.stdout + f.stderr);
     const fin = jsonOf(f);
     assert.deepEqual(fin.migrations_run, ['001-example.mjs']);
+    assert.deepEqual(fin.migration_notes, { '001-example.mjs': 'Wrote the example marker file.' });
+    assert.deepEqual(fin.migrations_skipped, []);
+    assert.equal(fin.ok, true);
     assert.deepEqual(fin.still_to_merge, ['system/templates/notes/Course.md']);
     assert.equal(readRoot(root, 'state/migration-001.txt'), `ran for ${TAG}\n`);
     assert.equal(JSON.parse(readRoot(root, 'state/migrations.json')).applied[0].id, '001-example.mjs');
@@ -169,7 +175,11 @@ test('apply-safe, then finish: the full happy path', () => {
     writeFileSync(join(root, 'state', 'migration-001.txt'), 'changed by hand\n');
     const again = jsonOf(upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']));
     assert.deepEqual(again.migrations_run, []);
+    assert.deepEqual(again.migration_notes, {});
     assert.equal(readRoot(root, 'state/migration-001.txt'), 'changed by hand\n');
+
+    // and a new plan no longer lists an upgrade that has already run
+    assert.deepEqual(jsonOf(upd(root, ['plan', TAG, '--json', '--source-dir', rel])).migrations_pending, []);
   } finally {
     cleanup(parent, rel);
   }
@@ -314,7 +324,31 @@ test('finish refuses to run before apply-safe', () => {
   }
 });
 
-test('works without git: no safety tag, no crash', () => {
+test('works without git when the release has no upgrades: no restore point, a note, no crash', () => {
+  const p = makeProject({ repo: false });
+  cpSync(OLD, p.root, { recursive: true });
+  write(join(p.root, 'system', 'manifest.json'), JSON.stringify(manifestFor(OLD, '0.1.0', 'v0.1.0')));
+  // a release whose upgrade scripts are none: it changes files only, never the person's notes
+  const rel = makeRelease((dir, manifest) => {
+    rmSync(join(dir, 'system', 'scripts', 'migrations'), { recursive: true, force: true });
+    delete manifest.files['system/scripts/migrations/001-example.mjs'];
+  });
+  try {
+    assert.equal(upd(p.root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    const a = upd(p.root, ['apply-safe', TAG, '--json', '--no-commit']);
+    assert.equal(a.code, 0, a.stdout + a.stderr);
+    const applied = jsonOf(a);
+    assert.equal(applied.safety_tag, null);
+    assert.match(applied.notes.join(' '), /There is no restore point, because this folder is not saved with Git\./);
+    const f = jsonOf(upd(p.root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']));
+    assert.equal(f.ok, true);
+    assert.equal(f.safety_tag, null);
+  } finally {
+    cleanup(p.parent, rel);
+  }
+});
+
+test('no Git and an upgrade to run: apply-safe stops before it changes a single file', () => {
   const p = makeProject({ repo: false });
   cpSync(OLD, p.root, { recursive: true });
   write(join(p.root, 'system', 'manifest.json'), JSON.stringify(manifestFor(OLD, '0.1.0', 'v0.1.0')));
@@ -322,10 +356,66 @@ test('works without git: no safety tag, no crash', () => {
   try {
     assert.equal(upd(p.root, ['plan', TAG, '--source-dir', rel]).code, 0);
     const a = upd(p.root, ['apply-safe', TAG, '--json', '--no-commit']);
-    assert.equal(a.code, 0, a.stdout + a.stderr);
-    assert.equal(jsonOf(a).safety_tag, null);
+    assert.equal(a.code, 1);
+    const out = jsonOf(a);
+    assert.equal(out.ok, false);
+    assert.equal(out.no_restore_point, true);
+    assert.match(out.error, /could not save a restore point.*changed nothing.*\/health-check/);
+    assert.equal(readRoot(p.root, 'system/hooks/session_start.mjs'), '// hook version 1\n');
+    assert.equal(existsSync(join(p.root, 'system', 'blueprints', 'new-thing.md')), false);
+    assert.equal(existsSync(join(p.root, 'state', 'local', 'update', TAG, 'applied.json')), false);
+    const text = upd(p.root, ['apply-safe', TAG, '--no-commit']);
+    assert.match(text.stdout, /^! I could not save a restore point/);
+    assert.match(text.stdout, /There is no restore point, because this folder is not saved with Git\./);
   } finally {
     cleanup(p.parent, rel);
+  }
+});
+
+test('an upgrade script that came with the install is recorded as done, never run, and never listed again', () => {
+  const { parent, root } = makeInstalled();
+  // this install is the release that already had 001-example.mjs: the script is on disk and in its manifest
+  const script = readFileSync(join(NEW, 'system', 'scripts', 'migrations', '001-example.mjs'));
+  write(join(root, 'system', 'scripts', 'migrations', '001-example.mjs'), script);
+  const manifestFile = join(root, 'system', 'manifest.json');
+  const manifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
+  manifest.files['system/scripts/migrations/001-example.mjs'] = { class: 'code', sha256: sha(script) };
+  write(manifestFile, JSON.stringify(manifest));
+  const rel = makeRelease();
+  try {
+    const plan = jsonOf(upd(root, ['plan', TAG, '--json', '--source-dir', rel]));
+    assert.deepEqual(plan.migrations_pending, []);
+    assert.deepEqual(plan.migrations_baseline, ['001-example.mjs']);
+    assert.doesNotMatch(upd(root, ['plan', TAG, '--source-dir', rel]).stdout, /Upgrades to your notes and settings/);
+    assert.equal(upd(root, ['apply-safe', TAG, '--no-commit']).code, 0);
+    const fin = jsonOf(upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']));
+    assert.deepEqual(fin.migrations_run, []);
+    assert.equal(existsSync(join(root, 'state', 'migration-001.txt')), false, 'the script was not run');
+    const record = JSON.parse(readRoot(root, 'state/migrations.json'));
+    assert.equal(record.applied.length, 1);
+    assert.equal(record.applied[0].id, '001-example.mjs');
+    assert.equal(record.applied[0].baseline, true);
+    assert.equal(record.applied[0].tag, 'v0.1.0', 'the record says which release it came with');
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('a script that is in the install manifest but is not the file on disk is not taken for one that came with the install', () => {
+  const { parent, root } = makeInstalled();
+  const script = readFileSync(join(NEW, 'system', 'scripts', 'migrations', '001-example.mjs'));
+  write(join(root, 'system', 'scripts', 'migrations', '001-example.mjs'), 'process.exit(0);\n// somebody changed it\n');
+  const manifestFile = join(root, 'system', 'manifest.json');
+  const manifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
+  manifest.files['system/scripts/migrations/001-example.mjs'] = { class: 'code', sha256: sha(script) };
+  write(manifestFile, JSON.stringify(manifest));
+  const rel = makeRelease();
+  try {
+    const plan = jsonOf(upd(root, ['plan', TAG, '--json', '--source-dir', rel]));
+    assert.deepEqual(plan.migrations_pending.map((m) => m.id), ['001-example.mjs']);
+    assert.deepEqual(plan.migrations_baseline, []);
+  } finally {
+    cleanup(parent, rel);
   }
 });
 
@@ -451,8 +541,15 @@ test('finish only runs migrations that the verified manifest lists', () => {
     const out = jsonOf(upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']));
     assert.deepEqual(out.migrations_run, []);
     assert.deepEqual(out.migrations_skipped.sort(), ['001-example.mjs', '999-evil.mjs']);
+    assert.equal(out.ok, false, 'a skipped upgrade is a problem');
     assert.equal(existsSync(join(root, 'state', 'evil.txt')), false);
     assert.equal(existsSync(join(root, 'state', 'evil2.txt')), false);
+    // In plain words, and with a failing exit code.
+    const text = upd(root, ['finish', TAG, '--no-commit', '--no-doctor']);
+    assert.equal(text.code, 1);
+    assert.match(text.stdout, /Skipped upgrade 999-evil\.mjs: it is not part of this release, so it was not run\./);
+    assert.match(text.stdout, /Skipped upgrade 001-example\.mjs: it is not part of this release, so it was not run\./);
+    assert.doesNotMatch(text.stdout, /Upgrades run:/);
   } finally {
     cleanup(parent, rel);
   }
@@ -534,5 +631,153 @@ test('a release path that leads out of the project through a link is rejected', 
       /* the target is a temp folder anyway */
     }
     cleanup(parent, rel, outside);
+  }
+});
+
+/* ---------------- upgrades to notes and settings (migrations) ---------------- */
+
+/** Put an upgrade script into the release folder and its manifest. */
+function addMigration(dir, manifest, name, body) {
+  const path = `system/scripts/migrations/${name}`;
+  writeFileSync(join(dir, ...path.split('/')), body);
+  manifest.files[path] = { class: 'code', sha256: sha(body) };
+}
+
+test('plan says in plain words which upgrades will run at the end', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease((dir, manifest) => {
+    // a second upgrade without the description line, and a file that is not an upgrade at all
+    addMigration(dir, manifest, '002-plain.mjs', 'console.log("x");\n');
+    const readme = 'Not an upgrade.\n';
+    writeFileSync(join(dir, 'system', 'scripts', 'migrations', 'README.md'), readme);
+    manifest.files['system/scripts/migrations/README.md'] = { class: 'text', sha256: sha(readme) };
+  });
+  try {
+    const r = upd(root, ['plan', TAG, '--source-dir', rel]);
+    assert.equal(r.code, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, new RegExp(`Upgrades to your notes and settings \\(run at the end\\):\\n {2}- ${MIGRATION_SUMMARY.replace(/\./g, '\\.')}\\n {2}- \\(no description\\)\\n`));
+    assert.doesNotMatch(r.stdout, /Not an upgrade/);
+    const plan = jsonOf(upd(root, ['plan', TAG, '--json', '--source-dir', rel]));
+    assert.deepEqual(plan.migrations_pending.map((m) => m.id), ['001-example.mjs', '002-plain.mjs']);
+    assert.equal(plan.migrations_pending[1].summary, '(no description)');
+    // planning changes nothing, and the saved plan carries the same list
+    assert.equal(existsSync(join(root, 'state', 'migrations.json')), false);
+    assert.deepEqual(JSON.parse(readRoot(root, `state/local/update/${TAG}/plan.json`)).migrations_pending, plan.migrations_pending);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('plan leaves out upgrades that are already recorded as done', () => {
+  const { parent, root } = makeInstalled();
+  write(join(root, 'state', 'migrations.json'), JSON.stringify({ schema: 1, applied: [{ id: '001-example.mjs', at: '2026-10-08T10:00:00.000Z', tag: 'v0.1.5' }] }));
+  const rel = makeRelease();
+  try {
+    const r = upd(root, ['plan', TAG, '--source-dir', rel]);
+    assert.equal(r.code, 0, r.stdout + r.stderr);
+    assert.doesNotMatch(r.stdout, /Upgrades to your notes and settings/);
+    assert.deepEqual(jsonOf(upd(root, ['plan', TAG, '--json', '--source-dir', rel])).migrations_pending, []);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('finish tells the person, in plain words, what each upgrade did', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease((dir, manifest) => {
+    addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Prints two lines.\nconsole.log("First thing done.");\nconsole.log("Second thing done.");\n');
+    addMigration(dir, manifest, '002-quiet.mjs', '// ab-migration: Says nothing.\n');
+  });
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    assert.equal(upd(root, ['apply-safe', TAG, '--no-commit']).code, 0);
+    const f = upd(root, ['finish', TAG, '--no-commit', '--no-doctor']);
+    assert.equal(f.code, 0, f.stdout + f.stderr);
+    assert.match(f.stdout, /Upgrades run:\n {2}- 001-example\.mjs\n {6}First thing done\.\n {6}Second thing done\.\n {2}- 002-quiet\.mjs\n/);
+    assert.deepEqual(JSON.parse(readRoot(root, 'state/migrations.json')).applied.map((a) => a.id), ['001-example.mjs', '002-quiet.mjs']);
+    assert.deepEqual(JSON.parse(readRoot(root, `state/local/update/${TAG}/finished.json`)).migration_notes, {
+      '001-example.mjs': 'First thing done.\nSecond thing done.',
+      '002-quiet.mjs': '',
+    });
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('a long note from an upgrade is cut to 2,000 characters', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease((dir, manifest) => addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Talks a lot.\nconsole.log("y".repeat(5000));\n'));
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    assert.equal(upd(root, ['apply-safe', TAG, '--no-commit']).code, 0);
+    const out = jsonOf(upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']));
+    assert.equal(out.migration_notes['001-example.mjs'].length, 2000);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('a failing upgrade is named, its own sentence is shown, and earlier upgrades stay recorded', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease((dir, manifest) => {
+    addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Works.\nconsole.log("Did the first part.");\n');
+    addMigration(dir, manifest, '002-fails.mjs', '// ab-migration: Fails.\nconsole.error("Your settings file config/brain.json could not be read, so I changed nothing.");\nprocess.exit(1);\n');
+  });
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    assert.equal(upd(root, ['apply-safe', TAG, '--no-commit']).code, 0);
+    const f = upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']);
+    assert.equal(f.code, 1);
+    const out = jsonOf(f);
+    assert.equal(out.migration, '002-fails.mjs');
+    assert.equal(out.error, 'The upgrade 002-fails.mjs stopped, so the update is not finished.');
+    assert.equal(out.detail, 'Your settings file config/brain.json could not be read, so I changed nothing.');
+    assert.deepEqual(out.migrations_run, ['001-example.mjs']);
+    assert.deepEqual(out.migration_notes, { '001-example.mjs': 'Did the first part.' });
+    assert.deepEqual(JSON.parse(readRoot(root, 'state/migrations.json')).applied.map((a) => a.id), ['001-example.mjs']);
+    assert.equal(JSON.parse(readRoot(root, 'system/manifest.json')).version, '0.1.0', 'the update is not marked finished');
+
+    // Run again: finish continues where it stopped (001 is not run twice) and stops at the same place.
+    const again = jsonOf(upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']));
+    assert.equal(again.migration, '002-fails.mjs');
+    assert.deepEqual(again.migrations_run, []);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('the text of a failing upgrade names it, shows its sentence, and lists what already ran', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease((dir, manifest) => {
+    addMigration(dir, manifest, '001-example.mjs', '// ab-migration: Works.\nconsole.log("Did the first part.");\n');
+    addMigration(dir, manifest, '002-fails.mjs', '// ab-migration: Fails.\nconsole.error("I could not save vault/20_areas/x.md (is it open in another program?). Close it and finish the update again.");\nprocess.exit(1);\n');
+  });
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    assert.equal(upd(root, ['apply-safe', TAG, '--no-commit']).code, 0);
+    const text = upd(root, ['finish', TAG, '--no-commit', '--no-doctor']);
+    assert.equal(text.code, 1);
+    assert.match(text.stdout, /! The upgrade 002-fails\.mjs stopped, so the update is not finished\.\n {2}I could not save vault\/20_areas\/x\.md/);
+    assert.match(text.stdout, /\n {2}Already done: 001-example\.mjs\n/);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('migrationSummary reads the description from the first three lines only', async () => {
+  const { migrationSummary } = await import('../../system/scripts/update.mjs');
+  const dir = tmp('ab-mig-summary-');
+  try {
+    const f = (name, text) => {
+      write(join(dir, name), text);
+      return join(dir, name);
+    };
+    assert.equal(migrationSummary(f('a.mjs', '#!/usr/bin/env node\n// ab-migration: Does a thing.\ncode();\n')), 'Does a thing.');
+    assert.equal(migrationSummary(f('b.mjs', '// ab-migration:   Spaces are trimmed.   \r\nmore\r\n')), 'Spaces are trimmed.');
+    assert.equal(migrationSummary(f('c.mjs', 'one\ntwo\nthree\n// ab-migration: too late\n')), '(no description)');
+    assert.equal(migrationSummary(f('d.mjs', '// ab-migration:\ncode();\n')), '(no description)');
+    assert.equal(migrationSummary(join(dir, 'missing.mjs')), '(no description)');
+  } finally {
+    cleanup(dir);
   }
 });

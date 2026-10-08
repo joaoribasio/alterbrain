@@ -1,18 +1,26 @@
 # The MBA pack
 
-This pack gives Alterbrain what an MBA student needs most. It has five parts.
+This pack adds what is specific to an MBA (or other business programme) on top of Alterbrain's core. It is on when `packs` in `config/brain.json` lists `mba`. Onboarding adds it when you say you are doing an MBA, and `/reconfigure` can switch it on or off.
+
+## What is core, not in this pack
+
+These work for every learner, with or without this pack:
+
+- **Course setup** (`/course`): the syllabus, slides, readings, data files, briefs and exams of each course, with the AI rule and deadlines. The procedure is `.claude/skills/course/references/course-setup.md`.
+- **The assignment studio** (`/assignment`): set-up, research brief, Quarto draft, blind reviewer panel and final PDF. Its reviewer briefs live in `.claude/skills/assignment/references/lenses/`, and its note templates in `system/templates/notes/`.
+- **Study** (`/study`): flashcards and spaced-repetition quizzes from your own notes.
+- **Job search** (`/jobs`): finding and ranking vacancies and preparing drafts. The checks for one country (Netherlands first) are in a country pack, `system/packs/country-nl/`, not here.
 
 ## What is in it
 
-1. **Assignment studio** (`/assignment`). It helps you plan, draft, test and polish a piece of coursework. You give it the brief. It checks the rules, builds an outline, drafts with you, and runs a set of critics over the result before you hand in. The critics (called lenses) live in `system/packs/mba/lenses/`.
-2. **Frameworks library** (`system/packs/mba/frameworks/`). 25 short notes on the models you meet in an MBA, such as Porter's Five Forces, VRIO and DCF. Each note is written the same way, so they are easy to scan and use. See the list below.
-3. **Jobs in the Netherlands** (`/jobs`). It searches for roles, checks which firms can sponsor a visa, and drafts applications for you to review. It never sends anything on its own.
-4. **Study** (`/study`). It turns your notes and readings into flashcards, schedules reviews, and quizzes you (`/study quiz`).
-5. **Course setup** (`/course`). When a course starts, it asks for everything you have for it (syllabus, slides, readings, cases, Excel models and data files, briefs and rubrics, past exams), keeps an untouched copy of each file, reads the syllabus for the deadlines and the AI rule, and lists the material in the course note. It then tells you what is still missing. Later in the term it asks for new material when you mention it, and the session summary reminds you after each class. The procedure is `course-setup.md` in this folder.
+1. **Frameworks library** (`system/packs/mba/frameworks/`). 25 short notes on the models you meet in an MBA, such as Porter's Five Forces, VRIO and DCF. Each note is written the same way, so they are easy to scan and use. See the list below.
+2. **Case method** (`system/packs/mba/templates/case.md`). The case note template, with the case date the reviewers need for the hindsight rule, the exhibits table and the traps. `/assignment` uses it when the assignment is a case.
+3. **Business critique presets** (`system/packs/mba/critique-presets.md`). Seat suggestions for the board and the specialists when `/assignment critique` reviews a business assignment: a CFO or a buyer, a treasurer or a consultant, an audit partner or a valuation expert, and specialist fields such as valuation or competition law.
+4. **MBA wording.** Menus, examples and onboarding questions that speak about business, a programme and "after the programme" use this wording while the pack is on. Without it they use neutral words.
 
 ## How the frameworks get into your vault
 
-You do not copy anything yourself. During `/onboard`, Alterbrain copies the notes from `system/packs/mba/frameworks/` to `vault/30_wiki/frameworks/` in your Obsidian vault. From then on:
+You do not copy anything yourself. During `/onboard`, Alterbrain copies the notes from `system/packs/mba/frameworks/` to `vault/30_wiki/frameworks/` in your Obsidian vault, but only when `packs` lists `mba`. From then on:
 
 - The notes are yours. Edit them, add your course examples, link them to your cases.
 - Other skills find them by their title, for example `[[Porter's Five Forces]]`.
@@ -66,3 +74,5 @@ The header (frontmatter) of each note records its `family`, `when_to_use` and `s
 - File names are the exact note title plus `.md`. The slash in "4Ps/7Ps" is not allowed in file names, so that note is called `Marketing Mix (4Ps and 7Ps)`.
 - Examples are synthetic. Do not add real people or real company data.
 - Cite the original author, work and year. Add a link only if you are sure it is correct.
+- Release 0.2.0 moved the six reviewer briefs (`lenses/`), four note templates (`assignment`, `rubric`, `decisions`, `critique`) and the Netherlands job guides (`jobs-nl/`) out of this pack. The CHANGELOG lists each old and new path under Moved, and upgrade `0005-moved-file-edits` tells a person who edited an old copy. Any later move needs the same two things.
+- This pack holds only MBA content. A change to course setup, the assignment studio, study or the job search belongs in the core files named above, and a change to the Netherlands job search in `system/packs/country-nl/`.

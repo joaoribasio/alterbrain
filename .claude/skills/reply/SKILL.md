@@ -49,7 +49,7 @@ Do not read raw email yourself. All email reading goes through `mail-reader`.
    - If the reply would commit the user to something (a meeting, a deadline, money, a yes/no), confirm the exact commitment now.
 
 5. **Draft.** Get today's date with `node system/scripts/date.mjs` (local date). Delegate to the `ghostwriter` agent with:
-   - `channel: email`, `recipient_class` (the class of the other person from the summary, one of `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`), the mail-reader summary, the user's intent and any facts they gave in chat;
+   - `channel: email`, `recipient_class` (the class of the other person from the summary, one of the classes in `system/packs/twin/drafting.md` §3; unknown means `professional`), the mail-reader summary, the user's intent and any facts they gave in chat;
    - `out`: `vault/00_inbox/outbox/<YYYY-MM-DD> Reply to <Name>.md` (Title Case; add a short subject if a note with that name exists).
    The ghostwriter follows `system/packs/twin/drafting.md`: language, register by recipient class, 3 to 5 exemplars from `vault/80_me/voice/<lang>/exemplars.md`, the fact sheet allowlist, the `Facts used` table and flagged facts. It returns a short report (file, lang, class, flagged, skipped asks).
    - No voice profile for that language: the draft says `voice: "missing"`. Tell the user and offer to set up their voice later (`/onboard`, module M5).

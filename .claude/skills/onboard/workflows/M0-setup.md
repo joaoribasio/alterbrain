@@ -24,9 +24,9 @@ Say at the start: "Step 1 of 5: I'll check your computer and set up your folders
 2. **Folders and starter files.** Run `node system/scripts/onboard-seed.mjs`. It copies, only where missing:
    - the vault skeleton `system/templates/vault/**` → `vault/`;
    - default settings `system/templates/config/*.json` → `config/`;
-   - identity templates `system/templates/identity/*` → `vault/80_me/`;
-   - starter frameworks `system/packs/mba/frameworks/*.md` → `vault/30_wiki/frameworks/`.
-   It never overwrites. If it reports a missing framework folder, add a task and suggest `/update-alterbrain`.
+   - identity templates `system/templates/identity/*` → `vault/80_me/`.
+   The default settings list only the `core` pack, so nothing else is copied now. The frameworks of a pack the user switches on (the MBA pack, after the learner question in M2 or a later switch in `/reconfigure`) arrive when `onboard-seed.mjs` runs again then.
+   It never overwrites. If it reports a missing folder ("Missing starter folder" or "Missing pack folder"), add a task `Restore a missing Alterbrain folder. Say /update-alterbrain` (`--tag onboard --priority high`) and carry on.
 3. **GitHub backup.** First, whatever the user chooses below, make sure the folder cannot talk to the public Alterbrain repo. Run `node system/scripts/setup-github.mjs --detach-only`. It needs no sign-in and no question. If the folder still pointed at the public repo, it remembers that address in `state/release-origin.json` and disconnects it; say one line: "I disconnected this folder from the public Alterbrain page, so your notes only ever go to your own backup. Updates still work through /update-alterbrain." If it reports nothing to disconnect, say nothing. If it fails, explain the message in one plain line and add a `#ab/onboard` task (high priority).
    Then explain in one line: "GitHub keeps a private copy of your Alterbrain online, so nothing is lost if your laptop breaks. Only you can see it."
    - If `git remote -v` already shows an `origin` that is *not* the public Alterbrain repository, backup is set up. Skip to step 4.
@@ -80,7 +80,7 @@ Say at the start: "Step 1 of 5: I'll check your computer and set up your folders
 
 ## Done criteria
 
-- `onboard-seed.mjs` ran with no missing source folders.
+- `onboard-seed.mjs` ran with no missing folders.
 - `config/brain.json`, `config/autonomy.json`, `config/mcp.selected.json` and `vault/80_me/USER.md` exist.
 - doctor shows no blocking failure, or every remaining one has a task.
 - GitHub backup works (`origin` set and pushed), **or** the user chose to skip and a task exists. Either way `origin` is not the public Alterbrain repo.

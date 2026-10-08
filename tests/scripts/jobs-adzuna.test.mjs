@@ -1,9 +1,10 @@
 // Tests for system/scripts/jobs/adzuna.mjs. fetch is mocked; no network, no real keys.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   parseEnv,
   loadEnvLocal,
@@ -15,13 +16,35 @@ import {
   resetRateLimiter,
   dutchSignal,
   guessLanguage,
+  defaultCountry,
   main,
   DAILY_STOP,
   MIN_GAP_MS,
   usageFile,
 } from '../../system/scripts/jobs/adzuna.mjs';
 
+const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const tmp = () => mkdtempSync(join(tmpdir(), 'ab-adz-'));
+
+// A throw-away project under state/local/tmp with a config/brain.json, reached through CLAUDE_PROJECT_DIR.
+function withProject(brain, fn) {
+  const base = join(REPO, 'state', 'local', 'tmp');
+  mkdirSync(base, { recursive: true });
+  const dir = mkdtempSync(join(base, 'ab-adz-proj-'));
+  mkdirSync(join(dir, 'system'), { recursive: true });
+  mkdirSync(join(dir, 'config'), { recursive: true });
+  if (brain !== undefined) writeFileSync(join(dir, 'config', 'brain.json'), typeof brain === 'string' ? brain : JSON.stringify(brain));
+  const before = process.env.CLAUDE_PROJECT_DIR;
+  process.env.CLAUDE_PROJECT_DIR = dir;
+  const restore = () => {
+    if (before === undefined) delete process.env.CLAUDE_PROJECT_DIR;
+    else process.env.CLAUDE_PROJECT_DIR = before;
+    rmSync(dir, { recursive: true, force: true });
+  };
+  return Promise.resolve()
+    .then(() => fn(dir))
+    .finally(restore);
+}
 // Fake credentials are built at run time so no secret-looking literal sits in the repo.
 const FAKE_ID = ['test', 'id', '1'].join('-');
 const FAKE_KEY = ['test', 'key', '2'].join('-');
@@ -218,7 +241,7 @@ test('dutchSignal: required, preferred, not_required, likely, unknown', () => {
 
 test('main --json prints jobs and the Adzuna credit line', async () => {
   const dir = tmp();
-  const res = await main(['--what', 'consultant', '--where', 'Rotterdam', '--results', '5', '--json'], { fetch: mockFetch(() => ok(SAMPLE)), env: ENV, cacheDir: dir, ...fast });
+  const res = await main(['--what', 'consultant', '--where', 'Rotterdam', '--results', '5', '--json'], { fetch: mockFetch(() => ok(SAMPLE)), env: ENV, cacheDir: dir, brainFile: join(dir, 'no-brain.json'), ...fast });
   assert.equal(res.code, 0);
   const out = JSON.parse(res.stdout);
   assert.equal(out.source, 'adzuna');
@@ -230,11 +253,13 @@ test('main --json prints jobs and the Adzuna credit line', async () => {
 
 test('main human output lists jobs and credits Adzuna', async () => {
   const dir = tmp();
-  const res = await main(['--what', 'consultant'], { fetch: mockFetch(() => ok(SAMPLE)), env: ENV, cacheDir: dir, ...fast });
+  const res = await main(['--what', 'consultant'], { fetch: mockFetch(() => ok(SAMPLE)), env: ENV, cacheDir: dir, brainFile: join(dir, 'no-brain.json'), ...fast });
   assert.equal(res.code, 0);
   assert.match(res.stdout, /1\. Strategy Consultant - Example Consulting B\.V\./);
   assert.match(res.stdout, /Jobs by Adzuna/);
   assert.match(res.stdout, /estimated by Adzuna/);
+  assert.match(res.stdout, /Dutch: required\./);
+  assert.match(res.stdout, /EUR 52,000/);
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -251,5 +276,119 @@ test('main exit codes: usage errors 2, missing keys 1, empty result 0', async ()
   const empty = await main(['--what', 'zzzz'], { fetch: mockFetch(() => ok({ count: 0, results: [] })), env: ENV, cacheDir: dir, ...fast });
   assert.equal(empty.code, 0);
   assert.match(empty.stdout, /No jobs found/);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+// ---------- other countries and the config default ----------
+
+const GB_SAMPLE = {
+  count: 1,
+  results: [
+    {
+      id: '900',
+      title: 'Operations Analyst',
+      company: { display_name: 'Example Ltd' },
+      location: { display_name: 'Leeds, West Yorkshire' },
+      redirect_url: 'https://www.adzuna.co.uk/jobs/details/900',
+      created: '2026-10-05T08:00:00Z',
+      salary_min: 38000,
+      salary_max: 42000,
+      salary_is_predicted: '0',
+      // Dutch wording in a gb advert is still not labelled: the Dutch guess belongs to the Netherlands only.
+      description: 'Wij zoeken een analist met goede beheersing van de Nederlandse taal in woord en geschrift.',
+    },
+  ],
+};
+
+test('normaliseJob: the dutch field is added for nl and not for other countries', () => {
+  const raw = SAMPLE.results[0];
+  assert.ok(normaliseJob(raw).dutch, 'no country given behaves as nl');
+  assert.ok(normaliseJob(raw, { country: 'nl' }).dutch);
+  assert.ok(normaliseJob(raw, { country: 'NL' }).dutch, 'case does not matter');
+  assert.equal('dutch' in normaliseJob(raw, { country: 'gb' }), false);
+});
+
+test('main --country gb: calls the gb endpoint, no dutch field, no Dutch line, no euro sign', async () => {
+  const dir = tmp();
+  const fetch = mockFetch(() => ok(GB_SAMPLE));
+  const deps = { fetch, env: ENV, cacheDir: dir, brainFile: join(dir, 'no-brain.json'), ...fast };
+  const json = await main(['--what', 'analyst', '--country', 'GB', '--json'], deps);
+  assert.equal(json.code, 0);
+  assert.equal(new URL(fetch.calls[0].url).pathname, '/v1/api/jobs/gb/search/1');
+  const out = JSON.parse(json.stdout);
+  assert.equal(out.country, 'gb');
+  assert.equal(out.jobs.length, 1);
+  assert.equal('dutch' in out.jobs[0], false, 'a Dutch-language guess makes no sense outside the Netherlands');
+  const human = await main(['--what', 'analyst', '--country', 'gb'], deps);
+  assert.equal(human.code, 0);
+  assert.match(human.stdout, /Operations Analyst - Example Ltd/);
+  assert.doesNotMatch(human.stdout, /Dutch/);
+  assert.doesNotMatch(human.stdout, /EUR/);
+  assert.match(human.stdout, /local currency/);
+  assert.match(human.stdout, /Jobs by Adzuna/);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('defaultCountry: jobs.country from config/brain.json when it is two letters, else nl', async () => {
+  const dir = tmp();
+  const file = join(dir, 'brain.json');
+  assert.equal(defaultCountry(join(dir, 'missing.json')), 'nl');
+  writeFileSync(file, JSON.stringify({ jobs: { country: 'DE' } }));
+  assert.equal(defaultCountry(file), 'de');
+  writeFileSync(file, JSON.stringify({ jobs: { country: ' gb ' } }));
+  assert.equal(defaultCountry(file), 'gb');
+  for (const bad of ['', 'Netherlands', 'N1', null, 7]) {
+    writeFileSync(file, JSON.stringify({ jobs: { country: bad } }));
+    assert.equal(defaultCountry(file), 'nl', `value ${JSON.stringify(bad)}`);
+  }
+  writeFileSync(file, '{oops');
+  assert.equal(defaultCountry(file), 'nl');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('main with no --country uses jobs.country from the project config (CLAUDE_PROJECT_DIR)', async () => {
+  const cache = tmp();
+  await withProject({ jobs: { country: 'GB' } }, async () => {
+    const fetch = mockFetch(() => ok(GB_SAMPLE));
+    const res = await main(['--what', 'analyst', '--json'], { fetch, env: ENV, cacheDir: cache, ...fast });
+    assert.equal(res.code, 0);
+    assert.equal(new URL(fetch.calls[0].url).pathname, '/v1/api/jobs/gb/search/1');
+    const out = JSON.parse(res.stdout);
+    assert.equal(out.country, 'gb');
+    assert.equal('dutch' in out.jobs[0], false);
+    // an explicit --country still wins over the config
+    const fetch2 = mockFetch(() => ok(SAMPLE));
+    const res2 = await main(['--what', 'analyst', '--country', 'nl', '--json'], { fetch: fetch2, env: ENV, cacheDir: cache, ...fast });
+    assert.equal(new URL(fetch2.calls[0].url).pathname, '/v1/api/jobs/nl/search/1');
+    assert.ok(JSON.parse(res2.stdout).jobs[0].dutch);
+  });
+  await withProject({ jobs: { country: 'NL' } }, async () => {
+    const fetch = mockFetch(() => ok(SAMPLE));
+    const res = await main(['--what', 'analyst', '--json'], { fetch, env: ENV, cacheDir: cache, ...fast });
+    assert.equal(JSON.parse(res.stdout).country, 'nl');
+    assert.ok(JSON.parse(res.stdout).jobs[0].dutch);
+  });
+  await withProject(undefined, async () => {
+    const fetch = mockFetch(() => ok(SAMPLE));
+    const res = await main(['--what', 'analyst', '--json'], { fetch, env: ENV, cacheDir: cache, ...fast });
+    assert.equal(JSON.parse(res.stdout).country, 'nl', 'no config at all: nl, as before');
+  });
+  await withProject({ jobs: { country: 'Holland' } }, async () => {
+    const fetch = mockFetch(() => ok(SAMPLE));
+    const res = await main(['--what', 'analyst', '--json'], { fetch, env: ENV, cacheDir: cache, ...fast });
+    assert.equal(JSON.parse(res.stdout).country, 'nl', 'a value that is not two letters falls back to nl');
+  });
+  rmSync(cache, { recursive: true, force: true });
+});
+
+test('a country Adzuna refuses gets a plain-language message, not a bare HTTP code', async () => {
+  const dir = tmp();
+  for (const code of [400, 404]) {
+    const res = await main(['--what', 'x', '--country', 'zz'], { fetch: mockFetch(() => status(code)), env: ENV, cacheDir: dir, brainFile: join(dir, 'no-brain.json'), ...fast });
+    assert.equal(res.code, 1);
+    assert.match(res.stderr, /may not offer the country "zz"/);
+    assert.match(res.stderr, /jobs\.country/);
+    assert.match(res.stderr, new RegExp(`HTTP ${code}`));
+  }
   rmSync(dir, { recursive: true, force: true });
 });

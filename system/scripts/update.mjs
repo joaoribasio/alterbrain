@@ -24,7 +24,12 @@
 //   - --source-dir and --repo (another folder or another GitHub repo) are refused unless the person sets
 //     ALTERBRAIN_ALLOW_CUSTOM_SOURCE=1 in their own terminal: an instruction inside a note must not be able to
 //     point the updater at a folder it prepared. Plain --repo <the repo in release.json> is fine.
-//   - Only migrations that are listed in the verified manifest, with a matching sha256, are ever run.
+//   - Only migrations that are listed in the verified manifest, with a matching sha256, are ever run. One that is on
+//     disk but not listed is reported as skipped, and that makes the finish result "not ok".
+//   - Migrations change the person's notes and settings, so they run only with a restore point: the git tag
+//     pre-update-<tag> that apply-safe makes. apply-safe refuses (before it changes anything) when the plan has upgrades
+//     and no restore point can be made, and finish checks again. An install that came with the upgrade scripts (they are
+//     in its own manifest, and it has no record yet) is already in the new shape: they are recorded as done, never run.
 //   - Downloads are capped (default 20 MB per file, ALTERBRAIN_MAX_DOWNLOAD_BYTES to change).
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync, readdirSync, copyFileSync, unlinkSync, statSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve, extname, relative, isAbsolute, sep } from 'node:path';
@@ -34,7 +39,7 @@ import { createHash, createPublicKey, verify as cryptoVerify } from 'node:crypto
 import { projectRoot, rootPath, isMainModule } from '../lib/paths.mjs';
 import { readJson, writeJson, today } from '../lib/fsx.mjs';
 import { has, run, cmpVersion } from '../lib/proc.mjs';
-import { gitInstalled, isRepo, createTag } from '../lib/git.mjs';
+import { gitInstalled, isRepo, createTag, tagExists } from '../lib/git.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MANIFEST_REL = 'system/manifest.json';
@@ -317,6 +322,52 @@ export function manifestSignatureOk(manifestBuf, sigText, keyText) {
   }
 }
 
+const MIGRATION_PATH = /^system\/scripts\/migrations\/[^/]+\.mjs$/;
+
+/** The one-sentence description in a migration script: "// ab-migration: <sentence>" within its first 3 lines. */
+export function migrationSummary(file) {
+  try {
+    for (const line of readFileSync(file, 'utf8').split(/\r?\n/, 3)) {
+      const m = line.match(/^\/\/\s*ab-migration:\s*(\S.*?)\s*$/);
+      if (m) return m[1];
+    }
+  } catch {
+    /* fall through */
+  }
+  return '(no description)';
+}
+
+const migrationId = (path) => path.slice(path.lastIndexOf('/') + 1);
+
+/** state/migrations.json: { schema: 1, applied: [{ id, at, tag, baseline? }] }. A missing or unreadable file is an empty record. */
+function readMigrationRecord() {
+  const record = readJson(rootPath('state', 'migrations.json'), null);
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return { schema: 1, applied: [] };
+  return { ...record, schema: 1, applied: Array.isArray(record.applied) ? record.applied.filter((a) => a && typeof a.id === 'string') : [] };
+}
+
+/**
+ * The upgrade scripts this copy already has built in. A fresh install has no record, because nothing has ever run an
+ * upgrade, but its own manifest lists the scripts it came with and its notes and settings already have their shape.
+ * Without this, the first update would tell every new person about upgrades to data they never had. An install from
+ * 0.1 is not fooled: its manifest lists no upgrade scripts. A script counts only when the file on this computer is
+ * exactly the one the manifest lists, so a changed or stray file is never taken for one that came with the install.
+ */
+function baselineMigrations(record) {
+  if (record.applied.length > 0) return [];
+  const installed = normaliseManifest(readJson(rootPath('system', 'manifest.json'), {}));
+  return [...installed.files]
+    .filter(([path, entry]) => MIGRATION_PATH.test(path) && fileMatchesSha(rootPath(...path.split('/')), path, entry.sha256))
+    .map(([path]) => migrationId(path))
+    .sort();
+}
+
+/** The restore point for this update: the git tag apply-safe makes before it changes anything. */
+function hasRestorePoint(tag) {
+  const root = projectRoot();
+  return gitInstalled() && isRepo(root) && tagExists(root, `pre-update-${tag}`);
+}
+
 export async function plan(tag, opts) {
   const rel = readJson(rootPath('system', 'release.json'), {}) || {};
   const repo = opts.repo || rel.repo;
@@ -446,13 +497,26 @@ export async function plan(tag, opts) {
   if (changelog) writeFileSync(join(dir, 'CHANGELOG.md'), changelog);
   writeFileSync(join(dir, 'new-manifest.json'), fetched.raw);
 
+  // Upgrades to the person's notes and settings that finish will run, so the plan can say so before they agree.
+  const record = readMigrationRecord();
+  const baseline = baselineMigrations(record);
+  const done = new Set([...record.applied.map((a) => a.id), ...baseline]);
+  const pending = [];
+  for (const path of [...next.files.keys()].sort()) {
+    if (!MIGRATION_PATH.test(path)) continue;
+    const id = migrationId(path);
+    if (done.has(id) || files.some((f) => f.path === path && f.action === 'rejected')) continue;
+    const staged = join(dir, 'new', ...path.split('/'));
+    pending.push({ id, summary: migrationSummary(existsSync(staged) ? staged : rootPath(...path.split('/'))) });
+  }
+
   const summary = {};
   for (const f of files) summary[f.action] = (summary[f.action] || 0) + 1;
   const result = {
     schema: 1, ok: errors.length === 0, tag, created: new Date().toISOString(),
     from: { version: rel.version || null, tag: rel.tag || null },
     to: { version: fetched.parsed.version || null, tag: fetched.parsed.tag || tag },
-    source: src.label, stage_dir: dir, changelog: Boolean(changelog), signature, summary, errors, files,
+    source: src.label, stage_dir: dir, changelog: Boolean(changelog), signature, summary, errors, files, migrations_pending: pending, migrations_baseline: baseline,
     code_changes: files.filter((f) => f.class === 'code' && ['replace', 'add'].includes(f.action)).map((f) => ({ path: f.path, action: f.action })),
   };
   writeJson(join(dir, 'plan.json'), result);
@@ -500,14 +564,27 @@ export function applySafe(tag, opts = {}) {
     staged.set(f.path, buf);
   }
 
-  // 2. A safety net: save everything, then tag it so any update can be undone.
+  // 2. A safety net: save everything, then tag it so any update can be undone. A tag that exists already (apply-safe
+  //    run again after a stopped finish) is kept: it marks the state before the first run, which is the one to go back to.
   const notes = [];
   let safetyTag = null;
-  if (gitInstalled() && isRepo(projectRoot())) {
+  if (!gitInstalled()) {
+    notes.push('There is no restore point, because Git is not installed on this computer.');
+  } else if (!isRepo(projectRoot())) {
+    notes.push('There is no restore point, because this folder is not saved with Git.');
+  } else {
     if (!opts.noCommit) runGitAuto(['commit']);
     const t = createTag(projectRoot(), `pre-update-${tag}`);
     if (t.ok) safetyTag = `pre-update-${tag}`;
-    else notes.push(`Could not create the safety tag (${t.error || 'unknown reason'}).`);
+    else notes.push(`There is no restore point, because the safety tag could not be created (${t.error || 'unknown reason'}).`);
+  }
+  // The upgrades listed in the plan rewrite the person's notes and settings. Without a restore point they do not run,
+  // and neither does anything else: stop now, while no file has been touched, rather than half-way.
+  if (!safetyTag && Array.isArray(p.migrations_pending) && p.migrations_pending.length > 0) {
+    return {
+      ok: false, no_restore_point: true, tag, safety_tag: null, notes,
+      error: 'I could not save a restore point, and this update has upgrades to your notes and settings, so I changed nothing. Run /health-check to see what is wrong with Git, then try the update again.',
+    };
   }
 
   // 3. Apply. release.json goes last, so a half-finished run never claims the new version.
@@ -570,6 +647,7 @@ export function finish(tag, opts = {}) {
   const applied = readJson(join(dir, 'applied.json'), null);
   if (!p || !applied) return { ok: false, error: `Run apply-safe ${tag} first.` };
   if (!applied.ok) return { ok: false, error: 'apply-safe reported failures, so the update is not finished. Fix them and run apply-safe again.' };
+  const safetyTag = hasRestorePoint(tag) ? `pre-update-${tag}` : null;
 
   // The staged release manifest is what says which migrations are real (and what their checksums are).
   const stagedManifestText = existsSync(join(dir, 'new-manifest.json')) ? readFileSync(join(dir, 'new-manifest.json'), 'utf8') : null;
@@ -585,31 +663,46 @@ export function finish(tag, opts = {}) {
   const root = projectRoot();
   const migDir = rootPath('system', 'scripts', 'migrations');
   const doneFile = rootPath('state', 'migrations.json');
-  const record = readJson(doneFile, { schema: 1, applied: [] }) || { schema: 1, applied: [] };
-  if (!Array.isArray(record.applied)) record.applied = [];
+  const record = readMigrationRecord();
   const ran = [];
   const skipped = [];
-  if (existsSync(migDir)) {
-    const names = readdirSync(migDir).filter((n) => n.endsWith('.mjs')).sort();
-    for (const name of names) {
-      if (record.applied.some((a) => a.id === name)) continue;
-      // A script that is not in the verified manifest (or does not match it) is never run.
-      const entry = listed.get(`system/scripts/migrations/${name}`);
-      if (!entry || !fileMatchesSha(join(migDir, name), `system/scripts/migrations/${name}`, entry.sha256)) {
-        skipped.push(name);
-        continue;
-      }
-      const res = spawnSync(process.execPath, [join(migDir, name)], {
-        cwd: root, encoding: 'utf8', timeout: 300_000, windowsHide: true,
-        env: { ...process.env, CLAUDE_PROJECT_DIR: root, ALTERBRAIN_UPDATE_TAG: tag },
-      });
-      if (res.status !== 0) {
-        return { ok: false, error: `Migration ${name} failed, so the update is not finished.`, migration: name, detail: `${res.stderr || res.stdout || ''}`.trim().slice(0, 500), migrations_run: ran };
-      }
-      record.applied.push({ id: name, at: new Date().toISOString(), tag });
-      writeJson(doneFile, record);
-      ran.push(name);
+  const notes = {};
+  const baseline = baselineMigrations(record);
+  const names = existsSync(migDir) ? readdirSync(migDir).filter((n) => n.endsWith('.mjs')).sort() : [];
+  // Work out first what will run. A script that is not in the verified manifest (or does not match it) is never run.
+  const todo = [];
+  for (const name of names) {
+    if (record.applied.some((a) => a.id === name) || baseline.includes(name)) continue;
+    const entry = listed.get(`system/scripts/migrations/${name}`);
+    if (!entry || !fileMatchesSha(join(migDir, name), `system/scripts/migrations/${name}`, entry.sha256)) skipped.push(name);
+    else todo.push(name);
+  }
+  // Upgrades rewrite notes and settings, so they run only with a restore point. Nothing has been written yet.
+  if (todo.length > 0 && !safetyTag) {
+    return {
+      ok: false, no_restore_point: true, tag, safety_tag: null, migrations_pending: todo,
+      error: 'I have no restore point, so I did not change your notes or settings. Run /health-check to see what is wrong with Git, then finish the update again.',
+    };
+  }
+  // A fresh install is already in the new shape: record the scripts it came with as done, without running them.
+  if (baseline.length > 0) {
+    const installedTag = normaliseManifest(readJson(rootPath('system', 'manifest.json'), {})).tag || null;
+    for (const id of baseline) record.applied.push({ id, at: new Date().toISOString(), tag: installedTag, baseline: true });
+    writeJson(doneFile, record);
+  }
+  for (const name of todo) {
+    const res = spawnSync(process.execPath, [join(migDir, name)], {
+      cwd: root, encoding: 'utf8', timeout: 300_000, windowsHide: true,
+      env: { ...process.env, CLAUDE_PROJECT_DIR: root, ALTERBRAIN_UPDATE_TAG: tag },
+    });
+    if (res.status !== 0) {
+      const detail = `${res.stderr || res.stdout || (res.error && res.error.message) || ''}`.trim().slice(0, 500);
+      return { ok: false, error: `The upgrade ${name} stopped, so the update is not finished.`, migration: name, detail, safety_tag: safetyTag, migrations_run: ran, migration_notes: notes };
     }
+    record.applied.push({ id: name, at: new Date().toISOString(), tag });
+    writeJson(doneFile, record);
+    ran.push(name);
+    notes[name] = String(res.stdout || '').trim().slice(0, 2000);
   }
 
   // 2. The release manifest becomes the new base for the next update.
@@ -635,7 +728,7 @@ export function finish(tag, opts = {}) {
   if (!opts.noCommit && gitInstalled() && isRepo(root)) runGitAuto(['commit']);
 
   const out = {
-    ok: !doctor.skipped ? doctor.ok : true, tag, migrations_run: ran, migrations_skipped: skipped, doctor,
+    ok: skipped.length === 0 && (!doctor.skipped ? doctor.ok : true), tag, safety_tag: safetyTag, migrations_run: ran, migration_notes: notes, migrations_skipped: skipped, doctor,
     still_to_merge: (p.files || []).filter((f) => f.action === 'propose-merge').map((f) => f.path),
     finished: today(),
   };
@@ -688,6 +781,11 @@ function printPlan(r) {
     console.log(`\nCode files that run on your computer (hooks, scripts, settings): ${r.code_changes.length}. Look through this list before you apply:`);
     for (const c of r.code_changes) console.log(`  * ${c.path} (${c.action === 'add' ? 'new' : 'replaced'})`);
   }
+  if (r.migrations_pending && r.migrations_pending.length) {
+    console.log('\nUpgrades to your notes and settings (run at the end):');
+    for (const m of r.migrations_pending) console.log(`  - ${m.summary}`);
+    console.log('  A restore point is saved first. If an upgrade does not apply to you, it finds nothing to change.');
+  }
   if (r.signature === 'verified') console.log('\nThe release manifest signature is verified.');
   else if (r.signature === 'unsigned') console.log('\nThis release is not signed, so only its checksums were checked. Apply it only if you trust where it came from.');
   const same = (r.summary.unchanged || 0);
@@ -737,6 +835,7 @@ async function main(argv) {
         if (r.error) {
           console.log(`! ${r.error}`);
           for (const e of r.errors || []) console.log(`  - ${e.path}: ${e.error}`);
+          for (const n of r.notes || []) console.log(`  ${n}`);
           return;
         }
         console.log(`Safe changes applied for ${opts.tag}.`);
@@ -754,10 +853,19 @@ async function main(argv) {
     return emit(r, () => {
       if (r.error) {
         console.log(`! ${r.error}${r.detail ? `\n  ${r.detail}` : ''}`);
+        if (r.migrations_run && r.migrations_run.length) console.log(`  Already done: ${r.migrations_run.join(', ')}`);
         return;
       }
       console.log(`Update ${opts.tag} finished.`);
-      if (r.migrations_run.length) console.log(`Upgrades run: ${r.migrations_run.join(', ')}`);
+      if (r.migrations_run.length) {
+        if (r.safety_tag) console.log(`Your restore point is the git tag ${r.safety_tag}.`);
+        console.log('Upgrades run:');
+        for (const id of r.migrations_run) {
+          console.log(`  - ${id}`);
+          for (const line of String((r.migration_notes || {})[id] || '').split(/\r?\n/).filter(Boolean)) console.log(`      ${line}`);
+        }
+      }
+      for (const id of r.migrations_skipped) console.log(`Skipped upgrade ${id}: it is not part of this release, so it was not run.`);
       console.log(r.doctor.skipped ? 'Health check skipped.' : r.doctor.ok ? 'Health check passed.' : 'Health check found problems: run node system/scripts/doctor.mjs to see them.');
       if (r.still_to_merge.length) console.log(`${r.still_to_merge.length} edited file(s) still need a merge.`);
     });

@@ -17,11 +17,11 @@ How you write in this language. The `ghostwriter` agent reads this file plus 3-5
 
 ## Registers
 
-How formal you are depends on the channel and who you are writing to. Channels use the names in `config/autonomy.json`: `email`, `linkedin`, `messaging`, `social`, `jobs` (cover letters and application answers). Recipient classes (the same seven as `system/packs/twin/drafting.md`): `faculty` (professors, lecturers, teaching assistants) · `school-staff` (programme office, admissions, careers centre, IT) · `recruiter` (recruiters, hiring managers) · `professional` (alumni, colleagues, networking) · `peer` (classmates, teammates, study group) · `close` (friends and family; only if you opt in) · `group` (many recipients, mailing lists).
+How formal you are depends on the channel and who you are writing to. Channels use the names in `config/autonomy.json`: `email`, `linkedin`, `messaging`, `social`, `jobs` (cover letters and application answers). Recipient classes (defined in `system/packs/twin/drafting.md` §3; keep only the ones you write to): `faculty` (teachers, lecturers, tutors, supervisors, mentors) · `school-staff` (programme or provider staff) · `recruiter` (recruiters, hiring managers) · `professional` (colleagues, managers, clients, alumni, contacts) · `peer` (classmates, course-mates, team-mates) · `close` (friends and family; only if you opt in) · `group` (many recipients, mailing lists).
 
 | Channel | Recipient class | Register | Greeting | Sign-off | Typical length |
 |---|---|---|---|---|---|
-| email | faculty | <!-- formal --> | <!-- Dear Professor [Surname], --> | <!-- Kind regards, Alex --> | <!-- 3-6 sentences --> |
+| email | faculty | <!-- formal --> | <!-- Dear [Name], --> | <!-- Kind regards, Alex --> | <!-- 3-6 sentences --> |
 | email | recruiter | | | | |
 | email | professional | | | | |
 | email | school-staff | | | | |

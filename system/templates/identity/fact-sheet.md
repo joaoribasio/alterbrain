@@ -25,7 +25,7 @@ This is your private brain, so it may hold sensitive facts (health, family, nati
 
 <!-- Example rows (synthetic persona "Alex Doe"). Onboarding (M2) adds confirmed facts as rows directly under the table header (no blank line). Never use these rows as facts.
 | Full name | Alex Doe | public | you told me | 2026-10-07 |
-| Programme | Full-time MBA, Class of 2027 | public | [[Admission letter]] | 2026-10-07 |
+| Current focus | Part-time certificate in data analytics, finishing in March | public | you told me | 2026-10-07 |
 | City | Rotterdam, the Netherlands | public | you told me | 2026-10-07 |
 | Previous role | Senior Analyst, consumer goods strategy (4 years) | public | [[CV 2026]] | 2026-10-07 |
 | Languages | English (fluent), Spanish (native), Dutch (A2) | public | [[CV 2026]] | 2026-10-07 |

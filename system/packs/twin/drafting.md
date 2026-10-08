@@ -47,11 +47,11 @@ Every recipient gets one class. The same class names tag the exemplars (see `voi
 
 | class | who | default register |
 |---|---|---|
-| `faculty` | professors, lecturers, teaching assistants | formal, warm, brief |
-| `school-staff` | programme office, admissions, careers centre, IT | polite, to the point |
+| `faculty` | teachers, lecturers, tutors, supervisors, mentors | formal, warm, brief |
+| `school-staff` | programme or provider staff (admissions, careers, IT, learner support) | polite, to the point |
 | `recruiter` | recruiters, hiring managers, interviewers | professional, confident, precise |
-| `professional` | alumni, colleagues, companies, networking contacts | professional, friendly |
-| `peer` | classmates, teammates, study group | casual, direct |
+| `professional` | colleagues, managers, clients, alumni, contacts | professional, friendly |
+| `peer` | classmates, course-mates, team-mates, same-level colleagues | casual, direct |
 | `close` | friends, family | personal, relaxed |
 | `group` | many recipients, mailing lists | clear, structured, neutral |
 
@@ -234,6 +234,62 @@ Short summary from mail-reader, in our words, not theirs. Leave out other people
 - Language: English (the sender wrote in English).
 - Register: faculty, formal. Exemplars: E03, E07, E12.
 - Skipped on purpose: (anything not answered, and why).
+```
+
+A second example, outside study (persona Jordan Doe, a colleague asking about timing). The layout is the same; only the content differs:
+
+```markdown
+---
+type: "draft"
+created: "2026-10-08"
+status: "draft"
+channel: "email"
+to: "Sam Rivera <sam.rivera@example.com>"
+lang: "en"
+subject: "Re: Vendor review, timing"
+in_reply_to: "<thread id this answers>"
+recipient_class: "professional"
+thread_id: "<id from mail-reader>"
+gmail_draft_id: ""
+voice: "ok"
+exemplars: ["E05", "E09", "E14"]
+facts_used:
+  - "Review moved to Friday 16 October | thread"
+  - "I send the shortlist and cost comparison on Thursday evening | chat"
+facts_ok: true
+facts_flagged: []
+slop_check: "pass"
+---
+# Reply to Sam Rivera: Vendor review, timing
+
+## Message
+
+**To:** Sam Rivera <sam.rivera@example.com>
+**Subject:** Re: Vendor review, timing
+
+Hi Sam,
+
+Friday works for me. I will send the shortlist and the cost comparison on Thursday evening, so you have them before the review.
+
+Can you confirm that Priya joins? I would like her view on the delivery risks.
+
+Best,
+Jordan
+
+## Facts used
+
+| # | Claim in the draft | Source | Visibility | Status |
+|---|---|---|---|---|
+| 1 | The review is on Friday 16 October | thread | n/a | ok |
+| 2 | I send the shortlist and cost comparison on Thursday evening | chat | n/a | ok (commitment from the user's own words) |
+
+## Needs your OK
+
+- Nothing.
+
+## Notes
+
+- Language: English. Register: professional, friendly. Exemplars: E05, E09, E14.
 ```
 
 Gmail tools (email drafts made by the `reply` skill): a draft is created with `mcp__claude_ai_Gmail__create_draft` (changed with `update_draft`). The sending tools `send_message`, `reply` and `forward` are blocked by the `outbound_guard` hook at level `draft`; never call them. Reading and searching mail is done by `mail-reader` with whatever read/search tools the Gmail connector lists (check with `/mcp`).

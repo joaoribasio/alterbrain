@@ -1,10 +1,14 @@
 // Alterbrain lint (spec sections 6, 7, 8, 15, 16).
 //
-//   node system/scripts/validate.mjs [--json] [--write-manifest [--sign-key <ed25519-private-key.pem>]]
+//   node system/scripts/validate.mjs [--json] [--release] [--write-manifest [--sign-key <ed25519-private-key.pem>]]
 //
 // Checks: skill and agent frontmatter, blueprint sections, routing.json,
-// mcp.json (the catalogue) and .claude/settings.json (valid JSON).
-// --write-manifest regenerates system/manifest.json (release tooling).
+// mcp.json (the catalogue), the upgrade scripts in system/scripts/migrations/, the release notes they need in
+// CHANGELOG.md ("### Upgrades" and "### Moved"), the documents the migration policy cites (an ADR, the SPEC) and
+// .claude/settings.json (valid JSON).
+// --write-manifest regenerates system/manifest.json (development and release tooling).
+// --release treats gaps in the release notes and documents as errors (a release gate). --sign-key implies it and signs nothing until
+// the notes are complete.
 //
 // Output with --json: { ok, errors: [], warnings: [], checked: {...} }
 // Exit codes: 0 no errors (warnings are fine), 1 errors found, 2 wrong usage.
@@ -13,7 +17,9 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { projectRoot, isMainModule } from '../lib/paths.mjs';
 import { splitFrontmatter } from '../lib/frontmatter.mjs';
-import { signManifest, writeManifest } from '../lib/manifest.mjs';
+import { manifestEntries, signManifest, writeManifest } from '../lib/manifest.mjs';
+import { git } from '../lib/git.mjs';
+import { cmpVersion } from '../lib/proc.mjs';
 import { validateLimits } from '../lib/rateguard.mjs';
 import { extractEntries, isSafeEnvValue } from './mcp-gen.mjs';
 
@@ -63,12 +69,22 @@ class Report {
   constructor() {
     this.errors = [];
     this.warnings = [];
+    this.blockers = []; // the errors that only a release run raises (incomplete release notes)
   }
   error(where, msg) {
     this.errors.push(`${where}: ${msg}`);
   }
   warn(where, msg) {
     this.warnings.push(`${where}: ${msg}`);
+  }
+  /** A gap in the release notes: a warning while developing, an error (and a blocker) in a release run. */
+  releaseGap(release, where, msg) {
+    if (!release) {
+      this.warn(where, msg);
+      return;
+    }
+    this.error(where, msg);
+    this.blockers.push(`${where}: ${msg}`);
   }
 }
 
@@ -443,6 +459,203 @@ function checkCatalogueMarkdown(root, r, entries) {
   }
 }
 
+// ---------------------------------------------------------------- upgrade scripts (migrations)
+const MIGRATION_NAME_RE = /^(\d{4})-[a-z0-9]+(-[a-z0-9]+)*\.mjs$/;
+const MIGRATION_LINE_RE = /^\/\/\s*ab-migration:\s*\S/;
+
+/**
+ * system/scripts/migrations/NNNN-short-name.mjs (policy: .claude/rules/framework-dev.md, "Changing user data or config").
+ * update.mjs runs them by name order, once each, so a wrong name, a repeated number or a missing description would
+ * quietly change what an update does. A test must exist for each one when the project has a tests/ folder.
+ */
+function checkMigrations(root, r) {
+  const dir = join(root, 'system', 'scripts', 'migrations');
+  if (!existsSync(dir)) return 0;
+  const hasTests = existsSync(join(root, 'tests'));
+  const byNumber = new Map();
+  let count = 0;
+  for (const e of listDir(dir).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
+    if (!e.isFile()) continue;
+    const where = `system/scripts/migrations/${e.name}`;
+    if (!e.name.endsWith('.mjs')) {
+      if (e.name.toLowerCase() !== 'readme.md') r.warn(where, 'only .mjs files are run as upgrades, so this file is never run.');
+      continue;
+    }
+    count++;
+    const m = e.name.match(MIGRATION_NAME_RE);
+    if (!m) {
+      r.error(where, 'the file name must look like 0001-short-name.mjs: four digits, a dash, then lower-case words joined by dashes.');
+    } else {
+      byNumber.set(m[1], [...(byNumber.get(m[1]) || []), e.name]);
+    }
+    const head = readText(join(dir, e.name)).split(/\r?\n/, 3);
+    if (!head.some((line) => MIGRATION_LINE_RE.test(line))) {
+      r.error(where, 'the first three lines must include a comment like "// ab-migration: One plain sentence that says what this upgrade does." (the update shows it to the person before they agree).');
+    }
+    if (hasTests) {
+      const base = e.name.replace(/\.mjs$/, '');
+      if (!existsSync(join(root, 'tests', 'scripts', 'migrations', `${base}.test.mjs`))) {
+        r.error(where, `this upgrade has no test. Add tests/scripts/migrations/${base}.test.mjs, using the fixtures in tests/fixtures/migrations/.`);
+      }
+    }
+  }
+  for (const [number, names] of byNumber) {
+    if (names.length > 1) r.error('system/scripts/migrations', `the number ${number} is used by ${names.join(' and ')}. Each upgrade needs its own number, and they run in number order.`);
+  }
+  return count;
+}
+
+// ---------------------------------------------------------------- release notes (CHANGELOG)
+const RELEASE_TAG_RE = /^v\d+\.\d+\.\d+$/;
+// Files that no note, skill or helper of a person points to: their removal needs no line under "### Moved".
+const NOT_LISTED_AS_MOVED = /^(tests|\.github)\//;
+
+/**
+ * The "## " sections of a changelog with their "### " parts: [{ version, parts: { Upgrades: "...text...", Moved: "..." } }].
+ * `version` is "Unreleased" or the number in "## [0.2.0] - 2026-10-08" / "## 0.2.0".
+ */
+export function changelogSections(text) {
+  const sections = [];
+  let section = null;
+  let part = null;
+  for (const line of String(text).split(/\r?\n/)) {
+    const h2 = line.match(/^##\s+\[?([^\]\s]+)\]?/);
+    const h3 = line.match(/^###\s+(.+?)\s*$/);
+    if (h2) {
+      section = { version: h2[1], parts: {} };
+      sections.push(section);
+      part = null;
+    } else if (h3 && section) {
+      part = h3[1];
+      section.parts[part] = section.parts[part] || '';
+    } else if (section && part) {
+      section.parts[part] += `${line}\n`;
+    }
+  }
+  return sections;
+}
+
+/**
+ * The framework files of the release before this one: the manifest at the newest "vX.Y.Z" git tag that is not newer
+ * than system/release.json. (system/manifest.json on disk cannot stand in: it is rewritten for every change.) Returns
+ * { tag, version, paths } or null when there is no git history or no such tag.
+ */
+function previousRelease(root) {
+  if (!existsSync(join(root, '.git'))) return null;
+  const release = existsSync(join(root, 'system', 'release.json')) ? readJsonStrict(join(root, 'system', 'release.json')).data : null;
+  const version = release && release.version ? String(release.version) : null;
+  const listed = git(['tag', '--list', 'v*'], { cwd: root });
+  if (!listed.ok) return null;
+  const tags = listed.stdout.split(/\r?\n/).map((t) => t.trim())
+    .filter((t) => RELEASE_TAG_RE.test(t) && (!version || cmpVersion(t, version) <= 0))
+    .sort((a, b) => cmpVersion(b, a));
+  for (const tag of tags) {
+    const shown = git(['show', `${tag}:system/manifest.json`], { cwd: root });
+    if (!shown.ok) continue;
+    try {
+      return { tag, version: tag.slice(1), paths: manifestEntries(JSON.parse(shown.stdout.replace(/^﻿/, ''))).map((e) => e.path) };
+    } catch {
+      /* try the next older tag */
+    }
+  }
+  return null;
+}
+
+/**
+ * The CHANGELOG is what the update skill reads to tell a person what will happen to their notes and settings, so a
+ * release must carry it (policy: .claude/rules/framework-dev.md, "Changing user data or config"):
+ *   - every upgrade script is described by name under a "### Upgrades" heading, and
+ *   - every framework file of the previous release that is gone now is listed under "### Moved" (old path, new path or
+ *     "removed"; a folder path covers what is inside it).
+ * While developing these are warnings; `--release` (and signing) turns them into errors.
+ */
+function checkReleaseNotes(root, r, release) {
+  const dir = join(root, 'system', 'scripts', 'migrations');
+  const stems = listDir(dir).filter((e) => e.isFile() && MIGRATION_NAME_RE.test(e.name)).map((e) => e.name.replace(/\.mjs$/, '')).sort();
+  const previous = previousRelease(root);
+  const removed = previous
+    ? previous.paths.filter((p) => !NOT_LISTED_AS_MOVED.test(p) && p !== 'system/manifest.json' && !existsSync(join(root, ...p.split('/')))).sort()
+    : [];
+  if (stems.length === 0 && removed.length === 0) {
+    if (release && !previous && existsSync(join(root, '.git'))) r.warn('CHANGELOG.md', 'no earlier release tag (vX.Y.Z with system/manifest.json) was found, so removed or moved files were not checked against "### Moved".');
+    return;
+  }
+  const file = join(root, 'CHANGELOG.md');
+  if (!existsSync(file)) {
+    if (release) r.releaseGap(true, 'CHANGELOG.md', 'the file is missing. It must describe each upgrade script under "### Upgrades" and each moved framework file under "### Moved".');
+    return;
+  }
+  const sections = changelogSections(readText(file));
+  const joined = (name, keep = () => true) => sections.filter(keep).map((s) => s.parts[name] || '').join('\n');
+
+  const upgrades = joined('Upgrades');
+  const undescribed = stems.filter((s) => !upgrades.includes(s));
+  if (undescribed.length) {
+    r.releaseGap(release, 'CHANGELOG.md', `${undescribed.length === 1 ? 'the upgrade script' : 'the upgrade scripts'} ${undescribed.join(', ')} ${undescribed.length === 1 ? 'is' : 'are'} not described under "### Upgrades". Add one plain line for each, naming it: the update skill shows that list before the person says yes (and for the first update from 0.1 it is the only list there is).`);
+  }
+
+  if (previous && removed.length) {
+    const newer = (s) => /^unreleased$/i.test(s.version) || cmpVersion(s.version, previous.version) > 0;
+    const moved = joined('Moved', newer).replace(/\\/g, '/').toLowerCase();
+    // A path counts when it stands on its own in the text: not the end of a longer path (system/packs/mba/lenses/x.md is
+    // not system/packs/lenses/x.md) and not the start of one (a folder named in "system/packs/mba/x.md" is not mentioned).
+    const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const mentions = (path, folder) => new RegExp(`(?<![\\w./-])${escape(path)}${folder ? '/?' : ''}(?![\\w${folder ? '/' : ''}~-]|\\.\\w)`).test(moved);
+    const covered = (p) => {
+      const low = p.toLowerCase();
+      if (mentions(low, false)) return true;
+      const parts = low.split('/');
+      for (let n = parts.length - 1; n >= 2; n--) if (mentions(parts.slice(0, n).join('/'), true)) return true; // a folder covers what is inside it
+      return false;
+    };
+    const missing = removed.filter((p) => !covered(p));
+    if (missing.length) {
+      const shown = missing.slice(0, 5).join(', ');
+      r.releaseGap(release, 'CHANGELOG.md', `${missing.length} framework file${missing.length === 1 ? '' : 's'} of ${previous.tag} ${missing.length === 1 ? 'is' : 'are'} gone but not listed under "### Moved" (${shown}${missing.length > 5 ? `, and ${missing.length - 5} more` : ''}). Give each its old path and its new place, or say it was removed: the update skill and the check of a person's own skills use that list.`);
+    }
+  }
+}
+
+/** Relative paths of the files under `dirRel` (to a depth of 3) whose name ends with one of `exts`. */
+function filesUnder(root, dirRel, exts, depth = 3) {
+  const out = [];
+  const walk = (rel, left) => {
+    for (const e of listDir(join(root, ...rel.split('/')))) {
+      const child = `${rel}/${e.name}`;
+      if (e.isDirectory() && left > 0) walk(child, left - 1);
+      else if (e.isFile() && exts.some((x) => e.name.endsWith(x))) out.push(child);
+    }
+  };
+  walk(dirRel, depth);
+  return out;
+}
+
+/**
+ * The documents the migration policy leans on must exist before a release: an ADR that a rule or script cites has to be
+ * in docs/adr/, and once there are upgrade scripts the SPEC (the binding contract) has to describe the mechanism
+ * (state/migrations.json). Warnings while developing, errors for a release (see checkReleaseNotes).
+ */
+function checkReleaseDocs(root, r, release) {
+  const adrDir = join(root, 'docs', 'adr');
+  if (existsSync(adrDir)) {
+    const known = new Set(listDir(adrDir).map((e) => (e.name.match(/^(\d{4})-/) || [])[1]).filter(Boolean));
+    const cited = new Map();
+    for (const rel of [...filesUnder(root, '.claude/rules', ['.md']), ...filesUnder(root, 'system/lib', ['.mjs']), ...filesUnder(root, 'system/scripts', ['.mjs'])]) {
+      for (const m of readText(join(root, ...rel.split('/'))).matchAll(/\bADR\s+(\d{4})\b/g)) {
+        if (!known.has(m[1])) cited.set(m[1], new Set([...(cited.get(m[1]) || []), rel]));
+      }
+    }
+    for (const [number, files] of [...cited].sort()) {
+      r.releaseGap(release, 'docs/adr', `ADR ${number} is cited in ${[...files].sort().join(', ')} but there is no docs/adr/${number}-*.md. Write it, or the citation leads nowhere.`);
+    }
+  }
+  const spec = join(root, 'docs', 'SPEC.md');
+  const hasScripts = listDir(join(root, 'system', 'scripts', 'migrations')).some((e) => e.isFile() && MIGRATION_NAME_RE.test(e.name));
+  if (hasScripts && existsSync(spec) && !/migrations\.json/.test(readText(spec))) {
+    r.releaseGap(release, 'docs/SPEC.md', 'the SPEC (the binding contract) does not mention state/migrations.json, so the upgrade scripts, the restore point and the fallbacks that the migration policy requires are not part of it. Add the section.');
+  }
+}
+
 // ---------------------------------------------------------------- attribution
 /** Every file UPSTREAM-SYNC.md lists as "adapted" must carry its attribution line (spec section 18). */
 function checkAttribution(root, r) {
@@ -462,7 +675,7 @@ function checkAttribution(root, r) {
 
 // ---------------------------------------------------------------- main check
 /** Run every check against a project. Returns { ok, errors, warnings, checked }. */
-export function validateProject(root = projectRoot()) {
+export function validateProject(root = projectRoot(), { release = false } = {}) {
   const r = new Report();
   const checked = {};
   checked.skills = checkSkills(root, r);
@@ -471,6 +684,9 @@ export function validateProject(root = projectRoot()) {
   checked.routing = checkRouting(root, r);
   checked.mcp_entries = checkCatalogue(root, r);
   checked.limits_servers = checkLimits(root, r);
+  checked.migrations = checkMigrations(root, r);
+  checkReleaseNotes(root, r, release);
+  checkReleaseDocs(root, r, release);
   checkAttribution(root, r);
 
   const settings = join(root, '.claude', 'settings.json');
@@ -479,19 +695,23 @@ export function validateProject(root = projectRoot()) {
     if (res.error) r.error('.claude/settings.json', `not valid JSON (${res.error}).`);
   }
   if (checked.skills === 0) r.warn('.claude/skills', 'no skills found.');
-  return { ok: r.errors.length === 0, errors: r.errors, warnings: r.warnings, checked };
+  return { ok: r.errors.length === 0, errors: r.errors, warnings: r.warnings, release_blockers: r.blockers, checked };
 }
 
 const USAGE = `validate: checks that skills, agents, blueprints and catalogues are well formed
 
-  node system/scripts/validate.mjs [--json] [--write-manifest]
+  node system/scripts/validate.mjs [--json] [--release] [--write-manifest]
 
-  --write-manifest   rewrite system/manifest.json (for releases)
-  --sign-key <pem>   with --write-manifest: also sign it (writes system/manifest.sig; the public key goes in system/release.json as signing_public_key)
+  --release          release gate: gaps in CHANGELOG.md (an upgrade script not described under "### Upgrades", a removed
+                     framework file not listed under "### Moved"), a cited ADR that does not exist, and a SPEC that does not
+                     describe the upgrade mechanism are errors, not warnings
+  --write-manifest   rewrite system/manifest.json (development and releases)
+  --sign-key <pem>   with --write-manifest: also sign it (writes system/manifest.sig; the public key goes in system/release.json as signing_public_key).
+                     Implies --release: nothing is written or signed while the release notes are incomplete.
   --json             machine-readable output`;
 
 export function run(argv) {
-  const known = new Set(['--json', '--write-manifest', '--sign-key', '--help']);
+  const known = new Set(['--json', '--write-manifest', '--sign-key', '--release', '--help']);
   const signAt = argv.indexOf('--sign-key');
   const signKeyFile = signAt === -1 ? null : argv[signAt + 1];
   if (signAt !== -1 && (!signKeyFile || signKeyFile.startsWith('--') || !argv.includes('--write-manifest'))) {
@@ -511,10 +731,13 @@ export function run(argv) {
   }
   const json = argv.includes('--json');
   const root = projectRoot();
-  const result = validateProject(root);
+  const release = argv.includes('--release') || signAt !== -1;
+  const result = validateProject(root, { release });
+  // Never write (or sign) a release whose notes are incomplete.
+  const blocked = signAt !== -1 && result.release_blockers.length > 0;
 
   let manifest = null;
-  if (argv.includes('--write-manifest')) {
+  if (argv.includes('--write-manifest') && !blocked) {
     const m = writeManifest(root);
     manifest = { path: 'system/manifest.json', files: m.files.length };
     if (signKeyFile) {
@@ -537,6 +760,7 @@ export function run(argv) {
   console.log(
     `Checked ${c.skills} skill(s), ${c.agents} agent(s), ${c.blueprints} blueprint(s) and ${c.mcp_entries} catalogue entr${c.mcp_entries === 1 ? 'y' : 'ies'}.`,
   );
+  if (blocked) console.log('Nothing was written or signed: the release notes in CHANGELOG.md are incomplete (see below).');
   if (manifest) console.log(`Wrote ${manifest.path} (${manifest.files} files).${manifest.signed ? ` Signed it: ${manifest.signed}.` : ''}`);
   if (result.errors.length) {
     console.log(`\nProblems to fix (${result.errors.length}):`);

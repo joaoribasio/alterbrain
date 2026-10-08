@@ -16,7 +16,7 @@ Add-ons for `/jobs`. Pick the ones you want. Each is built the safe way: Alterbr
 Six optional upgrades:
 
 1. **Weekly scan routine.** Alterbrain runs `/jobs scan` for you once a week and leaves the shortlist and a task waiting. Example: on Monday morning your task list shows "Review the job shortlist (4 new)".
-2. **Pipeline view.** A table in Obsidian that shows every application by stage, with fit score, visa sponsor status, Dutch needs and deadline. Example: "Preparing (2), Applied (3), Interview (1)".
+2. **Pipeline view.** A table in Obsidian that shows every application by stage, with fit score, the country pack's check columns (Netherlands: sponsor, dutch, salary_check) and deadline. Example: "Preparing (2), Applied (3), Interview (1)".
 3. **LinkedIn, read-only (opt-in, risky).** Look at a few company or job pages on LinkedIn while you are logged in. Never sends, connects or posts. Example: "Read this LinkedIn job link and add it to my pipeline."
 4. **JobSpy (opt-in, risky).** A free Python tool that collects Indeed and Google Jobs results in one go. It runs through `uv`. Example: "Run JobSpy for 'operations analyst' in Utrecht and add the new ones to my scan."
 5. **Networking messages.** Drafts a short, honest note to a person at a company you are interested in (an alum, a hiring manager, a recruiter). You send it yourself. Example: "Draft a note to Sam Example at Harbourline Logistics, who I met at the careers fair."
@@ -51,9 +51,9 @@ Alterbrain asks these one at a time (`/clarify`, type `skill` or `automation`):
 
 1. Which of the six do you want first?
 2. For 1: which day and time? How many jobs should it keep each week? (Suggested: 10.) Which roles and cities? (Taken from `career.md`.)
-3. For 2: which columns matter to you? (Suggested: stage, company, role, fit, sponsor, Dutch, deadline.) Do you want a "closing soon" view?
+3. For 2: which columns matter to you? (Suggested: stage, company, role, fit, the country pack's check columns, deadline. For the Netherlands: sponsor, dutch, salary_check.) Do you want a "closing soon" view?
 4. For 3: do you accept the ban risk for your main account, in your own words? How many page reads a week? (Suggested: at most 20, never in bulk.) Would a safer route do instead, such as LinkedIn job-alert emails that Alterbrain reads?
-5. For 4: do you accept the risk of blocks, and the site terms? Which sites? (Suggested: Indeed NL and Google Jobs only.) How many results per search? (Suggested: 20.)
+5. For 4: do you accept the risk of blocks, and the site terms? Which sites? (Suggested: Indeed for your `jobs.country` and Google Jobs only.) How many results per search? (Suggested: 20.)
 6. For 5: who is the person, how do you know them, and what do you want from the message? (A question, an introduction, advice. Never "give me a job".) Which language?
 7. For 6: which application? Does the advert allow applying without an account? Are you happy to log in yourself first?
 
@@ -68,7 +68,7 @@ Written for the agent. Do each extra separately. For each: run `/clarify`, write
    - read today's date from the system;
    - run the `/jobs scan` workflow (`.claude/skills/jobs/workflows/scan.md`) with the saved search brief and **no questions**;
    - **skip the confirm step only for writing notes**; keep the note limit (default 10) and the four-task cap;
-   - if the Adzuna keys are missing, or the sponsor register cannot be downloaded, add one `#ab/jobs` task saying so and stop.
+   - if the Adzuna keys are missing, or the data a country check needs cannot be downloaded (for the Netherlands, the sponsor register), add one `#ab/jobs` task saying so and stop.
 3. Schedule it with the user's chosen route. For a cloud routine: prune the connectors to nothing the scan does not need, and no send or post tools at all.
 4. Record in `state/built.json`: name, schedule, date from the system.
 
@@ -76,10 +76,10 @@ Written for the agent. Do each extra separately. For each: run `/clarify`, write
 
 1. Read `vault/_views/Applications.base` and `.claude/skills/obsidian-bases/SKILL.md`.
 2. Add to the existing file (keep its current view):
-   - a table view "Pipeline" grouped by `stage`, with columns `company`, `role`, `fit`, `sponsor`, `dutch`, `salary_check`, `deadline`;
+   - a table view "Pipeline" grouped by `stage`, with columns `company`, `role`, `fit`, the country pack's check columns (Netherlands: `sponsor`, `dutch`, `salary_check`) and `deadline`;
    - a view "Closing soon": `deadline` set and within 14 days, stage not `applied`, `rejected` or `withdrawn`;
    - a view "Shortlisted": `stage == "shortlisted"`, sorted by `fit` descending.
-3. Open the file in Obsidian's Bases viewer if available, or check the YAML by eye. Property names must match the application notes written by `/jobs scan` (`fit`, `sponsor`, `dutch`, `salary_check`).
+3. Open the file in Obsidian's Bases viewer if available, or check the YAML by eye. Property names must match the application notes written by `/jobs scan` (`fit`, and the fields named in the country pack's `jobs.md` "Fields" section).
 4. Offer to add a link on `Home.md` only if the user agrees.
 
 ### 3. LinkedIn, read-only
@@ -104,7 +104,7 @@ Written for the agent. Do each extra separately. For each: run `/clarify`, write
    - run with `uv run --with python-jobspy search.py ...`;
    - take `--what`, `--where`, `--results` (max 30) and `--hours-old`;
    - search only the sites the user chose. **Never LinkedIn.** Suggested: `indeed` and `google`;
-   - for Indeed, set the country to the Netherlands as the README documents;
+   - for Indeed, set the country from `jobs.country` in `config/brain.json` as the README documents (JobSpy takes a country name, so map the two-letter code to it and ask the user if the code is not clear);
    - sleep a few seconds between sites, and stop on the first HTTP 429;
    - print JSON in the same shape as `adzuna.mjs` (`title, company, location, url, created, salary_min, salary_max, description_snippet, source`) with `source: "jobspy-<site>"`;
    - keep no cookies and no logins.

@@ -1,6 +1,6 @@
 ---
 name: framework
-description: "Applies a business framework from the user's wiki (for example Porter Five Forces or SWOT) to a real problem and writes a structured, cited analysis note. Use when the user wants to analyse a company, case, decision or assignment question with a named framework or asks which framework fits."
+description: "Applies a framework, model or method from the user's wiki (for example Porter's Five Forces or SWOT) to a real problem and writes a structured, cited analysis note. Use when the user wants to analyse a company, case, decision, project or assignment question with a named framework, model or method, or asks which one fits."
 model: sonnet
 effort: high
 argument-hint: "<framework name> <problem>"
@@ -8,7 +8,7 @@ argument-hint: "<framework name> <problem>"
 
 # Framework
 
-Take a framework from your wiki, apply it to a real problem, and write an analysis you can check.
+Take a framework, model or method from your wiki, apply it to a real problem, and write an analysis you can check.
 
 ## When to use
 
@@ -34,7 +34,7 @@ Take a framework from your wiki, apply it to a real problem, and write an analys
    3. **Data available**: search the vault for relevant source notes, case files and earlier analyses. Show what you found and ask if anything else exists (a file, a paste, a link to ingest).
    4. **Output**: a one-page memo, a table, bullet points for slides, or a section for a report. Default: a one-page memo with a table.
    5. **Where to save**: infer from context (see step 6). Only ask if there are two likely places.
-3. **Course rules.** If the result will go into a course folder, read that `course.md`. If `ai_policy` is `restricted`, `banned` or `unknown`, warn once in plain words: "This course may limit AI help with graded work. Do you want to continue?" Continue only on a yes. Never write that consent into any tracked file. If it is `allowed-with-disclosure`, offer a one-line disclosure sentence for the user.
+3. **Course rules (`system/core.md` rule 6).** Skip this step when the result does not go into a course folder or an assignment. Otherwise read that `course.md`. If `ai_policy` is `restricted`, `banned` or `unknown`, warn once in plain words: "This course may limit AI help with graded work. Do you want to continue?" Continue only on a yes. Never write that consent into any tracked file. If it is `allowed-with-disclosure`, offer a one-line disclosure sentence for the user. If it is `allowed` or `none-stated`, say nothing.
 4. **Read the inputs.** Read the framework page fully, then every source note, case file and data file you will use. Keep a list of them for the citations.
 5. **Do the analysis.** Follow the framework's own steps from its page, in order.
    - For each step give the finding, the evidence and a citation: `[Source: [[note]] | YYYY-MM-DD | confidence: high|medium|low]`.
@@ -44,7 +44,7 @@ Take a framework from your wiki, apply it to a real problem, and write an analys
 6. **Write the note.** Save to the first place that fits:
    1. the assignment or project folder the user named (`vault/10_projects/<folder>/`);
    2. the course folder (`vault/20_areas/courses/<slug>/`) if the problem belongs to a course;
-   3. otherwise a new folder `vault/10_projects/<YYYY> <topic slug>/`.
+   3. otherwise a new folder `vault/10_projects/<YYYY> <topic slug>/` (or the user's project folder, if the problem belongs to one of their projects).
    File name: `<Framework> - <Subject>.md` (Title Case). Use the layout in `references/note-layout.md`.
 7. **Check it.** Before showing the user, confirm: every factual claim has a citation or a label; all assumptions are in the Assumptions section; the output answers the question the user asked. Fix gaps first.
 8. **Show a short summary** (the answer, the two or three most important findings, the biggest assumption) and the path. Ask: "Want me to change the focus, add data, or try a second framework?"

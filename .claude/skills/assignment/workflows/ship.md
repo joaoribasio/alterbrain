@@ -1,14 +1,14 @@
-# /assignment ship: final checks, render, package for the LMS
+# /assignment ship: final checks, render, package for the course site
 
-Goal: the final files, checked against the limits and named the way the course wants, in `releases/`, plus a task for the user to submit them. Alterbrain never submits anything itself.
+Goal: the final files, checked against the limits and named the way the course (or its programme) wants, in `releases/`, plus a task for the user to submit them. Alterbrain never submits anything itself.
 
 Model: the main session (sonnet, medium). Rendering and page counts are deterministic (the `render` skill).
 
 ## 1. Check the starting point
 
 - If `status` is not `final`, say why in one line (for example "the last critique has not plateaued" or "round 2 is still open") and ask whether to ship anyway. Respect the answer.
-- If `deadline_confirmed` is false, remind the user to check the deadline on the LMS.
-- If the course `ai_policy` is `allowed-with-disclosure`, check that the report has the AI use section. If not, offer the draft from `assignment.md`.
+- If `deadline_confirmed` is false, remind the user to check the deadline on the course site.
+- If the assignment has a course and its `ai_policy` is `allowed-with-disclosure`, check that the report has the AI use section. If not, offer the draft from `assignment.md`.
 
 ## 2. Final text checks
 
@@ -17,7 +17,7 @@ Look only at the graded text, not the `::: {.content-hidden` review-notes block.
 1. **Labels.** Grep `report.qmd` for `[Unverified]`. Each one is either checked now against its source or removed. Grep for `[Inference]`: each one stays only if the report itself presents it as a judgement, in plain words ("we estimate"). Show the user what you changed.
 2. **Summary against body.** Every number in the summary matches the body word for word.
 3. **Questions.** Every question in `assignment.md` has a section whose first two sentences answer it.
-4. **Hindsight.** No fact is later than the case date.
+4. **Hindsight.** If the assignment is a case with a case date, no fact is later than that date.
 5. If any check needs a change to approved text, show it and ask before editing.
 
 ## 3. Render
@@ -33,9 +33,9 @@ Look only at the graded text, not the `::: {.content-hidden` review-notes block.
 
 ## 4. Name the files
 
-1. Read the file-name rule under "Submission rules" in the course note. If there is none, ask once: "Does the course set a rule for file names on the LMS (for example initials or a student number)?" Save the answer in the course note so you never ask again for this course.
-2. With no rule, use `<course code>_<assignment-slug>.<ext>`, for example `FIN-501_case-2-media-deal.pdf`. Add the team name or the user's initials only if the rule asks for them.
-3. Keep names short, with no characters an LMS might reject (`/ \ : * ? " < > |`).
+1. Find the submission platform and the file-name rule. Start from the programme note's `## Submission conventions` (the course's `programme` link; `vault/20_areas/programmes/<Programme name>.md`). The course note's "Submission rules" override it line by line: the course says what differs, the programme is the default. For what is still missing, ask once: "Does the course set a rule for file names or say where to submit (for example initials or a student number)?" Save the answer in the course note under "Submission rules" so you never ask again for this course. With no course, ask the same question, and keep the answer under "Other rules" in `assignment.md`.
+2. With no rule, use `<course code>_<assignment-slug>.<ext>`, for example `FIN-501_case-2-media-deal.pdf`, or `<assignment-slug>.<ext>` when there is no course code. Add the team name or the user's initials only if the rule asks for them.
+3. Keep names short, with no characters a course site might reject (`/ \ : * ? " < > |`).
 
 ## 5. Put them in releases/
 
@@ -52,9 +52,9 @@ Look only at the graded text, not the `::: {.content-hidden` review-notes block.
 
 Add, with `node system/scripts/tasks.mjs add`:
 
-`"Submit <title> on the LMS: upload the files in releases/<today>" --tag assignment --due <deadline> --priority high --link "10_projects/<folder>/releases/<today>/<pdf file name>"`
+`"Submit <title> on <the platform from step 4, or the course site>: upload the files in releases/<today>" --tag assignment --due <deadline> --priority high --link "10_projects/<folder>/releases/<today>/<pdf file name>"`
 
-Never upload, email or post the files, even if a tool for the LMS is connected. The user submits.
+Never upload, email or post the files, even if a tool for the course site is connected. The user submits.
 
 ## 7. Close
 
@@ -62,7 +62,7 @@ Never upload, email or post the files, even if a tool for the LMS is connected. 
 2. Tell the user:
    - the files and where they are;
    - the page count against the limit;
-   - "Please upload them on the LMS before <deadline>. When you have, tick the 'Submit' and 'Deadline' tasks in your task list."
+   - "Please upload them on the course site before <deadline>. When you have, tick the 'Submit' and 'Deadline' tasks in your task list."
 3. Offer, in one line each:
-   - class prep (the hardest questions the lecturer may ask, with answers from the report), if the assignment extras are built;
-   - adding notes from the class discussion to the case note later.
+   - class prep (the hardest questions the assessor may ask, with answers from the report), if the assignment extras are built;
+   - adding notes from the class discussion to the case note later, if the assignment is a case.

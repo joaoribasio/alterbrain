@@ -20,7 +20,9 @@ Show what Alterbrain can do, in a short list the user can scan in ten seconds.
 
 1. No clarify needed: this skill only reads.
 2. Read, quickly:
-   - `references/groups.md` (the eight groups and their example prompts);
+   - `references/groups.md` (the eight groups, their example prompts for studying and for working, and which groups to hide);
+   - `config/brain.json`: `learner.kind` (if it is missing or empty, treat it as `mba` when `packs` lists `mba` or a `school` block exists; older installs) and `packs`;
+   - whether any `vault/20_areas/courses/*/course.md` exists (names only);
    - the list of folders in `.claude/skills/` (installed skills; `my-*` ones are the user's own);
    - `system/blueprints/*.md` frontmatter only (`title`, `kind`, `status`, `risk`, `cost`);
    - `state/built.json` if it exists (blueprints already built);
@@ -31,7 +33,7 @@ Show what Alterbrain can do, in a short list the user can scan in ten seconds.
 
 1. **Pick the mode from the argument.**
    - Empty, "what can you do", "help": **overview** (step 2).
-   - A group name (study, assignments, email, jobs, documents, knowledge, build, settings): **one group** (step 3).
+   - A group name (study, assignments, email, jobs, documents, knowledge, build, settings): **one group** (step 3). A group that is hidden for this user (assignments, for someone who is working and has no course) gets one line: "Those are for coursework. Add a course with `/course new` and they appear."
    - Starts with "how do I", "how can I", "where is", "why does": **how-to** (step 4).
    - Anything else that is really a request ("draft an email"): don't show the menu. Do the request (or hand it to the right skill).
 2. **Overview.** Output, in this shape and no longer than about 40 lines:
@@ -39,11 +41,11 @@ Show what Alterbrain can do, in a short list the user can scan in ten seconds.
    Here's what I can do. Copy any example, or just ask in your own words.
 
    Study: /course, /study, /ask, /framework
-     • "Explain the Value Chain using my own lecture notes."
+     • "Explain opportunity cost using my own lecture notes."
      • …two more
    Assignments: /assignment
      …
-   (all eight groups from references/groups.md)
+   (the groups from references/groups.md that apply to this user)
 
    Your own skills: /my-case-summary (built 2026-10-01)        ← only if any my-* exist
 
@@ -55,6 +57,8 @@ Show what Alterbrain can do, in a short list the user can scan in ten seconds.
    Ask "how do I …?" any time. Guides: tasks, Obsidian, safety, updates, privacy, costs.
    ```
    Rules:
+   - **Pick the prompts by kind** (`references/groups.md`, "Which prompts to show"): the work variant for `professional`, the study variant for every other kind or an unknown one.
+   - **Courses and Assignments** (`/course`, and the whole Assignments group) only when the kind is not `professional` or a course note exists.
    - Show installed skills by their `/name`. Leave out a skill that is not installed.
    - Self-built skills: list `.claude/skills/my-*` and `.claude/agents/my-*.md` with a few plain words from their description.
    - **Available to build:** blueprints with `status: "available"` that are not listed in `state/built.json`. Use the plain `title`, grouped as in `references/groups.md`. Add "(higher risk)" after titles with `risk: "high"`. Do not explain each one here.
@@ -66,7 +70,7 @@ Show what Alterbrain can do, in a short list the user can scan in ten seconds.
    3. Answer in at most 8 short lines, in the guide's words where possible, as steps if it is a procedure.
    4. End with: "Full guide: `system/docs/guides/<file>.md`".
    5. No guide fits: answer briefly from what you know of Alterbrain (`system/core.md`), say "I don't have a guide for that yet", and if it is a repeated need, mention `/propose`.
-5. **Offer one next step.** One line, matched to what you know about the user (courses in `vault/20_areas/courses/`, goals in `USER.md`). For example: "Your Corporate Finance assignment is due Friday. Want to start it with `/assignment new`?"
+5. **Offer one next step.** One line, matched to what you know about the user (courses in `vault/20_areas/courses/`, projects in `vault/10_projects/`, goals in `USER.md`). For example: "Your <course> assignment is due Friday. Want to start it with `/assignment new`?" Or, with no courses: "Your <project> is due Friday. Want me to list the next steps?"
 
 ## Outputs
 

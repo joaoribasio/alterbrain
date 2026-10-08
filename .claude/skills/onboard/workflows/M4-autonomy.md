@@ -48,7 +48,7 @@ Ask "Save?" (Save (recommended) / Change something). Then:
 
 ## Wrap-up of the essentials
 
-- Say: "That's the essentials done. Here's what I know and where it lives:" then 4 bullets (identity, profile, courses, safety settings).
+- Say: "That's the essentials done. Here's what I know and where it lives:" then 4 bullets (identity, profile, courses or projects, safety settings).
 - Point to the guide: `system/docs/guides/autonomy-and-safety.md`.
 - Only if M0 had to create `.mcp.json` in this session (it normally exists before the first restart), add once: "Close this session and open the folder again, so the standard tools load." (Explain: "In the Claude app, close this session and open the folder again.") Otherwise do not ask for a restart.
 - Continue with step 6 of `SKILL.md` (offer the optional modules).

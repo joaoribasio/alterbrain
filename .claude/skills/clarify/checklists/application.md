@@ -5,7 +5,7 @@
 ## Infer first
 
 - The job ad (saved via `ingest.mjs` or fetched by `/jobs`), and the application note in `vault/20_areas/career/applications/` if it exists.
-- `vault/20_areas/career/career.md` (targets, languages, sponsorship need).
+- `vault/20_areas/career/career.md` (targets, languages, work-authorisation need).
 - `vault/80_me/fact-sheet.md` (the only facts allowed), the latest CV source note.
 - `vault/80_me/voice/<lang>/profile.md` (voice in the ad's language).
 
@@ -24,8 +24,8 @@
 ## Type-specific (required)
 
 - **Company and role** exactly as in the ad, with `source_url`.
-- **Language of the application.** Default: the ad's language. If Dutch and the user's Dutch is below B2, flag it and ask.
-- **Sponsorship.** If `jobs.needs_sponsorship` is true, check the employer against the IND sponsor register via `/jobs` before investing time. Never state visa status in the letter unless the user asks.
+- **Language of the application.** Default: the ad's language. If the ad asks for a language level above what the fact sheet shows (a language requirement above your level), flag it and ask.
+- **Work authorisation.** If `jobs.needs_sponsorship` is true, run the country pack's checks via `/jobs` before investing time (in the Netherlands: the employer against the IND sponsor register). Never state work-authorisation status in the letter unless the user asks.
 - **Top three selling points**, each mapped to a fact-sheet row. Missing facts become `[FACT NEEDED: …]`, never invented.
 - **Contact person** (if named in the ad): business details only.
 - **How it gets sent.** Always by the user. Draft goes to `vault/00_inbox/outbox/` with a `#ab/jobs` task.
@@ -34,7 +34,7 @@
 
 - Role, company, deadline and language are fixed.
 - Every selling point maps to a fact on the fact sheet.
-- Sponsorship check done (when needed).
+- The country pack's checks are done (when the country has a pack and they apply).
 
 ## Where the brief goes
 

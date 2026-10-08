@@ -1,7 +1,10 @@
 #!/usr/bin/env node
-// Adzuna job search for the Netherlands (official API, free key).
+// Adzuna job search (official API, free key) for any country Adzuna offers.
 //
-//   node system/scripts/jobs/adzuna.mjs --what "strategy consultant" --where Rotterdam --results 20 [--json]
+//   node system/scripts/jobs/adzuna.mjs --what "strategy consultant" --where Rotterdam --results 20 [--country nl] [--json]
+//
+// The country is --country <cc>, else jobs.country in config/brain.json (two letters), else nl.
+// For nl only, each job also gets a Dutch-language guess (the Netherlands country pack, system/packs/country-nl/).
 //
 // Keys come from ADZUNA_APP_ID / ADZUNA_APP_KEY, read from .env.local at the
 // project root (a tiny loader below; real environment variables win).
@@ -49,7 +52,8 @@ export function loadEnvLocal(file = rootPath('.env.local'), env = process.env) {
   return { ...fromFile, ...Object.fromEntries(Object.entries(env).filter(([, v]) => v !== undefined && v !== '')) };
 }
 
-// ---------- Dutch-language signal (see system/packs/mba/jobs-nl/dutch-language.md) ----------
+// ---------- Dutch-language signal (see system/packs/country-nl/dutch-language.md) ----------
+// Used for the Netherlands only (country nl). Exported for the tests and for the Dutch-language check.
 // Heuristic list. Keep in step with dutch-language.md. [Unverified]
 
 export const REQUIRED_PATTERNS = [
@@ -150,8 +154,13 @@ function num(v) {
   return Number.isFinite(n) ? Math.round(n) : null;
 }
 
-/** Turn one Adzuna result into the Alterbrain job shape. */
-export function normaliseJob(r) {
+/**
+ * Turn one Adzuna result into the Alterbrain job shape.
+ * `opts.country` is the lower-case country code. The Dutch-language guess (`dutch`) is added for nl only.
+ * Called without a country (or with something that is not an options object, as Array.map does) it behaves as for nl.
+ */
+export function normaliseJob(r, opts) {
+  const country = String((opts && typeof opts === 'object' && opts.country) || 'nl').toLowerCase();
   const snippet = stripHtml(r.description).slice(0, 300);
   const title = stripHtml(r.title);
   const job = {
@@ -167,8 +176,8 @@ export function normaliseJob(r) {
     // Extras (not in the minimum shape):
     id: r.id !== undefined ? String(r.id) : null,
     salary_predicted: String(r.salary_is_predicted) === '1',
-    dutch: dutchSignal(`${title}. ${snippet}`),
   };
+  if (country === 'nl') job.dutch = dutchSignal(`${title}. ${snippet}`);
   return job;
 }
 
@@ -239,7 +248,8 @@ export async function searchJobs(opts, deps = {}) {
     err.code = 'NO_KEYS';
     throw err;
   }
-  const url = buildUrl({ ...opts, appId, appKey });
+  const country = String(opts.country || 'nl').toLowerCase();
+  const url = buildUrl({ ...opts, country, appId, appKey });
   let attempt = 0;
   for (;;) {
     attempt++;
@@ -259,6 +269,12 @@ export async function searchJobs(opts, deps = {}) {
     if (res.status === 429) {
       throw new Error('Adzuna says we are going too fast (limit reached). Wait a minute and try again.');
     }
+    // [Unverified] Adzuna's exact reply for a country it does not offer; 400 and 404 are the likely ones.
+    if (res.status === 400 || res.status === 404) {
+      const err = new Error(`Adzuna refused this search (HTTP ${res.status}). It may not offer the country "${country}". Check jobs.country in config/brain.json, or use company careers pages instead.`);
+      err.code = 'BAD_COUNTRY';
+      throw err;
+    }
     if (res.status >= 500 && attempt < 2) continue; // one polite retry
     if (!res.ok) throw new Error(`Adzuna returned an error (HTTP ${res.status}).`);
     let body;
@@ -268,17 +284,20 @@ export async function searchJobs(opts, deps = {}) {
       throw new Error('Adzuna sent a reply we could not read.');
     }
     const results = Array.isArray(body?.results) ? body.results : [];
-    return { count: Number(body?.count) || results.length, jobs: results.map(normaliseJob) };
+    return { count: Number(body?.count) || results.length, jobs: results.map((r) => normaliseJob(r, { country })) };
   }
 }
 
 // ---------- CLI ----------
 
-const HELP = `Adzuna job search (Netherlands)
+const HELP = `Adzuna job search (official API, free key)
 
 Usage:
   node system/scripts/jobs/adzuna.mjs --what "<keywords>" [--where "<city>"] [--results 20] [--page 1]
-                                       [--max-days-old 14] [--salary-min 40000] [--country nl] [--json]
+                                       [--max-days-old 14] [--salary-min 40000] [--country <cc>] [--json]
+
+--country is a two-letter code such as nl or gb. Without it, jobs.country in config/brain.json is used, and nl if that is empty.
+For nl each job also gets a Dutch-language guess (the Netherlands country pack).
 
 Needs ADZUNA_APP_ID and ADZUNA_APP_KEY in .env.local (free keys: https://developer.adzuna.com/).`;
 
@@ -301,10 +320,19 @@ export function parseArgs(argv) {
   return out;
 }
 
-function money(j) {
+// Adzuna reports salaries in the country's own currency. EUR is named only for nl; other countries get plain numbers.
+function money(j, country) {
   if (j.salary_min == null && j.salary_max == null) return 'salary not shown';
-  const f = (n) => (n == null ? '?' : `EUR ${n.toLocaleString('en-GB')}`);
-  return `${f(j.salary_min)} to ${f(j.salary_max)} a year${j.salary_predicted ? ' (estimated by Adzuna)' : ''}`;
+  const unit = country === 'nl' ? 'EUR ' : '';
+  const f = (n) => (n == null ? '?' : `${unit}${n.toLocaleString('en-GB')}`);
+  return `${f(j.salary_min)} to ${f(j.salary_max)} a year${country === 'nl' ? '' : ' (local currency)'}${j.salary_predicted ? ' (estimated by Adzuna)' : ''}`;
+}
+
+/** The default country: jobs.country from config/brain.json when it is two letters, else nl. */
+export function defaultCountry(brainFile = rootPath('config', 'brain.json')) {
+  const c = readJson(brainFile, null)?.jobs?.country;
+  const cc = typeof c === 'string' ? c.trim().toLowerCase() : '';
+  return /^[a-z]{2}$/.test(cc) ? cc : 'nl';
 }
 
 /** Testable entry point. Returns { code, stdout, stderr }. */
@@ -319,7 +347,7 @@ export async function main(argv, deps = {}) {
   for (const k of ['results', 'page', 'maxDaysOld', 'salaryMin']) {
     if (args[k] !== undefined && !Number.isFinite(args[k])) return { code: 2, stdout: '', stderr: `The value for ${k} must be a number.\n${HELP}\n` };
   }
-  const country = (args.country || 'nl').toLowerCase();
+  const country = String(args.country || defaultCountry(deps.brainFile)).toLowerCase();
   if (!/^[a-z]{2}$/.test(country)) return { code: 2, stdout: '', stderr: 'The country must be a two-letter code, such as nl.\n' };
   try {
     const { count, jobs } = await searchJobs({ country, what: args.what, where: args.where, results: args.results || 20, page: args.page || 1, maxDaysOld: args.maxDaysOld, salaryMin: args.salaryMin }, deps);
@@ -331,7 +359,7 @@ export async function main(argv, deps = {}) {
       out.push(`Found ${count} jobs, showing ${jobs.length}.`, '');
       jobs.forEach((j, i) => {
         out.push(`${i + 1}. ${j.title} - ${j.company || 'company not shown'} (${j.location || 'place not shown'})`);
-        out.push(`   ${money(j)}. Posted ${j.created ? j.created.slice(0, 10) : 'date unknown'}. Dutch: ${j.dutch.signal}.`);
+        out.push(`   ${money(j, country)}. Posted ${j.created ? j.created.slice(0, 10) : 'date unknown'}.${j.dutch ? ` Dutch: ${j.dutch.signal}.` : ''}`);
         out.push(`   ${j.url}`);
       });
       out.push('', 'Jobs by Adzuna (https://www.adzuna.com)');

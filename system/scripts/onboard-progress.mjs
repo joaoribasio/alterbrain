@@ -6,25 +6,28 @@
 //   node system/scripts/onboard-progress.mjs start|done|later|skip|reset <M0..M9> [--note "<text>"]
 //
 // Timestamps always come from the system clock, never from the model.
+// Module titles always come from this file: a title stored in state/onboarding.json is ignored, so
+// a renamed module shows its new name on installs that started earlier.
+// `show --json` also gives learner_kind (config/brain.json, with the rule for older installs) and
+// estimate_minutes: the time for the essential modules, which depends on the kind of learner.
 // Exit codes: 0 = ok, 2 = usage error.
-import { fileURLToPath } from 'node:url';
-import { resolve } from 'node:path';
 import { rootPath, isMainModule } from '../lib/paths.mjs';
 import { readJson, writeJson } from '../lib/fsx.mjs';
 
 export const MODULES = [
   { id: 'M0', title: 'Setup', minutes: 8, file: 'M0-setup.md', aliases: ['setup', 'github', 'install'] },
-  { id: 'M1', title: 'Identity and tone', minutes: 3, file: 'M1-identity.md', aliases: ['identity', 'tone', 'name'] },
+  { id: 'M1', title: 'Identity and tone', minutes: 2, file: 'M1-identity.md', aliases: ['identity', 'tone', 'name'] },
   { id: 'M2', title: 'You and your facts', minutes: 5, file: 'M2-you-and-facts.md', aliases: ['you', 'facts', 'profile', 'cv'] },
-  { id: 'M3', title: 'Programme and courses', minutes: 6, file: 'M3-programme.md', aliases: ['programme', 'program', 'courses', 'school'] },
+  { id: 'M3', title: 'Courses and projects', minutes: 6, minutesByKind: { mba: 6, degree: 6, online: 4, professional: 3, other: 6 }, file: 'M3-programme.md', aliases: ['programme', 'program', 'courses', 'school', 'projects', 'learning', 'work'] },
   { id: 'M4', title: 'Autonomy and self-build', minutes: 3, file: 'M4-autonomy.md', aliases: ['autonomy', 'safety', 'self-build'] },
   { id: 'M5', title: 'Your writing voice', minutes: 15, file: 'M5-voice.md', aliases: ['voice', 'writing'] },
-  { id: 'M6', title: 'Career in the Netherlands', minutes: 10, file: 'M6-career.md', aliases: ['career', 'jobs'] },
+  { id: 'M6', title: 'Career and job search', minutes: 10, file: 'M6-career.md', aliases: ['career', 'jobs', 'job-search'] },
   { id: 'M7', title: 'Email and tools', minutes: 8, file: 'M7-integrations.md', aliases: ['integrations', 'gmail', 'email', 'tools', 'mcp'] },
   { id: 'M8', title: 'Look of your documents', minutes: 5, file: 'M8-brand.md', aliases: ['brand', 'fonts', 'colours', 'colors'] },
   { id: 'M9', title: 'Import your existing files', minutes: 10, file: 'M9-import.md', aliases: ['import', 'files', 'ingest'] },
 ];
 export const MINIMUM = ['M0', 'M1', 'M2', 'M3', 'M4'];
+export const LEARNER_KINDS = ['mba', 'degree', 'online', 'professional', 'other'];
 export const STATUSES = ['todo', 'in_progress', 'done', 'later', 'skipped'];
 
 export const STATE_FILE = () => rootPath('state', 'onboarding.json');
@@ -35,14 +38,14 @@ export function emptyState() {
   return { schema: 1, status: 'not_started', started: null, updated: null, minimum: [...MINIMUM], modules };
 }
 
-/** Load state, filling any missing module entries (forward compatible). */
+/** Load state, filling any missing module entries (forward compatible). Titles always come from MODULES. */
 export function load(file = STATE_FILE()) {
   const base = emptyState();
   const s = readJson(file, null);
   if (!s || typeof s !== 'object') return base;
   const merged = { ...base, ...s, modules: { ...base.modules } };
   for (const id of Object.keys(base.modules)) {
-    if (s.modules && s.modules[id]) merged.modules[id] = { ...base.modules[id], ...s.modules[id] };
+    if (s.modules && s.modules[id]) merged.modules[id] = { ...base.modules[id], ...s.modules[id], title: base.modules[id].title };
   }
   merged.status = overall(merged);
   return merged;
@@ -94,15 +97,52 @@ export function setStatus(state, id, status, { note, now = new Date().toISOStrin
   return state;
 }
 
-function describe(state) {
+/**
+ * The kind of learner: config/brain.json learner.kind (mba, degree, online, professional, other).
+ * If it is missing or empty, older installs count as mba when packs lists mba or a school block exists.
+ * Otherwise null: the onboarding learner question has not been answered yet.
+ */
+export function learnerKind(brain) {
+  if (!brain || typeof brain !== 'object') return null;
+  const raw = brain.learner && typeof brain.learner === 'object' ? brain.learner.kind : undefined;
+  const kind = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+  if (LEARNER_KINDS.includes(kind)) return kind;
+  const packs = Array.isArray(brain.packs) ? brain.packs : [];
+  if (packs.includes('mba') || Object.prototype.hasOwnProperty.call(brain, 'school')) return 'mba';
+  return null;
+}
+
+/** Minutes for one module; M3 depends on the kind of learner (null or unknown kind: the default). */
+export function moduleMinutes(m, kind) {
+  return (kind && m.minutesByKind?.[kind]) || m.minutes;
+}
+
+/** Time for the essential modules: { minimum: all of them, remaining: those not done yet }. */
+export function estimateMinutes(state, kind) {
+  let minimum = 0;
+  let remaining = 0;
+  for (const m of MODULES) {
+    if (!MINIMUM.includes(m.id)) continue;
+    const mins = moduleMinutes(m, kind);
+    minimum += mins;
+    if (state.modules[m.id].status !== 'done') remaining += mins;
+  }
+  return { minimum, remaining };
+}
+
+function readLearnerKind() {
+  return learnerKind(readJson(rootPath('config', 'brain.json'), null));
+}
+
+function describe(state, kind = null) {
   const label = { todo: 'not started', in_progress: 'in progress', done: 'done', later: 'saved for later', skipped: 'skipped' };
   const lines = [];
   const left = MODULES.filter((m) => MINIMUM.includes(m.id) && state.modules[m.id].status !== 'done');
-  const mins = left.reduce((n, m) => n + m.minutes, 0);
+  const mins = estimateMinutes(state, kind).remaining;
   lines.push(`Setup: ${state.status.replace('_', ' ')}.` + (left.length ? ` About ${mins} minutes left for the essentials.` : ' The essentials are done.'));
   for (const m of MODULES) {
     const tag = MINIMUM.includes(m.id) ? 'essential' : 'optional';
-    lines.push(`- ${m.id} ${m.title} (${tag}, ~${m.minutes} min): ${label[state.modules[m.id].status]}`);
+    lines.push(`- ${m.id} ${m.title} (${tag}, ~${moduleMinutes(m, kind)} min): ${label[state.modules[m.id].status]}`);
   }
   const nxt = nextModule(state);
   lines.push(nxt ? `Next: ${nxt} ${state.modules[nxt].title}.` : 'Everything is set up.');
@@ -121,7 +161,10 @@ function main(argv) {
   };
   const state = load();
   if (cmd === 'show' || !cmd) {
-    console.log(json ? JSON.stringify(state, null, 2) : describe(state));
+    const kind = readLearnerKind();
+    console.log(json
+      ? JSON.stringify({ ...state, learner_kind: kind, estimate_minutes: estimateMinutes(state, kind) }, null, 2)
+      : describe(state, kind));
     return 0;
   }
   if (cmd === 'next') {

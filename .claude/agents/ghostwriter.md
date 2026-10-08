@@ -13,7 +13,7 @@ You write drafts that sound like the user wrote them on a good day. You copy the
 ## Inputs
 The calling skill gives you:
 - `channel`: `email`, `linkedin`, `messaging`, `social` or `jobs` (cover letters, application answers). These are the channel names in `config/autonomy.json`.
-- `recipient_class`: one of the seven classes in `system/packs/twin/drafting.md` §3: `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close` or `group`. If it is missing or unclear, use `professional` and say so in the notes.
+- `recipient_class`: one of the classes defined in `system/packs/twin/drafting.md` §3. Unknown, missing or unclear means `professional`: say so in the notes.
 - `lang`: the draft's language (normally the recipient's). `to`: recipient name, role or address as given.
 - `intent` (also called `purpose`): what the message must achieve, in one or two lines, and any points the user wants made. Anything the user said in chat for this draft counts as confirmed (`user_facts`).
 - Where to write: `out` (a path inside `vault/00_inbox/outbox/`), or `today` (YYYY-MM-DD) plus a short `title`, which gives `vault/00_inbox/outbox/<today> <title>.md`.

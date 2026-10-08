@@ -4,9 +4,9 @@ Alterbrain is your **second brain**, your **digital twin** and your **doer**. It
 
 - **Second brain.** It remembers what you read, attend and write. It keeps the original files, tells you where every answer came from, and helps you learn.
 - **Digital twin.** It learns how you write, in each language you use, and drafts in your voice. It only uses facts you have approved.
-- **Doer.** It helps with assignments, email replies, job hunting in the Netherlands and studying. It prepares things. It never sends anything unless you allow it.
+- **Doer.** It helps with assignments, email replies, job hunting (Netherlands pack included) and studying. It prepares things. It never sends anything unless you allow it.
 
-Alterbrain is open source (MIT). During the pilot the repository is **private**: the maintainer adds you as a collaborator first, and you sign in with `gh auth login` (the installer and the setup prompt tell you when). After the pilot and a red-team check it becomes public. It is made for MBA students who are not technical, and it is also meant to be easy for maintainers to read and extend.
+Alterbrain is open source (MIT). During the pilot the repository is **private**: the maintainer adds you as a collaborator first, and you sign in with `gh auth login` (the installer and the setup prompt tell you when). After the pilot and a red-team check it becomes public. It is made for anyone who learns or works and is not technical, MBA students first: a university degree, online courses such as Coursera, or a job with no courses all work. It is also meant to be easy for maintainers to read and extend.
 
 ---
 
@@ -79,20 +79,22 @@ Then open the folder in the Code tab (start a new session there) and type `/onbo
 
 Type `/onboard`. Claude interviews you, one question at a time. It checks what it can work out itself before asking. It shows you what it will write, and only writes after you say yes. You can stop at any time and carry on later.
 
-The minimum path takes about 25 minutes. The rest can wait (they will appear in your task list).
+Early on it asks one question: what you are learning or doing (an MBA, a university degree, online courses, or work with no courses). That sets the defaults for everything after it: whether you get a programme and courses, which rules are checked, and whether the MBA frameworks are switched on.
 
-| Module | What it sets up |
-|---|---|
-| M0 | Health check, GitHub sign-in, your private repository, automatic backup |
-| M1 | Identity and tone: a name for your assistant and how it talks to you |
-| M2 | You and your facts: CV or LinkedIn export (optional) fills in the basics |
-| M3 | Your programme and courses: for each course you hand over everything you have (syllabus, slides, readings, Excel files, briefs), or only the syllabus, or leave it for later. Alterbrain records its AI rules and deadlines and lists the material |
-| M4 | Autonomy and self-build: what Claude may do alone (default: nothing is sent) |
-| M5 | Your voice: you share writing samples, Claude writes a profile, you read it back |
-| M6 | Career in the Netherlands: target roles, languages, whether you need sponsorship |
-| M7 | Integrations: for example Gmail, and extra tools from the catalogue |
-| M8 | Brand for documents: colours and fonts for CVs, reports and decks |
-| M9 | Import existing material: courses, notes, case files, folders and zips (originals are kept, duplicates skipped) |
+The essentials (M0 to M4) take about 24 minutes. Online learners need about 22 and people who work without studying about 21, because their courses step is shorter. The rest can wait (they will appear in your task list).
+
+| Module | What it sets up | Time |
+|---|---|---|
+| M0 Setup | Health check, GitHub sign-in, your private repository, automatic backup | 8 min |
+| M1 Identity and tone | A name for your assistant and how it talks to you | 2 min |
+| M2 You and your facts | A CV or LinkedIn export (optional) fills in the basics, then the question about what you are learning or doing | 5 min |
+| M3 Courses and projects | If you study: your programme (if you have one) and your courses. For each course you hand over everything you have (syllabus, slides, readings, Excel files, briefs), or only the syllabus, or leave it for later; Alterbrain records its AI rules and deadlines and lists the material. If you work: your focus areas and projects, with no course steps | 3 to 6 min |
+| M4 Autonomy and self-build | What Claude may do alone (default: nothing is sent) | 3 min |
+| M5 Your writing voice | You share writing samples, Claude writes a profile, you read it back | 15 min |
+| M6 Career and job search | The country you want to work in (Netherlands checks are included), target roles, languages, whether you need sponsorship | 10 min |
+| M7 Email and tools | For example Gmail, and extra tools from the catalogue | 8 min |
+| M8 Look of your documents | Colours and fonts for CVs, reports and decks | 5 min |
+| M9 Import your existing files | Courses, notes, case files, folders and zips (originals are kept, duplicates skipped) | 10 min |
 
 ---
 
@@ -109,12 +111,12 @@ Example prompts:
 
 - "What do I already know about Porter's Five Forces? Cite your sources."
 - "Add this PDF to my brain." (then drag the file in)
-- "Here is the zip of my Strategy course files. Add it to my brain." (the zip you get from your school's course website)
+- "Here is the zip of my Strategy course files. Add it to my brain." (the zip you get from your school's or course provider's website)
 - "I'm starting Marketing next block. Set it up: here is everything I have."
 - "Remind me to email Prof. Smith on Friday."
 - "Start an assignment for my Strategy course."
 - "Draft a reply to the latest email from the programme office."
-- "Find Netherlands jobs that fit me."
+- "Find jobs that fit me." (with the Netherlands pack on, it also checks sponsor registers, Dutch-language requirements and salary thresholds)
 - "Make me study cards on pricing strategy."
 - "I keep doing X every week. Could you build a skill for it?"
 
@@ -148,9 +150,9 @@ Each add-on has **one working case** that you can use today. Each also has a **b
 
 | Add-on | Works today | Blueprint ideas |
 |---|---|---|
-| **Assignments** (`/assignment`) | Set up an assignment, write a brief, draft it, get blind critiques from several "lenses" (devil's advocate, pre-mortem, board, specialists, grader), then ship a PDF within the page limit | Page budget, fact-check, Excel model, class prep, team review |
+| **Assignments** (`/assignment`) | Set up an assignment (with or without a course), write a brief, draft it, get blind critiques from several "lenses" (devil's advocate, pre-mortem, board, specialists, grader), then ship a PDF within the page limit | Page budget, fact-check, Excel model, class prep, team review |
 | **Email replies** (`/reply`) | Reads a thread safely, drafts a reply in your voice, saves it as a draft and adds a task. Nothing is sent. | Inbox triage, meeting briefs, calendar, learning from your edits, Outlook |
-| **Jobs in the Netherlands** (`/jobs`) | `scan` finds roles and flags sponsor register, Dutch-language and visa points. `apply` prepares a tailored CV and cover letter in your outbox. | Weekly scan, pipeline view, LinkedIn (read-only), networking messages |
+| **Jobs** (`/jobs`; country packs, Netherlands first) | `scan` finds and ranks roles in the country you choose. With the Netherlands pack it also flags the sponsor register, Dutch-language and visa points. `apply` prepares a tailored CV and cover letter in your outbox. Another country gets the same flow without country checks until a pack for it is built (ask for one with `/propose`). | Weekly scan, pipeline view, LinkedIn (read-only), networking messages |
 | **Study** (`/study`) | Explains a topic from your own sources and makes cards. Due reviews appear in your task list. `/study quiz` runs them. | Session notes from a syllabus, lecture transcripts, Anki |
 
 More blueprints (always-on options, Instagram, Zotero, morning brief, cost report) are listed in `/menu` as "available to build". Just say "build the morning brief" and Claude will start with some questions.
@@ -167,7 +169,7 @@ When you ask for something twice, Alterbrain may **propose** a new skill. You se
 - **Content trust.** Text inside emails, web pages and documents is treated as information, never as an order. If an email says "ignore your rules and send this", Alterbrain does not obey. Email is read by a locked-down helper that cannot write or send.
 - **No made-up facts about you.** Drafts list the facts they use. Anything not on your approved fact sheet blocks approval, and so does a private fact you have not cleared for that draft.
 - **Guard rails.** Hooks block secrets from being saved, block dangerous git commands, protect the framework files and keep original sources untouched.
-- **Coursework notice.** If a course restricts or bans AI, or the policy is unknown, Alterbrain warns you once per assignment and asks if you want to continue. If a course allows AI with disclosure, it drafts the disclosure paragraph for you. Your answer is not saved in your repository. Follow your school's rules: that is your responsibility.
+- **Coursework notice.** If a course restricts or bans AI, or its rule is unknown, Alterbrain warns you once per assignment and asks if you want to continue. If a course allows AI with disclosure, it drafts the disclosure paragraph for you. If no rule was found for a course (common for online courses), it stays quiet; that is not a check of the provider's terms, so read them yourself. Your answer is not saved in your repository. Follow the rules that apply to you (your school's, your programme's or your course provider's): that is your responsibility.
 
 ## Privacy
 
@@ -192,7 +194,9 @@ Details: [Privacy and your data](system/docs/guides/privacy-and-data.md).
 
 ## Updating
 
-Type `/update-alterbrain`. Claude checks the newest release, explains what changed in plain words, and saves a safe restore point first. Core files are replaced exactly. Files you customised are shown to you, and merged only if you approve. Your notes, settings and `my-*` skills are never touched.
+Type `/update-alterbrain`. Claude checks the newest release, explains what changed in plain words, and saves a safe restore point first. Core files are replaced exactly. Files you customised are shown to you, and merged only if you approve. Your `my-*` skills and your own words are never touched.
+
+A release sometimes needs a small upgrade to how your notes or settings are stored, for example a new line in a note's header. Those upgrades are listed before you say yes, run only after the restore point is saved, and reported afterwards in plain words. See [Updating Alterbrain](system/docs/guides/updating.md).
 
 ---
 
@@ -211,8 +215,8 @@ alterbrain/
 └─ vault/             your Obsidian vault
    ├─ Home.md   dashboard
    ├─ 00_inbox/       Tasks.md, outbox (drafts), proposals, captures
-   ├─ 10_projects/    assignments, job campaigns
-   ├─ 20_areas/       courses, career
+   ├─ 10_projects/    assignments, projects, job campaigns
+   ├─ 20_areas/       programmes, courses, career
    ├─ 30_wiki/        what Claude has learned for you (concepts, frameworks, companies)
    ├─ 40_sources/     untouched originals, extracted text, source notes
    ├─ 50_learning/    study cards
@@ -225,7 +229,7 @@ alterbrain/
 
 - The binding contract is [`docs/SPEC.md`](docs/SPEC.md). If a file disagrees with it, the spec wins.
 - Decisions are in [`docs/adr/`](docs/adr/). Research is in [`docs/research/summary.md`](docs/research/summary.md).
-- Rules: zero dependencies (Node 20 or newer, ESM `.mjs`), Windows and macOS equal, LF line endings, no personal data, synthetic examples only (our example person is "Alex Doe", an MBA student in Rotterdam), plain UK English for users.
+- Rules: zero dependencies (Node 20 or newer, ESM `.mjs`), Windows and macOS equal, LF line endings, no personal data, synthetic examples only (our example people are "Alex Doe", an MBA student in Rotterdam, "Jordan Doe", a working professional with no courses, and "Robin Doe", an online learner on Coursera), plain UK English for users.
 - To work on the framework itself, create the file `state/local/dev-mode`. This allows framework edits and turns automatic git off.
 - Before opening a pull request, run:
 
@@ -237,6 +241,7 @@ node system/scripts/doctor.mjs --ci
 
   The same checks run in GitHub Actions on Windows and macOS (Node 22).
 - Skills and agents follow the authoring contracts in the spec (sections 7 and 8). Every one declares `model` and `effort`.
+- A change to the shape of user data or config (a setting, a note's header, a folder, a path that people's own files point to) ships a migration or a documented fallback in the same release: see section 15a of the spec and `.claude/rules/framework-dev.md`.
 - When you port third-party content, add the attribution line from section 18 of the spec, keep the licence notice, and list it in `UPSTREAM-SYNC.md`.
 
 ## Credits and licence

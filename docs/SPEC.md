@@ -1,4 +1,4 @@
-# Alterbrain build spec (v0.1)
+# Alterbrain build spec (v0.2)
 
 This document is the single contract for everyone, human or agent, who writes framework files. If a file disagrees with this spec, the spec wins. If the spec is wrong, fix the spec first.
 
@@ -19,6 +19,8 @@ Plan of record: `docs/adr/` (decisions) and the approved plan (summarised in `do
 9. **Git is invisible.** One `main` branch, automatic commit and push, no worktrees and no branches. The user never types git.
 10. **No personal data in the framework.** Fixtures are synthetic. The upstream repo never contains anything about a real user.
 11. **Store freely, guard what leaves.** The brain is the user's own private brain and may hold sensitive facts about them. Only a short never-store list is kept out of the vault, and only `public` facts may leave the computer without the user's OK (§3, "Privacy"; ADR 0018). The most private notes and documents can also be encrypted in the GitHub copy, as an opt-in (ADR 0019).
+12. **A learner-neutral core.** Alterbrain serves anyone who learns or works: an MBA, a university degree, online courses, or a job with no courses. The core (courses, study, notes, drafting, the assignment studio, job search) assumes none of them. A pack adds content for one kind of learner (`mba`) or one country (`country-nl`). The user's kind is `learner.kind` in `config/brain.json` (§10, ADR 0023).
+13. **Existing users keep working.** A change to the shape of user data or config ships a migration or a documented fallback in the same release (§15a, ADR 0024). A changed template alone never reaches an existing copy.
 
 ---
 
@@ -33,7 +35,7 @@ alterbrain/
 │  ├─ settings.json                   [F code]  model, hooks, permissions baseline
 │  ├─ settings.local.json             [U, gitignored]
 │  ├─ rules/*.md                      [F text]  always-on or path-scoped rules
-│  ├─ skills/<name>/SKILL.md (+ references/, workflows/)   [F text]
+│  ├─ skills/<name>/SKILL.md (+ references/, workflows/)   [F text]  e.g. skills/course/references/course-setup.md (the course procedure), skills/assignment/references/lenses/ (the reviewer briefs)
 │  ├─ skills/my-<name>/               [U]  self-built skills
 │  ├─ agents/<name>.md                [F text]
 │  └─ agents/my-<name>.md             [U]  self-built agents
@@ -43,17 +45,20 @@ alterbrain/
 │  ├─ manifest.json                   [F code]  generated; file list + class + sha256
 │  ├─ hooks/*.mjs                     [F code]
 │  ├─ scripts/*.mjs, scripts/git-hooks/*.mjs, install.ps1, install.sh   [F code]
-│  ├─ lib/*.mjs                       [F code]  shared helpers for hooks and scripts
+│  ├─ scripts/migrations/NNNN-*.mjs   [F code]  upgrade scripts for the shape of user data, run once each by update.mjs (§15a)
+│  ├─ lib/*.mjs                       [F code]  shared helpers for hooks and scripts; migrate.mjs is the helper for upgrade scripts
 │  ├─ catalogue/mcp.json, routing.json, obsidian-plugins.json   [F code]
 │  ├─ catalogue/MCP-CATALOGUE.md      [F text]  human-readable view of mcp.json
 │  ├─ templates/                      [F text]  vault skeleton, identity templates, note templates, config defaults
 │  ├─ blueprints/*.md                 [F text]
 │  ├─ docs/guides/*.md                [F text]  read by /menu
-│  ├─ packs/mba/                      [F text]  pack references: lens prompts, framework seeds, course/case templates, course-setup.md (the course setup procedure), jobs-nl/ reference tables
-│  ├─ packs/twin/                     [F text]  drafting rules and voice-import steps (used by `ghostwriter` and `/reply`)
+│  ├─ packs/README.md                 [F text]  what a pack is, how packs are selected, the learner kinds, country packs (§10, "Packs")
+│  ├─ packs/mba/                      [F text]  the MBA pack: frameworks/ (25 business frameworks), templates/case.md (the case method), critique-presets.md (business seats for the reviewers), README.md
+│  ├─ packs/twin/                     [F text]  drafting rules and voice-import steps (used by `ghostwriter` and `/reply`; never listed in `packs`)
+│  ├─ packs/country-<cc>/             [F text]  a country pack, country-nl first: README.md, jobs.md (the contract, §10 "Packs") and the country's reference tables
 │  └─ quarto/                         [F text]  Quarto templates, _extensions (vendored), brand, fonts; tools/render.mjs (render, scaffold)
 ├─ config/                            [U]  brain.json, autonomy.json, mcp.selected.json
-├─ state/                             [U]  onboarding.json, proposals.json, built.json (section 10), release-origin.json (section 15); local/ is gitignored
+├─ state/                             [U]  onboarding.json, proposals.json, built.json, migrations.json (section 10), release-origin.json (section 15); local/ is gitignored
 ├─ .mcp.json                          [U generated]  by system/scripts/mcp-gen.mjs
 ├─ docs/                              [F text]  SPEC.md (this file), adr/ (decisions), research/
 ├─ tests/                             [F code]  node --test suites + fixtures (synthetic)
@@ -81,9 +86,10 @@ vault/
 │  ├─ outbox/                 drafts awaiting the human (emails, applications, posts)
 │  ├─ proposals/              self-build proposal cards
 │  └─ captures/               quick notes from /capture
-├─ 10_projects/               time-boxed work (assignments, job campaigns, group work)
+├─ 10_projects/               time-boxed work (assignments, projects, job campaigns, group work)
 ├─ 20_areas/
-│  ├─ courses/<course-slug>/  course.md (syllabus, AI policy, Material list), sessions/, cases/, assignments/
+│  ├─ programmes/<Programme name>.md   optional, one per programme (a degree, an MBA, a certificate track): what holds for all its courses
+│  ├─ courses/<course-slug>/  course.md (syllabus, AI policy, Material list), sessions/, cases/, assignments/   (flat: no programme name in the slug)
 │  └─ career/                 career.md (targets), applications/, cv/
 ├─ 30_wiki/                   agent-maintained knowledge
 │  ├─ index.md  log.md
@@ -119,9 +125,11 @@ vault/
 | `concept` | 30_wiki/concepts | `sources: []` |
 | `framework` | 30_wiki/frameworks | `family`, `when_to_use`, `sources: []` |
 | `company` | 30_wiki/companies | `sources: []` |
-| `course` | 20_areas/courses/x/course.md | `code`, `term`, `school`, `ai_policy` (allowed, allowed-with-disclosure, restricted, banned, unknown), `ai_policy_quote`, and the class dates behind the after-class reminder (all optional, empty by default): `session_dates` (list of `YYYY-MM-DD`, only dates the syllabus states, never invented, class meetings only), `class_days` (list of `mon`..`sun`, used only when `session_dates` is empty, from the syllabus or the user), `term_start` and `term_end` (`YYYY-MM-DD`, the first and last day of the term: generated class days start at `term_start` and end at `term_end`; without `term_end` they end 16 weeks after `term_start`, or after `created` when there is no `term_start`) and `class_days_asked` (`YYYY-MM-DD`, the day Alterbrain asked which days the class meets, set whatever the answer so that it does not ask again unprompted). A class on or before the `created` date is never nudged (for `session_dates` and `class_days` alike), and a `class_days` schedule with no `term_end`, no `term_start` and no valid `created` is not nudged, so the reminder always ends. A note without class dates is never nudged. `status` is `active` or `completed` (set to `completed`, with the user's OK, for a finished course: `/weekly-review` asks only about active courses). Sections: Submission rules and Cases and assignments (read by `/assignment`), and Material, the index of the course's source notes by type and session (written by `system/packs/mba/course-setup.md`). Template: `system/templates/notes/course.md` |
-| `case` | courses/x/cases | `course`, `question`, `case_type` (decision, evaluation, diagnosis), `case_date` (YYYY-MM-DD, the date the case is set; see §13 hindsight rule). Template: `system/packs/mba/templates/case.md` |
-| `assignment` | 10_projects/<slug>/assignment.md | see §13. `limits` is a small map `{ pages, font_pt, line_spacing, words }` (any may be null). Template: `system/packs/mba/templates/assignment.md` |
+| `programme` | 20_areas/programmes/<Programme name>.md | optional, one per programme. `provider` (the school or platform), `level` (for example MBA, MSc, BSc, certificate), `start` and `end` (`YYYY-MM-DD`), `ai_policy` (the same values as a course) and `ai_policy_quote` (the school-wide rule, word for word), `grading_scale`; `status` is `active` or `completed`. Sections: Terms (a table of Term, Start and End; `YYYY-MM-DD` only), AI rule, Grading, Submission conventions, Career services, Courses. Template: `system/templates/notes/programme.md`; procedure: "The programme note" in `.claude/skills/course/references/course-setup.md` |
+| `course` | 20_areas/courses/x/course.md | `code`, `term`, `programme` (a link to the programme note, `"[[MBA – RSM]]"`) or `provider` (the school or platform, for a standalone course such as one from Coursera; both optional, a new note carries the one that applies), `ai_policy` (allowed, allowed-with-disclosure, restricted, banned, unknown, none-stated), `ai_policy_quote`, and the class dates behind the after-class reminder (all optional, empty by default): `session_dates` (list of `YYYY-MM-DD`, only dates the syllabus states, never invented, class meetings only), `class_days` (list of `mon`..`sun`, used only when `session_dates` is empty, from the syllabus or the user), `term_start` and `term_end` (`YYYY-MM-DD`, the first and last day of the term: generated class days start at `term_start` and end at `term_end`; without `term_end` they end 16 weeks after `term_start`, or after `created` when there is no `term_start`) and `class_days_asked` (`YYYY-MM-DD`, the day Alterbrain asked which days the class meets, set whatever the answer so that it does not ask again unprompted). A class on or before the `created` date is never nudged (for `session_dates` and `class_days` alike), and a `class_days` schedule with no `term_end`, no `term_start` and no valid `created` is not nudged, so the reminder always ends. A note without class dates is never nudged. `status` is `active` or `completed` (set to `completed`, with the user's OK, for a finished course: `/weekly-review` asks only about active courses). Sections: Submission rules and Cases and assignments (read by `/assignment`), and Material, the index of the course's source notes by type and session (written by the course procedure, `.claude/skills/course/references/course-setup.md`). Template: `system/templates/notes/course.md`. What a course takes from its programme, and the two meanings of an unset AI rule, are under "Programme notes and inheritance" below the table |
+| `case` | courses/x/cases | `course`, `question`, `case_type` (decision, evaluation, diagnosis), `case_date` (YYYY-MM-DD, the date the case is set; see §13 hindsight rule). Template: `system/packs/mba/templates/case.md` (the case method stays in the MBA pack; `/assignment` uses it whenever the work is a case) |
+| `assignment` | 10_projects/<slug>/assignment.md | see §13. `limits` is a small map `{ pages, font_pt, line_spacing, words }` (any may be null). `course` may be empty: an assignment does not need a course. Template: `system/templates/notes/assignment.md` |
+| `project` | 10_projects/<YYYY> <project-slug>/project.md | `created`, `status` (active, done, dropped), `due` (`YYYY-MM-DD`, or empty), `area` (the focus area from `USER.md`, "Current focus", it belongs to, or empty). Sections: Goal, Next steps, Notes and links. Work that is not a course assignment (a working professional's launch, report or move to a new team); dates the user has confirmed also go on the task list. Template: `system/templates/notes/project.md` |
 | `application` | 20_areas/career/applications | `company`, `role`, `stage` (found, shortlisted, preparing, applied, interview, offer, rejected, withdrawn), `source_url`, `deadline`; plus the extra fields below |
 | `draft` | 00_inbox/outbox | `channel`, `to`, `lang`, `status` (draft, approved, sent, killed), `facts_used: []`; plus the extra fields below |
 | `proposal` | 00_inbox/proposals | see §11 |
@@ -138,13 +146,20 @@ vault/
 | `critique` | assignment folder | `assignment`, `round`, `panel: []`, `grade_low`, `grade_mid`, `grade_high`, `plateau`, `thesis`. Consolidated critique of one round |
 | `review-round` | assignment folder | `assignment`, `round`, `panel: []`, `case_date`. The round card handed to the lenses |
 | `review` | `reviews/<round>/<lens>.md` | `lens`, `round`. One lens report, saved word for word |
-| `lens` | `system/packs/mba/lenses/` (framework file, not a vault note) | `name`, `model`, `effort`, `word_cap`, `panels: []` |
+| `lens` | `.claude/skills/assignment/references/lenses/` (framework file, not a vault note) | `name`, `model`, `effort`, `word_cap`, `panels: []` |
 | `identity` | 80_me | `status`. Used by SOUL, IDENTITY, USER and MEMORY |
 | `fact-sheet` | 80_me/fact-sheet.md | `status`. The facts allowlist for drafts. Every row has a visibility, `public` or `private` (see "Privacy" below) |
 | `voice-profile` | 80_me/voice/<lang>/profile.md | `lang`, `status` (draft, active), `calibrated`, `samples` |
 | `voice-exemplars` | 80_me/voice/<lang>/exemplars.md | `lang`, `status`. Real samples tagged by channel and recipient class |
 | `tasks` | 00_inbox/Tasks.md | `status`. Generated by `system/lib/tasks.mjs`; has no `created` field |
 | `blueprint` | `system/blueprints/` (framework file, not a vault note) | see section 16 |
+
+**Programme notes and inheritance (ADR 0023).** A programme note holds what is true for every course in a programme once, so no course repeats it. A course links to it with `programme: "[[MBA – RSM]]"`; a standalone course names its `provider` and has no programme note. Course folders stay flat in `20_areas/courses/<course-slug>/`: the slug carries no programme name, and only a clash adds a suffix (a course "Strategy" in two places becomes `strategy-coursera` or `strategy-mba-rsm`; the title becomes "Strategy (Coursera)"). The course wins: it overrides the programme only where it differs, and it is the only note that code and rule 6 of `core.md` read.
+- **Copied into the course at setup** (code reads only the course note): `ai_policy` and `ai_policy_quote` (only after the user confirms; the quote then starts with `Programme rule: `), and `term_start` and `term_end` from the programme's Terms row for the named term (only real `YYYY-MM-DD` dates; the session digest ignores any other form).
+- **Read at the moment of use, never copied:** the grading scale, the submission conventions and career services. The course note's own section is read first, and the programme note answers when that section is empty.
+- **A later change to a programme note rewrites no course.** The course procedure's review mode lists the courses whose quote starts `Programme rule: ` and asks once.
+- **`ai_policy` has six values.** `unknown` means not checked yet or unclear; rule 6 warns before assignment work. `none-stated` means no rule was found in what was read (the course files, the programme note, and the provider's terms only if they were given) or the user confirmed there is none; it never means that a provider was checked, and rule 6 stays silent. The procedure sets it without a question only for an online or provider course, and a degree or MBA course with nothing found stays `unknown`. An assignment with no course has no rule to read (rule 6: not applicable).
+- **`school` (legacy).** Course notes made before 0.2.0 may carry `school: "…"`. It is read as display text only when a note has neither `programme` nor `provider`, and is never written to a new note (§10, "Fallbacks for older installs").
 
 Other `type` values appear only in framework files, not in the vault: `guide`, `reference`, `readme`, `home`, `index`, `log`.
 
@@ -163,17 +178,17 @@ Other `type` values appear only in framework files, not in the vault: `guide`, `
 | `voice` | `ok` or `missing` (no profile in this language yet) |
 | `exemplars: []` | ids of the exemplars used, for example `E07` |
 
-**Extra `application` fields** (written by `/jobs scan`): `location`; `fit` (score); `sponsor` (the IND register phrase, or `n/a`); `dutch` (language signal: required, likely, preferred, not_required, unknown); `salary_check` (verdict against `system/packs/mba/jobs-nl/salary-thresholds.md`, or `n/a`); `source` (`adzuna` or `career-page`); `retrieved` (date).
+**Extra `application` fields** (written by `/jobs scan`). Core fields: `location`; `fit` (score); `source` (`adzuna` or `career-page`); `retrieved` (date). The active country pack adds the fields its `jobs.md` declares under Fields (§10, "Packs"). The Netherlands pack (`country-nl`) writes `sponsor` (the IND register phrase, or `n/a`), `dutch` (language signal: required, likely, preferred, not_required, unknown) and `salary_check` (verdict against `system/packs/country-nl/salary-thresholds.md`, or `n/a`). Without a country pack these three are absent. The names are unchanged since 0.1, so existing notes and the pipeline view keep working.
 
-**Recipient classes** (`system/packs/twin/drafting.md`; the same names tag the exemplars):
+**Recipient classes** (`system/packs/twin/drafting.md` §3; the same names tag the exemplars; the ids are unchanged since 0.1 because they are stored in drafts and exemplars, and only the definitions were widened for learners and workers who are not in a school):
 
 | class | who |
 |---|---|
-| `faculty` | professors, lecturers, teaching assistants |
-| `school-staff` | programme office, admissions, careers centre, IT |
+| `faculty` | teachers, lecturers, tutors, supervisors, mentors |
+| `school-staff` | programme or provider staff (admissions, careers, IT, learner support) |
 | `recruiter` | recruiters, hiring managers, interviewers |
-| `professional` | alumni, colleagues, companies, networking contacts |
-| `peer` | classmates, teammates, study group |
+| `professional` | colleagues, managers, clients, alumni, contacts |
+| `peer` | classmates, course-mates, team-mates, same-level colleagues |
 | `close` | friends, family |
 | `group` | many recipients, mailing lists |
 
@@ -195,7 +210,7 @@ Ordinary documents are ordinary Git files. Git LFS stores only a file at or abov
 
 - **Root `.gitattributes`** (`F text`, replaced verbatim by an update): `* text=auto eol=lf`; `binary` for common document, picture, audio, video and archive types (so Git never changes their bytes); `vault/.obsidian/plugins/** -text`; `merge=union` for `vault/40_sources/manifest.jsonl`, `vault/30_wiki/log.md` and `vault/.gitattributes`. It holds **no** `filter=lfs` line. `*.key` is deliberately not marked `binary`, so a PEM private key stays visible to the secret scan.
 - **`vault/.gitattributes`** (`U`; created by the first save that needs it; never replaced by an update; Alterbrain never removes a line). Two comment lines, then one line per big file: `"/<path inside vault/>" filter=lfs diff=lfs merge=lfs -text`. The pattern is anchored with a leading slash, so a file directly in `vault/` does not also match the same name deeper down; wildcard characters are escaped; a name with a space or quote is put in double quotes. The three encryption attribute files (§3, "Privacy", point 5) are deeper and win.
-- **The limit** is `git.lfs_min_mb` in `config/brain.json` (§10). The code default is 50 when the key is absent, so existing installs need no migration.
+- **The limit** is `git.lfs_min_mb` in `config/brain.json` (§10). The code default is 50 when the key is absent, so existing installs need no migration (a documented fallback, §15a.5).
 - **Routing, before staging.** `commitAll` runs `prepareBigFiles`, so `git-auto commit`, the save before a join (`pull`), the first commit of `setup-github.mjs` and the save before `vault-key.mjs unlock` all get it. For each new or changed file inside `vault/` at or above the limit it writes the rule, unstages a copy that was staged by hand as an ordinary file, and lets `git add` store the pointer. Paths that are left out reach `git add` as exclude pathspecs on standard input, so a long list cannot overflow the Windows command line. If the check itself fails, the save is aborted and reported as a failed save: one ordinary file of 100 MB would block every later upload.
 - **Self-healing.** A file that is stored as a Git LFS pointer in the current version but has lost its rule (the old root rules are gone) gets an exact-path rule on the next save that has changes, so a changed PDF is stored as a pointer again, not as a full copy. Existing LFS files stay in LFS. Nothing is migrated and no history is rewritten.
 - **Left out of the save**, each with a `#ab/git` task (one per kind; only the `private` task omits the file name, because file names are not encrypted and `Tasks.md` is backed up in clear): `no-lfs` (Git LFS is not installed; the task has the install command), `private` (the file is in an encrypted folder), `too-big` (2,000,000,000 bytes or more; the smaller reading of what is [Unverified] as GitHub's per-file maximum for Git LFS on free plans), `outside-vault` (big, but not inside `vault/`, so no user-owned place for its rule; the task asks the user to move it in), `rule-failed` (the rule was written but Git does not apply it, for example because a deeper `.gitattributes` wins).
@@ -252,15 +267,16 @@ Ordinary documents are ordinary Git files. Git LFS stores only a file at or abov
   ```
 - **`system/core.md`** stays under 150 lines. It holds:
   - who Alterbrain is;
-  - the non-negotiables (draft-only, content trust, clarify gate, no secrets in chat or the vault, no fabricated facts about the user and the private-fact gate, coursework notice);
-  - the folder map;
+  - the non-negotiables (draft-only, content trust, clarify gate, no secrets in chat or the vault, no fabricated facts about the user and the private-fact gate, coursework notice: rule 6 warns for `restricted`, `banned` and `unknown`, drafts a disclosure for `allowed-with-disclosure`, and says nothing for `allowed`, `none-stated` or an assignment with no course);
+  - the folder map (including `20_areas/programmes/` and the packs);
   - how to add tasks;
-  - the standing course-material rule (one line: if something new for a course comes up and its Material list lacks it, ask once per course per session, after the user's request and never mid-draft, whether they have it, then add it via `/ingest`; the detail is `system/packs/mba/course-setup.md` section 7);
+  - the standing course-material rule (one line: if something new for a course comes up and its Material list lacks it, ask once per course per session, after the user's request and never mid-draft, whether they have it, then add it via `/ingest`; the detail is `.claude/skills/course/references/course-setup.md` section 7);
   - model routing (short form);
   - where things live;
   - "the user's request always comes first".
-- **Always-loaded budget:** the empty templates (`core.md` plus SOUL, IDENTITY, USER and MEMORY) total at most 8 KB. Once filled in, the target is at most 12 KB. `USER.md` ≤ 4,000 characters; `MEMORY.md` ≤ 60 lines. `fact-sheet.md` is not always loaded.
-- **`.claude/rules/`** holds `model-routing.md` (always on, short), `writing.md` (always on), `vault.md` (path-scoped to `vault/**`), and `framework-dev.md` (path-scoped to the developer folders `system/hooks/**`, `system/scripts/**`, `system/lib/**`, `tests/**`, `docs/**`, so student sessions that read skill workflows or templates do not load it).
+- **Always-loaded budget (stated figures):** the empty templates (`core.md` plus SOUL, IDENTITY, USER and MEMORY) total at most 8 KB. Once filled in, the target is at most 12 KB. `USER.md` ≤ 4,000 characters; `MEMORY.md` ≤ 60 lines. `fact-sheet.md` is not always loaded.
+  - **Open point for the owner (measured 2026-10-08): the stated figures do not hold, and no test enforces them.** `core.md` 7,900 bytes (7,918 before the learner-neutral change) plus the empty templates IDENTITY 573, MEMORY 547, SOUL 1,110 and USER 1,269 is 11,399 bytes, 3.4 KB above 8 KB (it was 11,381 before). Filled in, `core.md`, SOUL, IDENTITY and `USER.md` at its 4,000-character limit alone come to 13.6 KB, so the 12 KB target cannot be met either. This change does not alter the figures. Proposal: state the budget as `core.md` ≤ 8 KB (a limit it meets today), the empty set ≤ 12 KB, and the filled-in set ≤ 18 KB [Inference: `MEMORY.md` at 60 lines of about 80 characters adds about 5 KB]; or trim `core.md` to meet 8 KB for the empty set, which would cost non-negotiable wording. Until the owner decides, the working limit is `core.md` ≤ 7,918 bytes.
+- **`.claude/rules/`** holds `model-routing.md` (always on, short), `writing.md` (always on), `vault.md` (path-scoped to `vault/**`), `framework-dev.md` (path-scoped to the developer folders `system/hooks/**`, `system/scripts/**`, `system/lib/**`, `tests/**`, `docs/**`, so learners' sessions that read skill workflows or templates do not load it) and `migrations.md` (path-scoped to `system/templates/**`, `system/packs/**`, `system/catalogue/**`, `system/core.md` and `.claude/skills/**`: a short, dev-mode-only pointer to the migration policy in `framework-dev.md`, loaded where data shapes change).
 
 ---
 
@@ -318,11 +334,11 @@ argument-hint: "<optional>"
 
 | Group | Skills |
 |---|---|
-| Core | `onboard` · `menu` · `reconfigure` · `clarify` · `health-check` · `update-alterbrain` · `capture` · `ingest` · `ask` · `propose` · `build` · `remove-skill` · `framework` · `render` · `weekly-review` · `learn` · `edit-voice` |
-| MBA pack | `assignment` · `reply` · `jobs` · `study` · `course` |
+| Core | `onboard` · `menu` · `reconfigure` · `clarify` · `health-check` · `update-alterbrain` · `capture` · `ingest` · `ask` · `propose` · `build` · `remove-skill` · `framework` · `render` · `weekly-review` · `learn` · `edit-voice` · `assignment` · `reply` · `jobs` · `study` · `course` |
 | Vendored (kepano/obsidian-skills, MIT) | `obsidian-markdown` · `obsidian-bases` · `json-canvas` · `obsidian-cli` · `defuddle` |
 
 Notes:
+- There is no skill group for a pack. The MBA pack has no skills: it holds frameworks, the case template and critique presets (§10, "Packs"). `assignment`, `study` and `course` work for any learner, and `jobs` is the core flow plus country packs (Netherlands first).
 - `health-check` replaces the first plan's `/checkup`, which is an alias of the built-in `/doctor` (ADR 0017). Its tasks carry `#ab/health-check`.
 - **Clarify checklists live in `.claude/skills/clarify/checklists/<type>.md`**, one per type: `skill`, `agent`, `mcp`, `automation`, `blueprint`, `assignment`, `application`, `job-search`, `email-reply`, `document`, `research`, `study`. A skill's "Before you start" names the type it needs.
 - Skills keep helper text in `references/` and `workflows/`. Helper scripts live in `system/scripts/` (section 15), not inside skill folders.
@@ -369,7 +385,7 @@ node system/scripts/ingest.mjs <file-folder-or-zip>... [--latest-only] [--kind <
 - **Skips** OS junk, `~$*`, `.git`, `node_modules`, `.obsidian`.
 - **`--latest-only`:** for a series like `Name_v0.1.md`, `Name_v1.0.md`, keeps only the highest version.
 - **`--course "<Course name>"`:** written as `course` on every new manifest entry (see below), so the `ingest` skill can link notes to the course. A file that is already in the vault keeps the course it was first saved with (the manifest is append-only).
-- **Zips (ADR 0021).** There is no connection to any school learning platform (some schools do not allow automated access); the user downloads the course files, usually as one zip ("download all files"), and gives the folder or zip to `/ingest`. A `.zip` named on the command line, or found inside a folder that is, is opened with the computer's own `tar` that reads zips (bsdtar: `System32\tar.exe` by full path on Windows, because a `tar` on the search path can be Git's GNU tar, which cannot; the system `tar` on macOS), or `unzip` if there is no bsdtar. If neither exists, it says plainly to unzip the file first. The zip itself is **not** stored. The files go through the per-file steps below with the origin `<zip name>/<inner path>`; an explicit `--origin` wins. The script reads the zip's index itself before anything is unpacked and refuses the **whole zip** (nothing from it is used, and nothing partial reaches the immutable raw store) when it: holds a name that leads outside its folder (`../x`, `/x`, `C:/x`, `\\server\x`, zip-slip) or a link entry; is password protected, damaged or truncated; holds more than 5000 files or 2 GB unpacked (each zip counted on its own; `ALTERBRAIN_MAX_ZIP_FILES`, `ALTERBRAIN_MAX_ZIP_BYTES`); holds two names that Windows and macOS treat as one file (compared after case-folding and Unicode normalisation: `Notes.md` and `notes.md`); gives a different number of files than it lists when unpacked; or the tool exits with an error. It unpacks into a fresh `state/local/tmp/ingest-zip-*` folder while a watcher stops it if the unpacked size passes the limit, then checks that nothing landed outside that folder, that nothing is a link and that every file resolves inside it. The folder is always deleted again (after an error, at exit and on Ctrl+C; leftovers older than 24 h are swept). A zip **inside** a zip is stored as an ordinary file with a note ("zip inside a zip") and not opened: opening nested zips is how zip bombs multiply and the origin trail would blur. `ALTERBRAIN_NO_ZIP_TOOL=1` pretends there is no tool (tests only).
+- **Zips (ADR 0021).** There is no connection to any school's or provider's learning platform (some do not allow automated access); the user downloads the course files, usually as one zip ("download all files"), and gives the folder or zip to `/ingest`. A `.zip` named on the command line, or found inside a folder that is, is opened with the computer's own `tar` that reads zips (bsdtar: `System32\tar.exe` by full path on Windows, because a `tar` on the search path can be Git's GNU tar, which cannot; the system `tar` on macOS), or `unzip` if there is no bsdtar. If neither exists, it says plainly to unzip the file first. The zip itself is **not** stored. The files go through the per-file steps below with the origin `<zip name>/<inner path>`; an explicit `--origin` wins. The script reads the zip's index itself before anything is unpacked and refuses the **whole zip** (nothing from it is used, and nothing partial reaches the immutable raw store) when it: holds a name that leads outside its folder (`../x`, `/x`, `C:/x`, `\\server\x`, zip-slip) or a link entry; is password protected, damaged or truncated; holds more than 5000 files or 2 GB unpacked (each zip counted on its own; `ALTERBRAIN_MAX_ZIP_FILES`, `ALTERBRAIN_MAX_ZIP_BYTES`); holds two names that Windows and macOS treat as one file (compared after case-folding and Unicode normalisation: `Notes.md` and `notes.md`); gives a different number of files than it lists when unpacked; or the tool exits with an error. It unpacks into a fresh `state/local/tmp/ingest-zip-*` folder while a watcher stops it if the unpacked size passes the limit, then checks that nothing landed outside that folder, that nothing is a link and that every file resolves inside it. The folder is always deleted again (after an error, at exit and on Ctrl+C; leftovers older than 24 h are swept). A zip **inside** a zip is stored as an ordinary file with a note ("zip inside a zip") and not opened: opening nested zips is how zip bombs multiply and the origin trail would blur. `ALTERBRAIN_NO_ZIP_TOOL=1` pretends there is no tool (tests only).
 
 **Per file:**
 1. Compute sha256. If already in the manifest, skip as `duplicate`.
@@ -385,7 +401,7 @@ node system/scripts/ingest.mjs <file-folder-or-zip>... [--latest-only] [--kind <
    ```
    The origin is the file name only unless `--origin` says otherwise, so folder and user names stay out of the manifest. `course` is the last key and is present only when `--course` was given.
 
-**Output:** a summary (and `--json`: `{ ok, counts: { found, new, duplicate, skipped, error, text_pending, local_only, zips }, manifest, manifest_bad_lines, zips: [{ zip, status: "opened" or "refused", files, bytes, reason? }], files: [...] }`). The `ingest` skill then writes one source note per new file and updates the wiki (`index.md`, `log.md`, concepts). For a folder or zip of course material it follows `.claude/skills/ingest/references/course-material.md`: it infers the course from the folder or zip name and the course notes and confirms with one question, passes `--course`, links each source note to the course note, offers to put deadlines found in a syllabus or assignment page into the course note and the task list, and works in batches (about 50 notes per run, with a task for the rest). Setting up a whole course is one procedure, `system/packs/mba/course-setup.md`, followed by `/course` (a new course, block or term), onboarding M3, `/ingest` and, through an offer, `/assignment new`: it asks for everything the student has (syllabus, slides, readings, cases, Excel models and data files, briefs and rubrics, past exams), imports it with `--course`, writes the course note from the syllabus, keeps the `## Material` index in the course note (including links to the user's own notes already in the vault, under "Your notes", never imported twice), records the class dates the syllabus states (`session_dates`) or, when it states none, asks once for the weekdays (`class_days`, `term_start`, `term_end`; "The schedule question" in section 3, also asked by `/course <name>` for a course whose note has no class dates, and remembered in `class_days_asked` so that a "don't know" is not asked again) so that the session digest can ask for new material after each class, and reports what is missing. Bringing material in is an ongoing habit, not a one-off (section 7 of the procedure): whenever the user mentions or hands over something new for a course, or the digest says "New material?", Alterbrain checks the course's Material list first and then asks once per course per session, after the user's own request and never mid-draft. Word, PowerPoint and spreadsheets: `.csv` and `.tsv` are kept as text; `.docx`, `.pptx`, `.xlsx`, `.xls`, `.xlsm`, `.ods` and the like become text only when `markitdown` is available, otherwise `text_status` is `pending` and the source note says so. The procedure checks `uvx --version` before the copy and offers (PDF first, install the reader first, copy as they are), because installing afterwards does not help files already copied. Unreadable files are listed as "not readable yet", counted apart, and never summarised. The AI-policy notice (`core.md` rule 6) does not run at import, because importing readings is not assignment work; it runs when the user asks to start or draft an assignment. Raw files are never edited or deleted.
+**Output:** a summary (and `--json`: `{ ok, counts: { found, new, duplicate, skipped, error, text_pending, local_only, zips }, manifest, manifest_bad_lines, zips: [{ zip, status: "opened" or "refused", files, bytes, reason? }], files: [...] }`). The `ingest` skill then writes one source note per new file and updates the wiki (`index.md`, `log.md`, concepts). For a folder or zip of course material it follows `.claude/skills/ingest/references/course-material.md`: it infers the course from the folder or zip name and the course notes and confirms with one question, passes `--course`, links each source note to the course note, offers to put deadlines found in a syllabus or assignment page into the course note and the task list, and works in batches (about 50 notes per run, with a task for the rest). Setting up a whole course is one procedure, `.claude/skills/course/references/course-setup.md`, followed by `/course` (a new course, block or term), onboarding M3, `/ingest` and, through an offer, `/assignment new`: it asks for everything the learner has (syllabus, slides, readings, cases, Excel models and data files, briefs and rubrics, past exams), imports it with `--course`, writes the course note from the syllabus, keeps the `## Material` index in the course note (including links to the user's own notes already in the vault, under "Your notes", never imported twice), records the class dates the syllabus states (`session_dates`) or, when it states none, asks once for the weekdays (`class_days`, `term_start`, `term_end`; "The schedule question" in section 3, also asked by `/course <name>` for a course whose note has no class dates, and remembered in `class_days_asked` so that a "don't know" is not asked again) so that the session digest can ask for new material after each class, and reports what is missing. Bringing material in is an ongoing habit, not a one-off (section 7 of the procedure): whenever the user mentions or hands over something new for a course, or the digest says "New material?", Alterbrain checks the course's Material list first and then asks once per course per session, after the user's own request and never mid-draft. Word, PowerPoint and spreadsheets: `.csv` and `.tsv` are kept as text; `.docx`, `.pptx`, `.xlsx`, `.xls`, `.xlsm`, `.ods` and the like become text only when `markitdown` is available, otherwise `text_status` is `pending` and the source note says so. The procedure checks `uvx --version` before the copy and offers (PDF first, install the reader first, copy as they are), because installing afterwards does not help files already copied. Unreadable files are listed as "not readable yet", counted apart, and never summarised. The AI-policy notice (`core.md` rule 6) does not run at import, because importing readings is not assignment work; it runs when the user asks to start or draft an assignment. Raw files are never edited or deleted.
 
 ---
 
@@ -397,20 +413,53 @@ Defaults live in `system/templates/config/`; onboarding copies them to `config/`
 ```json
 {
   "schema": 1,
-  "user": { "name": "", "timezone": "Europe/Amsterdam", "languages": ["en"] },
+  "user": { "name": "", "timezone": "", "languages": ["en"] },
   "plan_tier": "pro",
-  "packs": ["core", "mba"],
-  "school": { "name": "", "programme": "" },
+  "learner": { "kind": "", "detail": "" },
+  "packs": ["core"],
   "self_build": { "mode": "propose", "proactive": true, "max_open_proposals": 3 },
   "evidence_mode": "light",
   "git": { "auto_commit": true, "auto_push": true, "lfs_min_mb": 50 },
   "privacy": { "encryption": { "enabled": false, "tool": "git-crypt", "scope": [], "key_backup_checked": null } },
-  "jobs": { "country": "NL", "needs_sponsorship": null, "languages": ["en"], "sources": ["adzuna", "career-pages"] }
+  "jobs": { "country": "", "needs_sponsorship": null, "languages": ["en"], "sources": ["adzuna", "career-pages"] }
 }
 ```
-- `school.lms` was removed with the Canvas integration. Nothing reads it, and an existing key is ignored. There is no connection to a learning platform: course files arrive by download and `/ingest` (§9).
-- `git.lfs_min_mb` (ADR 0020) is the size, in megabytes of 1,048,576 bytes, from which a file is stored with Git LFS (§3, "Git storage"). It is optional: when the key is absent, not a number or not above 0, the default 50 applies, and a value is kept between 1 and 95, because GitHub refuses ordinary files of about 100 MB [Unverified]. Existing installs need no migration.
+- `user.timezone` is empty in the template. Onboarding M2 sets it from the computer's time zone after one confirmation. No script reads it; the jobs skill uses it only as a hint when it asks for the country.
+- `learner` (ADR 0023) records what the user is learning or doing. `kind` is one of `mba`, `degree`, `online`, `professional` or `other`; `detail` holds the user's own words and is used only for `other`. Onboarding M2 writes it (the learner question comes right after the CV step). `other` behaves like `degree`. `learner.kind` drives the onboarding branches and the defaults below, and `packs` drives the content that is added (frameworks, the case method, business presets, MBA wording): the two are separate. Defaults by kind: `mba` and `degree` have a programme note, courses and AI-rule checks; `online` has standalone courses with a provider, a programme note only when the courses form one track, the AI-rule check only where a rule exists (otherwise `none-stated`) and class days only for courses with live sessions; `professional` has no courses, programme or AI-rule steps, with focus areas in `USER.md` and projects in `project` notes (§3).
+- `packs` lists the ids of the packs switched on and is read by code (see "Packs" below). The template starts with `["core"]`.
+- `jobs.country` is an ISO 3166-1 alpha-2 code in capitals (`NL`), or `""` until the user chooses. The jobs skill asks once and saves it; the Adzuna default country and the country-pack lookup both read it.
+- `school` (`name`, `programme`) is no longer in the template: the programme now lives once in a programme note (§3, "Programme notes and inheritance"). Installs made before 0.2.0 still hold the block. It is read as a fallback (below) and is removed no earlier than two releases after 0.2.0, by a migration. `school.lms` was removed with the Canvas integration: nothing reads it, and an existing key is ignored. There is no connection to a learning platform: course files arrive by download and `/ingest` (§9).
+- `git.lfs_min_mb` (ADR 0020) is the size, in megabytes of 1,048,576 bytes, from which a file is stored with Git LFS (§3, "Git storage"). It is optional: when the key is absent, not a number or not above 0, the default 50 applies, and a value is kept between 1 and 95, because GitHub refuses ordinary files of about 100 MB [Unverified]. Existing installs need no migration (a documented fallback, §15a.5).
 - `privacy.encryption` (ADR 0019) is written by `vault-key.mjs`, not by hand: `enabled` (true after a successful `setup`), `tool` (always `git-crypt`), `scope` (the encrypted paths, as listed in §3 "Privacy"; paths only, never key material), `key_backup_checked` (`YYYY-MM-DD` of the last successful `vault-key.mjs check`, or `null`). Code treats encryption as on when either `enabled` is true or the `.gitattributes` files carry `filter=git-crypt` (the safer reading when one of the two is missing or unreadable).
+
+**Fallbacks for older installs.** An install made before 0.2.0 holds the older shape of `config/brain.json`, and a template change never reaches it (§15a.1). Code and skills read both shapes. In short (the file that reads each one, and its test, are in §15a.5):
+- No `learner`, or an empty `learner.kind`: `mba` when `packs` lists `mba` or a `school` block exists, otherwise unknown (onboarding asks the learner question). Migration 0002 records the kind once.
+- No `packs`, or one that is not a list: `["core"]`.
+- A `school` block: display text only, and only when there is no programme note; it is never copied into a new course note. Migration 0003 makes the programme note and leaves the keys in place.
+- An empty `jobs.country`, or `NL` with no `country-*` entry in `packs`: the pack folder for `jobs.country` is used when it exists, and the country is asked once when it is empty.
+- `git.lfs_min_mb` and `privacy.encryption` absent: the defaults above.
+
+### Packs
+
+A pack is a folder under `system/packs/` that adds content for one kind of learner or one country; the pack id is the folder name. Everything else (courses, study, the assignment studio, notes, drafting) is core and works with no pack. `system/packs/README.md` is the maintainers' guide.
+
+| id | folder | adds |
+|---|---|---|
+| `core` | none | always on; may be listed, and code ignores it |
+| `mba` | `system/packs/mba/` | the frameworks library (`frameworks/`, copied into `vault/30_wiki/frameworks/`), the case method (`templates/case.md`), business critique presets (`critique-presets.md`) and MBA wording where a kind needs it |
+| `country-<cc>` | `system/packs/country-<cc>/` | a country's job-search checks (`country-nl` first) |
+| `twin` | `system/packs/twin/` | drafting rules and voice import; always used by `ghostwriter` and `/reply`; never listed in `packs` |
+
+- **Selection.** `packs` in `config/brain.json` is an array of ids. An id must be a folder name (lower-case letters, digits and hyphens). There is no registry: code and skills read the array.
+- **Who writes it.** Onboarding M2 (the learner question) adds `mba` for an MBA answer, takes it out only when the user moves away from an MBA, and otherwise leaves it as it is, so a pack the user switched on stays on and a confirmation changes nothing. Onboarding M6 and `/jobs` add `country-<cc>` for `jobs.country` when that pack exists and remove other `country-*` entries. `/reconfigure` re-runs those two steps and has its own row, "Switch the MBA frameworks on or off", which adds or removes `mba` and nothing else, whatever the learner kind. Migration 0002 writes it once for installs made before 0.2.0. Every writer keeps the entries it does not own.
+- **Who reads it.** `onboard-seed.mjs` (copies the frameworks of every listed pack; §15), `/assignment critique` (business seats from `critique-presets.md` when `mba` is listed and the subject is business), `/jobs` and onboarding M6 (the country pack), `/menu` and `/reconfigure` (what is switched on). Switching the MBA pack on or off never changes `learner.kind` and deletes no note.
+- **The country-pack contract.** A country pack is `system/packs/country-<cc>/`, with `<cc>` the lower-case ISO 3166-1 alpha-2 code (`jobs.country` holds it in capitals). It has:
+  - `README.md`: the pack id, the country, the local language, what is in the pack and how to maintain it;
+  - `jobs.md` (`type: "reference"`), with six fixed `##` headings in this order: **Defaults** (the Adzuna country code, sources, default regions, local language), **Onboarding questions** (asked by M6 and `/reconfigure` after the generic career questions), **Checks** (per-job checks, each with its command or file and the field it writes), **Keep rules** (added to the core scan rules; where a pack rule and a core score band disagree, the pack rule wins), **Fields** (the extra `application` fields; a name never changes once released) and **Say once** (what to say once per scan);
+  - the country's reference tables as separate files (`country-nl`: `dutch-language.md`, `salary-thresholds.md`, `visa-and-sponsorship.md`, `sources.md`).
+  The scripts stay in `system/scripts/jobs/`, so permission lists and the user's own copies keep working; the pack holds the data they read.
+- **Resolution (the jobs skill, "Country pack").** (1) `packs` lists `country-<cc>` for `jobs.country`: use `system/packs/country-<cc>/jobs.md`. (2) Otherwise use `.claude/skills/my-country-<cc>/jobs.md`, a pack the user had built. (3) For an install whose `packs` has no `country-*` entry (an older one): `system/packs/country-<cc>/jobs.md` when that folder exists. (4) None: run the core flow without country checks, leave the pack's fields out and say once that checks for that country do not exist yet, with an offer to draft them (`/propose`).
+- **New packs** are not built ahead of demand (ADR 0023). `/propose` drafts one on request as the user's own skill and never writes under `system/` (§11).
 
 ### `config/autonomy.json`
 `level` ∈ `draft`, `approve`, `auto`.
@@ -504,6 +553,31 @@ Evidence for proactive suggestions. One signal per key per day.
 - Overall `status`: `not_started`, `in_progress`, `minimum_done` (M0 to M4 done) or `complete` (every module `done` or `skipped`).
 - Module `status`: `todo`, `in_progress`, `done`, `later` (still open), `skipped`.
 - `note` is one short line to resume from. Read by `session_start`, `/menu`, `/reconfigure` and `doctor.mjs`.
+- Module titles are for readers only and always come from `MODULES` in `onboard-progress.mjs`: a title stored in the file is ignored, so renaming a module needs no migration (§15a.5). Aliases for `start`, `done` and the like include `projects`, `learning` and `work` (M3) and `job-search` (M6).
+- The modules and the time they take:
+
+| id | title | minutes |
+|---|---|---|
+| M0 | Setup | 8 |
+| M1 | Identity and tone | 2 |
+| M2 | You and your facts (asks the learner question right after the CV step and writes `learner` and `packs`) | 5 |
+| M3 | Courses and projects (branches by kind: programme note and courses, standalone online courses, or focus areas and projects) | 6 for `mba`, `degree` and `other`; 4 for `online`; 3 for `professional` |
+| M4 | Autonomy and self-build | 3 |
+| M5 | Your writing voice (asks which kinds of people the user writes to, the recipient classes) | 15 |
+| M6 | Career and job search (starts with the country question) | 10 |
+| M7 | Email and tools | 8 |
+| M8 | Look of your documents | 5 |
+| M9 | Import your existing files | 10 |
+
+  The essentials, M0 to M4, take about 24 minutes for `mba`, `degree` and `other`, 22 for `online` and 21 for `professional`. `onboard-progress.mjs show --json` adds `learner_kind` (`null` when unknown, by the fallback rule above) and `estimate_minutes { minimum, remaining }`.
+
+### `state/migrations.json` (written only by `update.mjs finish`; tracked)
+The record of upgrade scripts that have run (§15a). It lives in `state/`, not `state/local/`, so it travels with the repository to another computer.
+```json
+{ "schema": 1, "applied": [ { "id": "0002-learner-and-packs.mjs", "at": "<ISO>", "tag": "v0.2.0" } ] }
+```
+- `id` is the file name. An entry with `"baseline": true` marks a script that a fresh install already contained: it is recorded and never run.
+- A fresh install has no such file until its first update (§15a.6). Never edited by hand.
 
 ### `state/release-origin.json`
 Written by `setup-github.mjs` (section 15): `{ "schema": 1, "repo": "<owner/name>", "url": "<old origin>", "recorded": "YYYY-MM-DD" }`.
@@ -547,6 +621,8 @@ Body sections:
 
 **Self-build may never edit** `code`-class files, `.claude/settings.json`, `system/core.md` or the catalogue.
 
+**Packs.** No pack is built ahead of demand (ADR 0023). When someone wants one (a country other than the Netherlands, a field with its own frameworks), `/propose` drafts it as the user's own skill, for a country `.claude/skills/my-country-<cc>/` with a `jobs.md` that follows the country-pack contract (§10, "Packs"). It is never written under `system/`.
+
 ---
 
 ## 12. Study cards (`50_learning/cards/<topic>/<Card title>.md`)
@@ -572,7 +648,7 @@ A: …
 
 ## 13. Assignment studio (`/assignment`)
 
-**Folder:** `vault/10_projects/<YYYY> <course> <assignment slug>/`.
+**Folder:** `vault/10_projects/<YYYY> <course-slug> <assignment-slug>/`, or `<YYYY> <assignment-slug>` when the assignment belongs to no course. A course is optional: a working professional or a self-taught learner can still write and review a report.
 ```
 assignment.md      (type: assignment; frontmatter = the spec below)
 brief.md  report.qmd  critique-<round>.md  decisions.md  reviews/<round>/<lens>.md  rubric.md  releases/
@@ -581,7 +657,7 @@ brief.md  report.qmd  critique-<round>.md  decisions.md  reviews/<round>/<lens>.
 **`assignment.md` frontmatter:**
 ```yaml
 type: "assignment"
-course: "[[course]]"
+course: "[[course]]"   # or "" when the assignment belongs to no course
 title: ""
 deadline: "YYYY-MM-DD"
 deadline_confirmed: false
@@ -591,26 +667,28 @@ deliverables: ["pdf"]  # pdf, xlsx, docx, pptx
 rubric: "[[rubric]]"
 team: []               # names only if the user provides them
 lenses: ["devils-advocate", "premortem", "board", "specialists", "grader"]
-stop_rule: { target_grade: 9, plateau_rounds: 2 }
+stop_rule: { target_grade: 9, plateau_rounds: 2 }   # target_grade is on the 10-point scale, converted from the course's own scale (default 9; a pass/fail course gets 7)
 status: "setup"        # setup, brief, draft, critique, final, shipped
 ```
 
-**Subcommands:** `new`, `brief`, `draft`, `critique`, `ship`. Extensions are in `system/blueprints/assignment-extras.md`.
+**Subcommands:** `new`, `brief`, `draft`, `critique`, `ship`. `new` is the interview: it asks which course (or none), reads the AI rule from the course note, and asks for the target grade in the course's own scale. For a course with no note it writes one by the short form of the course procedure (§0 and §3 of `.claude/skills/course/references/course-setup.md`) and offers the full course setup at the end. Extensions are in `system/blueprints/assignment-extras.md`.
 
-**Coursework notice.** If the course `ai_policy` is `restricted`, `banned` or `unknown`:
+**Coursework notice** (rule 6 of `core.md`). It reads the course note's `ai_policy` only: a rule taken from a programme was copied into the course at setup, and the course's own rule wins (§3, "Programme notes and inheritance"). If the policy is `restricted`, `banned` or `unknown`:
 - warn once per assignment in plain words;
 - ask whether to continue;
 - proceed if yes.
 
-**Never** write the consent anywhere tracked by git. If needed, use `state/local/` only. If the policy is `allowed-with-disclosure`, draft a disclosure paragraph for the user.
+**Never** write the consent anywhere tracked by git. If needed, use `state/local/` only. If the policy is `allowed-with-disclosure`, draft a disclosure paragraph for the user. If it is `allowed` or `none-stated`, or the assignment has no course, say nothing.
 
 **Case date and the hindsight rule.**
 - A case note carries `case_date` (the date the case is set). `/assignment critique` copies it into the round card (`review-round`, `case_date`, or "none" when the work is not a case).
-- **Hindsight rule:** every lens and the consolidation use only facts that were knowable on that date. Later facts go under "Outside the case" (or "for class only" in the consolidation) and never drive an attack, a grade or a decision.
+- **Hindsight rule:** applies only when the round card carries a `case_date`. Every lens and the consolidation then use only facts that were knowable on that date. Later facts go under "Outside the case" (or "for class only" in the consolidation) and never drive an attack, a grade or a decision. For work that is not a case, "Outside the case" is n/a.
 
 **Review notes block.** `/assignment draft` puts the page plan at the very top of the body of `report.qmd` in a block that starts with `::: {.content-hidden` and ends with `:::`. Quarto does not print it, and the lenses ignore it (with the YAML front matter) because it is review notes, not graded text. The consolidation reads it.
 
-**Lens prompts** live in `system/packs/mba/lenses/*.md`.
+**Lens prompts** live in `.claude/skills/assignment/references/lenses/*.md`, written for any subject (assessor, intended reader, subject expert, referee, editor).
+- The assignment, rubric, decisions and critique templates are in `system/templates/notes/`; the case template is in the MBA pack.
+- Business presets (board seats and specialist examples for business subjects) are in `system/packs/mba/critique-presets.md`. The round card uses them only when `packs` lists `mba` and the subject is business.
 - Each lens runs as the `lens` agent with paths only, blind to the other lenses, read-only.
 - Consolidation is done by `opus/high`.
 
@@ -647,21 +725,21 @@ All scripts:
 | script | purpose |
 |---|---|
 | `doctor.mjs [--json] [--ci]` | Checks Node ≥ 20, git, git-lfs (`git-lfs`; needed only for files of `git.lfs_min_mb` or more, and the message names the limit), the size of the saved history (`repo-size`, from `git count-objects -v`; Git LFS files are not counted; an `ok` with a `tip` from 1 GB, `warn` from 4 GB, both Alterbrain's own levels), the big-file check for Obsidian Git (`big-file-hook`: `warn` when the `pre-commit` hook is missing, out of date, another tool's, or shadowed by `core.hooksPath`), saved ordinary files that GitHub would refuse (`big-blobs`: `fail` when a commit not yet online holds one of 95 MiB or more), gh auth, origin remote, Quarto (optional), Obsidian config, Claude Code version (`claude --version` if on PATH; minimum in `system/release.json`), `.claude/settings.json` model, onboarding state, vault skeleton, manifest integrity (sha of code files), `validate.mjs`, `.mcp.json` validity, `uv` when a configured connection needs it, disk space. When encryption of private notes is on (not in `--ci`): git-crypt installed (`encryption-tool`), this copy unlocked (`encryption-unlocked`), nothing in the encrypted paths stored as plain text (`encryption-files`), the upload check installed (`encryption-push-hook`: `warn` unless the `pre-push` hook is active), key backup tested (`encryption-backup`). The `git-lfs`, `repo-size`, `big-file-hook`, `big-blobs` and encryption checks look at one computer, so `--ci` skips them. Each failure prints one-line fix advice. A check that is fine but comes with advice (`repo-size` from 1 GB) keeps status `ok`, gets an optional `tip` field in `--json` and prints a `Tip:` line; it is not counted as a problem. |
-| `validate.mjs [--write-manifest]` | Lints skill and agent frontmatter (required keys, allowed values, name = folder), the routing file, the catalogue schema (and that the Risk column of `MCP-CATALOGUE.md` matches `tos_risk`), blueprint sections, and the `Adapted from` line in every file `UPSTREAM-SYNC.md` lists as adapted. `--write-manifest` regenerates `system/manifest.json` (release tooling). |
+| `validate.mjs [--json] [--release] [--write-manifest [--sign-key <pem>]]` | Lints skill and agent frontmatter (required keys, allowed values, name = folder), the routing file, the catalogue schema (and that the Risk column of `MCP-CATALOGUE.md` matches `tos_risk`), blueprint sections, and the `Adapted from` line in every file `UPSTREAM-SYNC.md` lists as adapted. **The migration lint (§15a):** each file in `system/scripts/migrations/` has a name `NNNN-short-name.mjs` with a unique four-digit prefix, a `// ab-migration:` line within its first three lines and, when a `tests/` folder exists, a test `tests/scripts/migrations/<name>.test.mjs`; a file there that is not `.mjs` (a `README.md` aside) is a warning, because `update.mjs` would never run it. **Release notes:** every upgrade script is named under `### Upgrades` in `CHANGELOG.md`; every framework file of the previous release (read from the manifest at the newest `v*` git tag) that is gone now is listed under `### Moved`; every ADR cited in the rules, lib and scripts exists in `docs/adr/`; and this SPEC mentions `state/migrations.json`. These are warnings while developing. `--release` makes them errors, and `--sign-key` implies it, so nothing is written or signed while they stand (a plain `--write-manifest` is never blocked). `--write-manifest` regenerates `system/manifest.json` (release tooling). |
 | `ingest.mjs` | §9 |
 | `tasks.mjs add\|list\|done` | §4 |
 | `mcp-gen.mjs [--dry-run]` | `config/mcp.selected.json` + `system/catalogue/mcp.json` → `.mcp.json` (wraps `npx` as `cmd /c npx` on Windows; `${VAR}` placeholders only) |
 | `git-auto.mjs pull\|commit\|push\|status` | Never forces, never stashes, never rewrites history. `pull` saves local changes as a commit first, then runs `git pull --rebase --no-autostash` when an origin exists; a join that cannot be done cleanly is aborted and changes nothing. `commit` = big-file routing (§3, "Git storage") + `git add -A` + `git commit -m "auto: <date time> · <n> files"`, retried 3× on `index.lock`; a file that looks like it holds a password or key is taken out and a task says so. `push` = `git lfs push origin <branch>`, then `git push` (setting the upstream the first time); a rejected push joins the newer online copy with the same rebase and tries once more. `push` refuses first (kind `big-blob`) when a commit not yet online holds an ordinary file of 95 MiB or more. `push --background` (or `ALTERBRAIN_PUSH_BACKGROUND=1`) starts an upload with 16 MiB or more of Git LFS data waiting as a separate process, `--background-now` (or `=now`) does so whatever the size, and `--detached` is that process itself (lock `state/local/lfs-upload.lock`). Failure kinds that add a task: `conflict`, `auth`, `rejected`, `storage` (GitHub has no room for the big files; its wording is [Unverified]), `big-blob`, `lock`, `identity`, `other`; `network` and `timeout` are only logged, because the next save tries again. Skips when dev mode or `git.auto_commit` is false. On every run outside developer mode it installs or refreshes the `pre-commit` big-file check (§3, "Git storage"). Two internal commands are not in the usage line: `pre-commit` (run by that hook file; exit 3 means "the big files were the only thing in this save") and `hook` (install or refresh it). When encryption of private notes is on, `commit` and `pull` (which saves before joining) keep encrypted paths out of a copy that cannot encrypt and take out plain private notes, and `push` runs the fail-closed check described in §14 (`session_end.mjs`). `status` reports a locked copy, the state of the big-file check (`info.big_file_check`: `active\|missing\|foreign\|hooks-path\|error`) and whether a background upload is running (`info.upload_running`). |
 | `setup-github.mjs [--name <repo>] [--dry-run] [--detach-only]` | Checks `gh auth`. If origin points to a repo that is not the user's own (normally the public Alterbrain repo), records the old origin in `state/release-origin.json` and removes it. Requires Git LFS (it stores files of 50 MB or more; everyday documents do not need it) and runs `git lfs install --local`. Installs the `pre-commit` big-file check (step `big-file-check`; §3, "Git storage"). Makes the first commit with `commitAll`, which holds back files that look like secrets and sends big files to Git LFS; files that could not be stored stay on this computer and are listed in the step `held-back-big`. Runs `gh repo create <name> --private --source . --remote origin --push`. `install.ps1` and `install.sh` also run `git-auto.mjs hook`. `--detach-only` needs no sign-in: it only records and removes the public Alterbrain origin (used in onboarding M0 when the user skips the backup). |
 | `obsidian-setup.mjs` | Writes `vault/.obsidian/{app,core-plugins,community-plugins}.json`. Downloads pinned community plugins from `system/catalogue/obsidian-plugins.json` (GitHub release assets, sha256 verified) into `vault/.obsidian/plugins/<id>/`. |
-| `update.mjs check\|plan <tag>\|apply-safe <tag>\|finish <tag>` | Reference-based update (plan §Update model). Reads the release via `gh api` or the GitHub HTTPS API. |
+| `update.mjs check\|plan <tag>\|apply-safe <tag>\|finish <tag>` | Reference-based update (plan §Update model). Reads the release via `gh api` or the GitHub HTTPS API. **Migrations (§15a):** the verified release manifest lists the upgrade scripts with their sha256. `plan` returns `migrations_pending: [{ id, summary }]` (the summary is the script's `// ab-migration:` line) for the scripts the install has not recorded, and prints them under "Upgrades to your notes and settings (run at the end)"; scripts a fresh install already shipped with come back as `migrations_baseline` and are not listed. `apply-safe` makes the restore tag `pre-update-<tag>` and refuses, before it changes any file, when the plan has upgrades and no tag can be made (`no_restore_point`). `finish` runs the pending scripts once each, in name order, after the restore tag, only when the manifest lists them with a matching sha256, and records each in `state/migrations.json`; it stops at the first exit 1. It returns `safety_tag`, `migrations_run` and `migration_notes` (what each run changed, printed under "Upgrades run:"); a script on disk that the manifest does not list, or whose checksum differs, is not run, is returned in `migrations_skipped`, and makes `ok` false. |
 | `slop-check.mjs <file> [--lang en]` | Port of COG slop-gate (MIT): hard tells fail on one hit, filler fails at three or more; quotes and code are stripped. Non-English: only language-neutral checks. |
 | `voice-stats.mjs <file...> [--lang]` | Port of COG voice-baseline idea: sentence length distribution, openers, punctuation, top phrases, watch-list rates → JSON used by onboarding M5 and `edit-voice`. |
 | `qmd-prerender.mjs <note.md> [--out]` | Obsidian note → `.qmd`: resolve wikilinks to text, inline embeds, convert callouts to Quarto callouts, strip Obsidian-only syntax. |
-| `jobs/adzuna.mjs` | Adzuna NL search (keys from `.env.local`; rate-limited, with a daily counter) |
-| `jobs/ind-sponsors.mjs` | IND recognised-sponsor register download, cache and lookup; `thresholds` prints the salary table from `system/packs/mba/jobs-nl/salary-thresholds.md` |
-| `onboard-seed.mjs [--dry-run]` | Onboarding M0: copies the vault skeleton, config defaults, identity templates and framework seeds into place, never overwriting an existing file; fills `{{date}}` and `{{title}}` |
-| `onboard-progress.mjs` | Reads and writes `state/onboarding.json` (section 10) |
+| `jobs/adzuna.mjs` | Adzuna search in any country Adzuna offers (keys from `.env.local`; rate-limited, with a daily counter). The country is `--country`, else `jobs.country` from `config/brain.json`, else `nl`. The `dutch` field and the Dutch line appear for `nl` only; a salary in another country prints without a currency name; HTTP 400 or 404 gives a plain "Adzuna may not offer this country" message [Unverified: Adzuna's real reply for an unsupported country] |
+| `jobs/ind-sponsors.mjs` | IND recognised-sponsor register download, cache and lookup; `thresholds` prints the salary table from `system/packs/country-nl/salary-thresholds.md`. An edited copy left at the old place, `system/packs/mba/jobs-nl/salary-thresholds.md`, is named in `note` and `old_copy` and is not read (a documented fallback, §15a.5) |
+| `onboard-seed.mjs [--dry-run]` | Onboarding M0 and M2: copies the vault skeleton, config defaults and identity templates into place, never overwriting an existing file; fills `{{date}}` and `{{title}}`. **Pack-driven frameworks:** copies `system/packs/<id>/frameworks/*.md` into `vault/30_wiki/frameworks/` for every id in `config/brain.json` `packs` except `core`. Ids that are not folder names (`^[a-z0-9-]+$`) are ignored; a listed pack whose folder is missing is reported and the exit code is 1; an unreadable `brain.json` means core only, with one line saying so (§10, "Packs") |
+| `onboard-progress.mjs` | Reads and writes `state/onboarding.json` (section 10). Module titles always come from the code, never from the stored file; `show --json` adds `learner_kind` and `estimate_minutes` |
 | `proposals.mjs` | Reads and writes `state/proposals.json` and counts open proposal cards (sections 10 and 11) |
 | `built.mjs` | Reads and writes `state/built.json` (section 10). `remove <name> --delete-files` also deletes the entry's `my-*` skill folders and agent files, and nothing else |
 | `rate-guard.mjs status [--all] [--json]` / `reset-throttle <server>` / `clear-draft-only <server>` / `repair-ledger` | `status` shows used-of-cap per category for each rate-limited server that is switched on or has been used (exit 1 on a pause, draft-only, an unknown outcome to check, or a damaged file). The other three lift a safety stop or repair a file, so they are not on the allow list: Claude asks first |
@@ -671,6 +749,83 @@ All scripts:
 | `vault-key.mjs status\|setup\|export\|check\|unlock [--json]` | Optional encryption of the most private notes with git-crypt (ADR 0019; shared logic in `system/lib/vaultkey.mjs`). **status**: is it on, is git-crypt installed, is this copy unlocked (`<git-dir>/git-crypt/keys/default` exists and git's `filter.git-crypt.clean` is set; the git dir comes from `git rev-parse --git-dir`), and is every tracked file in an encrypted path stored encrypted in the index (each blob's first bytes are compared with the git-crypt header `\0GITCRYPT\0`; git-crypt's own output is not parsed), and is the upload check installed. The text output has an `Upload check ... installed` line; `--json` has `pre_push_hook` (`active\|missing\|foreign\|hooks-path\|error`, or `null` while encryption is off) and the problem ids `push-hook-missing`, `push-hook-foreign`, `push-hook-shared-folder` and `push-hook-error`, and `status` exits 1 until they are fixed. **setup**: needs git-crypt (found as described under "Finding git-crypt" below; if missing it prints the one install command per OS, says to run the command again and to restart the app only if the tool is still not found, and exits 1; it never downloads anything); refuses while `origin` is still the public Alterbrain repo, and when the folder already holds notes encrypted with a key that is not on this computer; runs `git-crypt init` if there is no key; writes the three attribute files and commits them alone before any private file is touched; stages existing encrypted-path files again (`git add --renormalize`) so the next commit stores them encrypted; installs the upload check (see the `git-hooks/pre-push.mjs` row); verifies with the status check; records `privacy.encryption` in `config/brain.json`; idempotent. If another tool owns the hook file or Git uses a shared hooks folder, setup still succeeds (encryption works), prints a `Warning:` line and leaves that hook alone. **export `--out <file> [--password] [--overwrite]`**: refuses an `--out` inside the project (real-path check, links included) or an existing file; runs `git-crypt export-key` to a temporary file in `state/local/tmp/` (overwritten and deleted in all paths); with `--password` asks twice for a password of at least 10 characters and writes JSON `{format:"alterbrain-vault-key", v:1, kdf:{name:"scrypt", N:2^17, r:8, p:1, salt}, iv, tag, ct}` (base64; scrypt then AES-256-GCM, 12-byte IV, extra data `alterbrain-vault-key-v1`), then reads the file back and compares. Default `--out`: `<home>/Documents/Alterbrain/vault-key-<folder>.key` (`.abkey` when wrapped). **check `--key <file>`**: the recovery drill; opens the copy (asking for the password if wrapped), compares its sha256 with the local key, prints "Your key backup works" and records `key_backup_checked`. **unlock `--key <file>`**: for a new computer; saves other changes first (git-crypt wants a tidy folder), unwraps to a temporary file, runs `git-crypt unlock`, deletes the temporary file, verifies, and installs or refreshes the upload check (also when the copy was already unlocked). Passwords are never read from arguments, environment variables or piped input: without a keyboard the script refuses with "Type the password in your own terminal window, not through Claude. Run: node system/scripts/vault-key.mjs …". Key bytes and passwords are never printed or logged. Exit 0 ok, 1 problem or refusal, 2 usage. **Finding git-crypt** (`resolveGitCrypt`, remembered per setting): `ALTERBRAIN_GIT_CRYPT` if set (another executable or a `.mjs` stand-in; tests only); otherwise the search path, then `%LOCALAPPDATA%\Microsoft\WinGet\Links\git-crypt.exe`, then every `%LOCALAPPDATA%\Microsoft\WinGet\Packages\AGWA.git-crypt_*\git-crypt.exe` (found by listing the folder, because the part after the underscore differs between computers), then `/opt/homebrew/bin` and `/usr/local/bin` on a Mac. A program that was open during a winget install does not see the new search path until it restarts, so no restart is needed. Only the per-user winget folder is searched, not a machine-wide install. The version is read from standard output or standard error. |
 | `git-hooks/pre-push.mjs <remote name> <remote address>` | The upload check (ADR 0019): run by Git itself through the hook file `.git/hooks/pre-push`, so it covers Obsidian Git and every other Git tool on a computer. The hook file is written by `vault-key.mjs setup` and `unlock` and kept in place by `session_start.mjs`; its text and the helpers (`prePushShim`, `classifyPrePush`, `prePushHookStatus`, `ensurePrePushHook`, `auditCommits`) are in `system/lib/vaultkey.mjs`, and the hook finds the script at run time as `<repository top>/system/scripts/git-hooks/pre-push.mjs`. Git sends `<local ref> <local sha> <remote ref> <remote sha>` lines on standard input. **Exit 0** when encryption of private notes is off, when nothing would be sent (a deleted branch sends no commits), or when every commit is clean. **Exit 1** with one plain line on standard error that starts `Alterbrain stopped this upload` (`PUSH_REFUSED_PREFIX`), and one deduplicated high-priority `#ab/git` task (the same text the automatic save uses) when a commit it would send holds a file in an encrypted path without the git-crypt header. It **fails closed**: if node or the script is missing, or an object cannot be read, nothing is uploaded. It audits only what this computer would add: a named remote excludes commits its tracking branches already hold, a bare address counts every commit, and a merge commit is read with `git diff-tree -c`, which lists only files that differ from every parent, so notes another device already put online do not block a push. Stored files are read in bounded memory (`BLOB_READ_LIMITS`: groups of at most 64 MiB; a file over 8 MiB by its first bytes only), and a commit id that does not exist is an error, not a clean result. After its own check the hook file runs `git lfs pre-push "$@"` with the same input, because Git LFS keeps its upload step in the same file. As the standard LFS hook does, it exits 2 with a message that starts `Alterbrain stopped this upload` when `git-lfs` is not on the hook's PATH and the folder uses Git LFS (a non-comment `filter=lfs` line in any `*.gitattributes`, tracked or not, or `filter.lfs.clean` in the folder's own Git settings). The hook file remembers the absolute path of the node that wrote it, used only when `node` is not on the hook's PATH (a desktop app may not have it). Only an empty, absent, own or standard Git LFS hook file is written over; any other hook is `foreign` and a `core.hooksPath` setting means nothing is written (`hooks-path`): both are reported by `status`, `doctor` and the session digest, never changed. It cannot cover a phone: Git on a phone runs no hooks. |
 | `system/quarto/tools/render.mjs` | `render <src> --type cv\|cv-ats\|letter\|report\|deck`, `scaffold <type> <folder>`, `types`; options `--out`, `--name`, `--release`, `--max-pages`, `--pdf`, `--brand`, `--json`. Used by `/render` and `/assignment ship`. Its helpers are `explain.mjs`, `fonts.mjs`, `lib.mjs` and `pagecount.mjs` in the same folder |
+
+---
+
+## 15a. Updates and migrations (ADR 0024)
+
+A release replaces framework files. A person's own data (`config/`, `vault/`, `state/`, their `my-*` skills and agents) stays as it is, so a change to its shape reaches existing users only through an upgrade script (a "migration") or a fallback in code. This section is the contract for both.
+
+### 15a.1 The policy (binding)
+
+Any change that alters the shape of user data or config ships in the same release with (a) a migration: idempotent, safe to re-run, plain-language output, exit 0 or 1, and tested on fixture vaults; or (b) an explicit, documented fallback.
+
+- **Shape means** keys or allowed values in `config/*.json`; frontmatter keys or values in vault notes; vault folders; `state/*.json`; the ids in `config/mcp.selected.json`; and a framework path that the user's own files (`my-*` skills and agents, notes) point to.
+- **A documented fallback** is one sentence in this SPEC that names the old shape and the file that still reads it, plus a test for it (§10, "Fallbacks for older installs", and §15a.5).
+- **Expand, then contract.** A release reads both shapes. The old shape is removed no earlier than two releases later, and by a migration.
+- **A template change never reaches existing users.** The templates in `system/templates/` are copied once, at onboarding. A changed template, skill, pack or catalogue entry changes no note, setting or state file that exists already.
+- **The summary sentence is true for everyone who sees it.** The plan shows every script the install has not recorded, so a migration that applies to only some people says so ("If you started on Alterbrain 0.1, ...").
+- **Release notes.** The CHANGELOG names each migration under `### Upgrades` and lists each moved or removed framework file under `### Moved`. `validate.mjs --release` is the gate (§15).
+- **Where the rule is kept.** `.claude/rules/framework-dev.md` ("Changing user data or config (migrations)") has the developer's version and `.claude/rules/migrations.md` points to it from the folders where shapes change. The decision is ADR 0024.
+
+### 15a.2 The script contract
+
+- **Where and what.** `system/scripts/migrations/NNNN-short-name.mjs`: four digits, ascending, never renamed, edited or deleted once released. Code class, listed in `system/manifest.json` with its sha256. Line 1 is `#!/usr/bin/env node`. Line 2 is `// ab-migration: <one plain sentence>`, which the update shows the user before they agree. Only `.mjs` files run.
+- **Helpers (`system/lib/migrate.mjs`).** `runMigration(fn)` calls `fn({ root, dryRun, report })`, prints the reported sentences and sets the exit code. `MigrationStop` is an error with one plain sentence (exit 1). `readJsonFile` ignores a byte-order mark and stops the upgrade on a file that is there but unreadable (`unreadableSettings`). `writeFileAtomic` and `writeJsonAtomic` write a temporary file and then rename it, retrying 3 times, 100 ms apart, when another program holds the file. `setFrontmatterLine` changes one key of a note's front matter and nothing else. In a dry run the write helpers do nothing.
+- **Behaviour.** Idempotent, and does nothing on data already in the new shape. Safe to re-run after a partial failure. Self-contained: it never reads templates or other framework text that a later release may change (it carries what it needs, such as the text of a new note). It changes structure only, never the user's prose.
+- **Scope.** It touches only `config/`, `vault/` (never `40_sources/raw/`) and `state/` (never `state/local/rate-guard/`), and adds tasks only through `system/lib/tasks.mjs`. It never writes `.env.local`, `.mcp.json` (except by running `mcp-gen.mjs`), `.claude/settings*.json`, `my-*` skills and agents, or framework files; it may only report on them, with a task. It never opens an encrypted path while the copy is locked: it exits 1 instead.
+- **Output and exit codes.** One plain UK English sentence on standard output for each thing this run changed, or exactly `Nothing to do.`. `--dry-run` writes nothing and starts each sentence with `Would: `. Exit 0 when done or when there was nothing to do; 1 when it could not finish (one sentence on standard error, nothing half-written); 2 for a wrong command line. It never exits 0 after skipping work it should have done: a file it could not read or check is said out loud and gets a task, not "Nothing to do."
+- **Tests.** `tests/scripts/migrations/<id>.test.mjs` per script, on the fixtures in `tests/fixtures/migrations/` (`v0.1.0`, `v0.1.1`, `v0.2-professional`, `v0.2-online`; add one for each new shape). `all-migrations.test.mjs` finds new scripts itself, runs each twice on every fixture, checks that the two 0.2 fixtures are unchanged after the first run, and checks dry runs and the rules above. `update-flow.test.mjs` runs the real scripts through `plan`, `apply-safe` and `finish`.
+
+**Upgrades in release 0.2.0** (each summary is the script's own line):
+
+| id | what it does |
+|---|---|
+| `0001-remove-canvas` | Removes the retired Canvas connection from the tools list, if it was switched on, and adds a task for anyone who built the `canvas-sync` blueprint. Never touches `.env.local`, `state/built.json` or `my-*` skills. |
+| `0002-learner-and-packs` | If the install started on 0.1: records `learner.kind: "mba"` and switches on the packs already in use (`mba`, and `country-nl` for a job hunt in the Netherlands). |
+| `0003-programme-note` | If the settings name a school or programme: creates a programme note from them and links the courses to it with `programme`. It only adds: the `school` keys stay. |
+| `0004-old-pack-paths` | Reports the skills and helpers the user built (`my-*`, every text file in them) and the notes in `vault/80_me` that point to framework files that moved. Adds a task; writes nothing. |
+| `0005-moved-file-edits` | Reports edits to the 14 framework files that moved (six reviewer briefs, four note templates, four Netherlands job guides). An old copy that was never edited is archived by the update; an edited one is left where it is and would silently stop applying. Adds one task; writes nothing. |
+
+### 15a.3 How `update.mjs` runs them
+
+- **`plan <tag>`** stages the release and returns `migrations_pending: [{ id, summary }]`: the scripts the verified release manifest lists, that the install has not recorded, and that are not already part of what the install came with (`migrations_baseline`, §15a.6). The update skill shows them under "Upgrades to your notes and settings" before the user says yes. A staged script that was rejected (a wrong checksum) is not listed.
+- **`apply-safe <tag>`** saves everything and makes the git tag `pre-update-<tag>` (a tag that exists is kept: it marks the state before the first run). When the plan has upgrades and no tag can be made (Git missing, not a repository, the tag failed) it returns `no_restore_point: true` and changes nothing.
+- **`finish <tag>`** works out what will run before it writes anything. When any upgrade will run and the tag does not exist, it returns `no_restore_point: true` and changes nothing. Otherwise it records the baseline scripts, then runs each pending script once, in name order, in its own process (5 minute limit; `CLAUDE_PROJECT_DIR` and `ALTERBRAIN_UPDATE_TAG` set), and records `{ id, at, tag }` in `state/migrations.json` after each success. The first exit other than 0 stops the update (`ok` false, `error`, `migration`, `detail`, `migrations_run`, `migration_notes`), and a retry carries on after the scripts that finished. Then the new manifest becomes the base for the next update, the health check runs, and the result is saved.
+- **`finish` returns** `safety_tag`, `migrations_run`, `migration_notes` (script id to its output, up to 2,000 characters each; printed under "Upgrades run:") and `migrations_skipped`: scripts in the folder that the verified manifest does not list, or whose checksum differs. They are not run, are reported ("Skipped upgrade …"), and make `ok` false.
+- **Trust.** A script runs only when the verified release manifest lists it with a matching sha256 (the same trust as every other code file).
+- **The first update from 0.1.x** is planned by the old `update.mjs`, which has no `migrations_pending`; `finish` is the new one. The update skill therefore falls back to the CHANGELOG `### Upgrades` lines for the preview and stops to ask when they are missing too.
+
+### 15a.4 The record
+
+`state/migrations.json` is described in §10 (State files).
+
+### 15a.5 Documented fallbacks
+
+Each row names an old shape, the file that still reads it and its test. A release reads both shapes, and removing a fallback is a later release's decision with its own migration, no earlier than two releases after the one that introduced the new shape. For the fallbacks introduced in 0.2.0, that is two releases after 0.2.0.
+
+| Old shape | What still reads it | Test |
+|---|---|---|
+| No `learner`, or an empty `learner.kind` | `learnerKind()` in `system/scripts/onboard-progress.mjs` gives `mba` when `packs` lists `mba` or a `school` block exists, otherwise `null`; the course procedure, onboarding M2, `/reconfigure` and `/menu` apply the same rule. Migration 0002 records the kind for installs made before 0.2.0 | `tests/scripts/onboard-helpers.test.mjs` |
+| No `packs`, or one that is not a list | `onboard-seed.mjs` and the jobs skill treat it as `["core"]` | `tests/scripts/onboard-helpers.test.mjs` |
+| `school.name` and `school.programme` in `config/brain.json`; `school` in a course note | Display text only, and only when there is no programme note (the course procedure, §0, and `/assignment new`); never copied into a new course note. Migration 0003 adds a programme note and the `programme` link and leaves the keys | `tests/scripts/migrations/0003-programme-note.test.mjs`. The display rule itself is skill prose with no test (§17) |
+| `jobs.country` empty, or `NL` with no `country-*` entry in `packs` | The jobs skill ("Country pack", step 3) uses the pack folder for `jobs.country` when it exists and asks once when the country is empty; `adzuna.mjs` defaults to `nl` | `tests/scripts/jobs-adzuna.test.mjs`. The skill lookup is prose |
+| `git.lfs_min_mb` absent, not a number or not above 0 | `lfsMinBytes` in `system/lib/git.mjs`: 50, kept between 1 and 95 | `tests/scripts/git-lfs-rules.test.mjs` |
+| `privacy.encryption` absent | `system/lib/vaultkey.mjs`: encryption counts as on when `enabled` is true or the `.gitattributes` files carry `filter=git-crypt`, and is otherwise off | `tests/scripts/vaultkey-lib.test.mjs` |
+| A course note without the class-date fields (`session_dates`, `class_days`, `term_start`, `term_end`, `class_days_asked`) or without a `## Material` section | `readCourse` in `system/lib/courses.mjs` gives such a note no reminder; the course procedure adds the section, and asks the schedule question, when the course is next opened | `tests/hooks/courses.test.mjs` |
+| A manifest line without `course` | The key is optional and present only when `--course` was given. The course procedure adds a `course` line to the source notes of files imported without one when it sets the course up | `tests/scripts/ingest-zip.test.mjs` |
+| A source note whose `course` line is a short link (`"[[Strategy]]"`) | The course procedure (§4) counts a short link that equals one course's title, code or folder name as linked, and rewrites it when it refreshes the Material list. There is no bulk rewrite | Skill prose; no test |
+| A big file stored as a Git LFS pointer whose rule is gone | `prepareBigFiles` in `system/lib/git.mjs` writes an exact-path rule on the next save with changes (§3, "Git storage"); nothing is migrated | `tests/scripts/git-auto-lfs-flows.test.mjs` |
+| Onboarding titles stored in `state/onboarding.json` | `onboard-progress.mjs` ignores them and uses its own list | `tests/scripts/onboard-helpers.test.mjs` |
+| A profile line labelled "Studying" in `USER.md` | Onboarding M2 and M3 keep the label they find | Skill prose; no test |
+| An edited salary table at `system/packs/mba/jobs-nl/salary-thresholds.md` | `ind-sponsors.mjs thresholds` reads only the new path and names the old copy in `note` and `old_copy`; migration 0005 adds a task. Both go two releases after 0.2.0, with a migration | `tests/scripts/jobs-ind-sponsors.test.mjs` |
+
+### 15a.6 The fresh-install rule
+
+A fresh install has no `state/migrations.json`. The install does not pre-fill it: a pre-filled list that drifted from the shipped scripts would record an unrun migration as done. Two things keep a fresh install quiet instead.
+
+1. At its first update, `update.mjs` compares the installed `system/manifest.json` with the scripts on disk. Scripts that the installed release came with, whose files match, are recorded with `baseline: true` and are neither shown nor run. This applies only while `state/migrations.json` has no entries. An install from an older release, whose manifest lists no upgrade scripts, is never treated this way, and neither is a script whose file differs from the manifest.
+2. Every migration does nothing on data already in the new shape, so even when one does run (a person who changed things by hand, a re-run, a stopped update), it prints `Nothing to do.` and writes nothing. `all-migrations.test.mjs` checks this by running each migration twice on the two 0.2 fixtures.
 
 ---
 
@@ -774,17 +929,21 @@ Resolved (verified 2026-10-07):
 - [x] Repo-declared plugins do not load in cloud sessions (ADR 0006).
 - [x] Obsidian Tasks 8.4.0 and Obsidian Git 2.41.1 release asset hashes (pinned in `system/catalogue/obsidian-plugins.json`).
 - [x] IND register format (verified with a live run; `system/scripts/jobs/ind-sponsors.mjs`).
-- [x] Highly-skilled-migrant thresholds for 2026 (one table, `system/packs/mba/jobs-nl/salary-thresholds.md`, never hard-coded elsewhere; updated each January).
+- [x] Highly-skilled-migrant thresholds for 2026 (one table, `system/packs/country-nl/salary-thresholds.md`, never hard-coded elsewhere; updated each January).
 
 Still open:
 - [ ] Whether `SessionEnd` fires when the desktop app closes (the throttled `Stop` hook covers it).
 - [ ] Gmail connector read and search tool names (confirm with `/mcp` on a connected account).
-- [ ] Adzuna `nl` endpoint confirmed with a real key, and the user's own reading of the terms on storing results.
+- [ ] Adzuna: the `nl` endpoint confirmed with a real key; whether other countries work the same way and what Adzuna answers for a country it does not offer (the code treats HTTP 400 and 404 as "not offered"); and the user's own reading of the terms on storing results.
 - [ ] A live check in Obsidian of the Tasks queries on `Home.md` and the `.base` files in `vault/_views/`.
 - [ ] Git LFS and the upload check against real GitHub and real Obsidian Git. Tests used Git for Windows 2.55, Git LFS 3.7.1, git-crypt 0.7.0 and local bare repositories on Windows 11 only. Not run: macOS and Linux, a real GitHub upload and restore, GitHub's quota replies, how Obsidian Git shows a hook's message, the Obsidian Git plugin on a phone. GitHub's figures (about 100 MB per ordinary file, 2 GB per Git LFS file on free plans, its repository-size advice) are from memory (ADR 0020).
 - [ ] Whether a detached background upload survives the end of a Claude session on every system (it did in tests on Windows 11; if it is ended, the next save starts the upload again from the start of that file).
 - [ ] Product-owner decision: the `git reset --soft "@{u}"` repair for big files that were saved as ordinary files and never uploaded (`.claude/skills/health-check/references/fixes.md`, ADR 0020). It changes local history, which `git-auto` never does. Alternative: start a fresh private repository.
-- [ ] The Canvas download steps in `system/packs/mba/course-setup.md` ("The download steps", written from general knowledge) against the user's school, and Canvas's own "offline HTML" export as a possible better route.
+- [ ] The download steps for the user's school or provider in `.claude/skills/course/references/course-setup.md` ("The download steps", written from general knowledge, with Canvas as the example), checked against real schools and providers (Canvas, Brightspace, Moodle, Coursera, edX), and Canvas's own "offline HTML" export as a possible better route.
+- [ ] Learners beyond the MBA pilot group (ADR 0023). The paths for a degree student, an online learner and a working professional (the learner question, courses with no programme, `none-stated`, project notes, the country question) are checked by unit tests and by reading the procedures, not by a run with a real user. The pilot default of `mba` when nothing points elsewhere is to be revisited before a wider release.
+- [ ] The first update from an installed 0.1.x to 0.2.0 (§15a.3). The flow was simulated with a local release folder and the real scripts. Not run: an install of 0.1.x, a file held open by Obsidian during an upgrade, macOS, and a signed release with Git and the restore tag.
+- [ ] Tests for the prose fallbacks (§15a.5): the `school` display-text rule, the legacy source-note links and the "Studying" label are read by skill procedures, which no test runs. The policy asks for a test per documented fallback.
+- [ ] Product-owner decision: the always-loaded budget figures in §5, which no longer hold.
 - [ ] What `markitdown` returns for real course workbooks (sheet names, whether formulas and charts survive). `course-setup.md` says only that values come through and that the rest is [Unverified].
 
 ---

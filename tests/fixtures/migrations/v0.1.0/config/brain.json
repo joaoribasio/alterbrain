@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "user": { "name": "Alex Doe", "timezone": "Europe/Amsterdam", "languages": ["en"] },
+  "plan_tier": "pro",
+  "packs": ["core", "mba"],
+  "school": { "name": "Example Business School", "programme": "Full-time MBA", "lms": "canvas" },
+  "self_build": { "mode": "propose", "proactive": true, "max_open_proposals": 3 },
+  "evidence_mode": "light",
+  "git": { "auto_commit": true, "auto_push": true },
+  "jobs": { "country": "NL", "needs_sponsorship": null, "languages": ["en"], "sources": ["adzuna", "career-pages"] }
+}

@@ -22,8 +22,8 @@ Obsidian is a free app for reading and editing your notes. Alterbrain writes the
 | Folder | What's inside |
 |---|---|
 | `00_inbox` | Your task list, drafts (outbox), proposals, quick captures |
-| `10_projects` | Assignments and other projects with a deadline |
-| `20_areas` | Your courses and your career |
+| `10_projects` | Assignments, work projects and job campaigns, each in its own folder |
+| `20_areas` | Your programmes (one note per programme, with what holds for all its courses), your courses and your career |
 | `30_wiki` | Knowledge Alterbrain maintains: concepts, frameworks, companies |
 | `40_sources` | Your imported files and a note about each |
 | `50_learning` | Study cards |

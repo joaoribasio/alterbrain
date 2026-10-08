@@ -24,7 +24,7 @@ Make a draft sound like you, not like a machine. Light touch, your words kept.
 - Work out the **language** (`en`, `nl`, ...) from the argument, then the text, then `user.languages` in `config/brain.json`.
 - Read the user's voice profile `vault/80_me/voice/<lang>/profile.md`, and skim `vault/80_me/voice/<lang>/exemplars.md`. If there is no profile, say so in one line ("I have no voice profile for <language> yet, so I will keep the voice of this draft itself") and carry on.
 - Read `references/patterns.md` (the rules). Read `references/eval.md` before you finish an edit.
-- If the text is for graded coursework, check the course `ai_policy` in `course.md`. If it is `restricted`, `banned` or `unknown`, remind the user once in plain words that the school's rules apply, and ask whether to continue.
+- If the text is for graded coursework, read the `ai_policy` in that course's `course.md` (`system/core.md` rule 6). The course note's value alone decides. If it is `restricted`, `banned` or `unknown`, remind the user once in plain words that this course may limit AI help with graded work, and ask whether to continue. Never write the answer anywhere git tracks. If it is `allowed-with-disclosure`, offer a one-line disclosure sentence. Skip this when there is no course (a work email, a post, a cover letter), and say nothing for `allowed` or `none-stated`.
 - If the text is in a file, work on a copy. Pasted text goes to `state/local/tmp/edit-voice/draft.md` so the scripts can read it.
 
 ## Steps
@@ -55,7 +55,7 @@ Make a draft sound like you, not like a machine. Light touch, your words kept.
 ## Safety
 
 - **Never say or imply the text is "undetectable", "passes AI detectors" or "cannot be flagged".** Say instead: "This removes known AI writing habits. Detectors guess, and no tool can promise they will not flag a text."
-- Do not help hide AI use from a school or employer. You may improve the writing. The user stays responsible for following the AI rules that apply.
+- Do not help hide AI use from a school, employer or provider. You may improve the writing. The user stays responsible for following the AI rules that apply.
 - Never add facts, quotes, sources or numbers. Never change the meaning.
 - Keep the user's mistakes that are part of their style. Fix only real errors that confuse the reader.
 - In detect mode, never rewrite and never score.

@@ -29,7 +29,7 @@ Answer from your own notes first, show where each fact came from, and be honest 
 2. **Search the vault in this order**, stopping when you have enough:
    1. `vault/30_wiki/` (index, concepts, frameworks, companies, industries, topics);
    2. `vault/40_sources/notes/` (source notes);
-   3. `vault/20_areas/courses/` (course pages, sessions, cases);
+   3. `vault/20_areas/courses/`, `programmes/` and `career/` (course pages, sessions, cases, programme facts, career notes);
    4. `vault/10_projects/` and `vault/70_journal/` (the user's own work and decisions);
    5. `vault/50_learning/cards/` (study cards);
    6. `vault/80_me/` only for questions about the user.

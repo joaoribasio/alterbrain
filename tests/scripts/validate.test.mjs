@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { copyFixture, makeProject, read, runScript, write } from '../fixtures/scripts/helpers.mjs';
 import {
   buildManifest,
@@ -544,4 +545,322 @@ test('limits.json: a valid file passes, and a bad cap or pattern is an error (th
   const broken = check((p) => write(p, 'system/catalogue/limits.json', '{ nope'));
   assert.equal(broken.status, 1);
   assert.ok(has(broken.out.errors, /limits\.json.*not valid JSON/));
+});
+
+// ------------------------------------------------------------- upgrade scripts (migrations)
+const MIG = (name) => `system/scripts/migrations/${name}`;
+const GOOD_MIG = '#!/usr/bin/env node\n// ab-migration: Moves a setting to its new place.\nconsole.log("Nothing to do.");\n';
+/** One valid upgrade with its test, then `more(p)` for the case under test. */
+const withMigration = (more) => (p) => {
+  write(p, MIG('0001-first-change.mjs'), GOOD_MIG);
+  write(p, 'tests/scripts/migrations/0001-first-change.test.mjs', '// test\n');
+  if (more) more(p);
+};
+
+test('migrations: a well-formed upgrade with its test passes and is counted', () => {
+  const { status, out } = check(withMigration());
+  assert.equal(status, 0, JSON.stringify(out));
+  assert.deepEqual(out.errors, []);
+  assert.deepEqual(out.warnings, []);
+  assert.equal(out.checked.migrations, 1);
+  assert.equal(check().out.checked.migrations, 0, 'no migrations folder: nothing to check');
+});
+
+test('migrations: the file name must be four digits, a dash and lower-case words', () => {
+  for (const bad of ['001-short.mjs', '00001-long.mjs', '0002_underscore.mjs', '0002-Upper.mjs', '0002-two--dashes.mjs', '0002-.mjs', 'first.mjs', '0002 space.mjs']) {
+    const { status, out } = check(withMigration((p) => {
+      write(p, MIG(bad), GOOD_MIG);
+      write(p, `tests/scripts/migrations/${bad.replace(/\.mjs$/, '')}.test.mjs`, '// test\n');
+    }));
+    assert.equal(status, 1, bad);
+    assert.ok(has(out.errors, new RegExp(`${bad.replace(/[.\s]/g, '.')}: the file name must look like 0001-short-name\\.mjs`)), `${bad}: ${out.errors}`);
+  }
+});
+
+test('migrations: a number used twice is an error that names both files', () => {
+  const { status, out } = check(withMigration((p) => {
+    write(p, MIG('0001-second-change.mjs'), GOOD_MIG);
+    write(p, 'tests/scripts/migrations/0001-second-change.test.mjs', '// test\n');
+  }));
+  assert.equal(status, 1);
+  assert.ok(has(out.errors, /the number 0001 is used by 0001-first-change\.mjs and 0001-second-change\.mjs\. Each upgrade needs its own number/), JSON.stringify(out.errors));
+});
+
+test('migrations: the "// ab-migration:" description must be in the first three lines', () => {
+  for (const [body, ok] of [
+    ['console.log("x");\n', false],
+    ['#!/usr/bin/env node\n// ab-migration:\nconsole.log("x");\n', false],
+    ['#!/usr/bin/env node\n// just a comment\nconsole.log("x");\n// ab-migration: Too late to count.\n', false],
+    ['// ab-migration: On the first line.\nconsole.log("x");\n', true],
+    ['#!/usr/bin/env node\r\n// ab-migration: Windows line endings.\r\nconsole.log("x");\r\n', true],
+    ['#!/usr/bin/env node\n//\n// ab-migration: On the third line.\n', true],
+  ]) {
+    const r = check(withMigration((p) => write(p, MIG('0001-first-change.mjs'), body)));
+    if (ok) assert.equal(r.status, 0, JSON.stringify(r.out.errors));
+    else assert.ok(has(r.out.errors, /0001-first-change\.mjs: the first three lines must include a comment like "\/\/ ab-migration:/), JSON.stringify(r.out.errors));
+  }
+});
+
+test('migrations: with a tests folder, every upgrade needs tests/scripts/migrations/<name>.test.mjs', () => {
+  const missing = check((p) => {
+    write(p, MIG('0001-first-change.mjs'), GOOD_MIG);
+    write(p, 'tests/scripts/other.test.mjs', '// a tests folder exists\n');
+  });
+  assert.equal(missing.status, 1);
+  assert.ok(has(missing.out.errors, /0001-first-change\.mjs: this upgrade has no test\. Add tests\/scripts\/migrations\/0001-first-change\.test\.mjs/), JSON.stringify(missing.out.errors));
+  // a project without a tests folder (a person's own copy) has nothing to check
+  const bare = check((p) => write(p, MIG('0001-first-change.mjs'), GOOD_MIG));
+  assert.equal(bare.status, 0, JSON.stringify(bare.out.errors));
+});
+
+test('migrations: a file that would never run is a warning, a README is fine', () => {
+  const { status, out } = check(withMigration((p) => {
+    write(p, MIG('0002-script.js'), 'x');
+    write(p, MIG('README.md'), '# Upgrades\n');
+  }));
+  assert.equal(status, 0);
+  assert.ok(has(out.warnings, /0002-script\.js: only \.mjs files are run as upgrades/));
+  assert.ok(!has(out.warnings, /README/));
+});
+
+// ------------------------------------------------------------- release notes (CHANGELOG)
+// The release gate: every upgrade script is described under "### Upgrades", every framework file of the previous
+// release that is gone is listed under "### Moved". The previous release is the manifest at the newest v* git tag.
+
+const gitIn = (p, args) => {
+  const res = spawnSync('git', ['-c', 'user.name=Alex Doe', '-c', 'user.email=alex@example.invalid', '-c', 'commit.gpgsign=false', ...args], {
+    cwd: p.dir, encoding: 'utf8', windowsHide: true,
+    env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: p.path('..', 'no-such-gitconfig') },
+  });
+  assert.equal(res.status, 0, `git ${args.join(' ')}: ${res.stderr}`);
+  return res.stdout.trim();
+};
+const OLD_FILES = ['system/packs/lenses/board.md', 'system/packs/lenses/grader.md', 'system/packs/templates/rubric.md', 'tests/old.test.mjs', '.github/workflows/ci.yml'];
+const manifestOf = (version, paths) => JSON.stringify({ schema: 1, version, tag: `v${version}`, files: paths.map((path) => ({ path, class: 'text', sha256: 'x' })) });
+
+/**
+ * A project that was released as v0.1.1 (a git tag with its manifest) and has been developed on since: release.json
+ * says 0.2.0, the old framework files are gone, and `more(p)` makes the case under test.
+ */
+function releaseCheck(more, args = []) {
+  const p = makeProject();
+  try {
+    copyFixture('validate/good', p);
+    write(p, 'system/release.json', '{"name":"alterbrain","version":"0.1.1","tag":"v0.1.1"}\n');
+    write(p, 'system/manifest.json', manifestOf('0.1.1', OLD_FILES));
+    for (const f of OLD_FILES) write(p, f, 'old\n');
+    gitIn(p, ['init', '-q', '-b', 'main']);
+    gitIn(p, ['add', '-A']);
+    gitIn(p, ['commit', '-q', '-m', 'release 0.1.1']);
+    gitIn(p, ['tag', 'v0.1.1']);
+    write(p, 'system/release.json', '{"name":"alterbrain","version":"0.2.0","tag":"v0.2.0"}\n');
+    for (const f of OLD_FILES) rmSync(p.path(...f.split('/')), { force: true });
+    if (more) more(p);
+    const r = runScript('validate.mjs', ['--json', ...args], p);
+    return { status: r.status, out: r.json() };
+  } finally {
+    p.cleanup();
+  }
+}
+const LISTED_ALL_MOVED = '### Moved\n- `system/packs/lenses/board.md` is now `system/packs/mba/lenses/board.md`\n- `system/packs/lenses/grader.md` is now `system/packs/mba/lenses/grader.md`\n- `system/packs/templates/rubric.md` was removed\n';
+const changelog = (...blocks) => (p) => write(p, 'CHANGELOG.md', `# Changelog\n\n## [Unreleased]\n\n${blocks.join('\n')}\n## [0.1.1] - 2026-10-07\n\n### Added\n- The first thing.\n`);
+
+test('release notes: with the notes in place there is nothing to say', () => {
+  const r = releaseCheck((p) => {
+    withMigration()(p);
+    changelog('### Upgrades\n- `0001-first-change`: Moves a setting to its new place.\n', LISTED_ALL_MOVED)(p);
+  });
+  assert.equal(r.status, 0, JSON.stringify(r.out));
+  assert.deepEqual(r.out.errors, []);
+  assert.deepEqual(r.out.warnings, []);
+  assert.deepEqual(r.out.release_blockers, []);
+});
+
+test('release notes: an upgrade script nobody described is a warning while developing and an error for a release', () => {
+  const setup = (p) => {
+    withMigration()(p);
+    changelog('### Added\n- Something new.\n', LISTED_ALL_MOVED)(p);
+  };
+  const dev = releaseCheck(setup);
+  assert.equal(dev.status, 0, 'developing is not blocked');
+  assert.ok(has(dev.out.warnings, /CHANGELOG\.md: the upgrade script 0001-first-change is not described under "### Upgrades"\. Add one plain line for each, naming it/), JSON.stringify(dev.out.warnings));
+  assert.deepEqual(dev.out.release_blockers, []);
+
+  const rel = releaseCheck(setup, ['--release']);
+  assert.equal(rel.status, 1);
+  assert.ok(has(rel.out.errors, /CHANGELOG\.md: the upgrade script 0001-first-change is not described under "### Upgrades"/), JSON.stringify(rel.out.errors));
+  assert.equal(rel.out.release_blockers.length, 1);
+  assert.deepEqual(rel.out.warnings, []);
+});
+
+test('release notes: a mention of the script in the wrong part of the changelog does not count', () => {
+  const r = releaseCheck((p) => {
+    withMigration()(p);
+    changelog('### Added\n- `0001-first-change` was added.\n', LISTED_ALL_MOVED)(p);
+  }, ['--release']);
+  assert.equal(r.status, 1);
+  assert.ok(has(r.out.errors, /0001-first-change is not described/));
+});
+
+test('release notes: a framework file of the last release that is gone must be listed under "### Moved"', () => {
+  const none = releaseCheck(changelog('### Added\n- Something new.\n'), ['--release']);
+  assert.equal(none.status, 1);
+  assert.ok(has(none.out.errors, /CHANGELOG\.md: 3 framework files of v0\.1\.1 are gone but not listed under "### Moved" \(system\/packs\/lenses\/board\.md, system\/packs\/lenses\/grader\.md, system\/packs\/templates\/rubric\.md\)/), JSON.stringify(none.out.errors));
+  assert.ok(!has(none.out.errors, /tests\/old|ci\.yml/), 'tests and CI files are nobody\'s links, so they need no line');
+
+  const some = releaseCheck(changelog('### Moved\n- `system/packs/lenses/board.md` is now `system/packs/mba/lenses/board.md`\n'), ['--release']);
+  assert.ok(has(some.out.errors, /2 framework files of v0\.1\.1 are gone/), JSON.stringify(some.out.errors));
+  assert.ok(!has(some.out.errors, /board\.md/));
+
+  const all = releaseCheck(changelog(LISTED_ALL_MOVED), ['--release']);
+  assert.equal(all.status, 0, JSON.stringify(all.out));
+});
+
+test('release notes: a folder listed under "### Moved" covers what is inside it, and Windows slashes and capitals do not matter', () => {
+  const folder = releaseCheck(changelog('### Moved\n- The `system/packs/lenses/` folder is now `system/packs/mba/lenses/`.\n- `system/packs/templates/rubric.md` was removed.\n'), ['--release']);
+  assert.equal(folder.status, 0, JSON.stringify(folder.out));
+  const windows = releaseCheck(changelog('### Moved\n- `System\\packs\\Lenses\\board.md`, `system/packs/lenses/grader.md` and `system/packs/templates/rubric.md` moved.\n'), ['--release']);
+  assert.equal(windows.status, 0, JSON.stringify(windows.out));
+  // "system/" alone is not a folder anyone would list: it must not cover everything
+  const tooBroad = releaseCheck(changelog('### Moved\n- Most things under system/ moved.\n'), ['--release']);
+  assert.equal(tooBroad.status, 1);
+});
+
+test('release notes: only the sections newer than the previous release count for "### Moved"', () => {
+  const r = releaseCheck((p) => write(p, 'CHANGELOG.md', `# Changelog\n\n## [Unreleased]\n\n### Added\n- Something.\n\n## [0.1.1] - 2026-10-07\n\n${LISTED_ALL_MOVED}`), ['--release']);
+  assert.equal(r.status, 1, 'a Moved list from a release that is already out does not cover this one');
+  const newer = releaseCheck((p) => write(p, 'CHANGELOG.md', `# Changelog\n\n## [0.2.0] - 2026-10-20\n\n${LISTED_ALL_MOVED}\n## [0.1.1] - 2026-10-07\n\n### Added\n- Old.\n`), ['--release']);
+  assert.equal(newer.status, 0, JSON.stringify(newer.out));
+});
+
+test('release notes: nothing is asked for when there is nothing to describe, or no CHANGELOG while developing', () => {
+  // no upgrade scripts, nothing removed: even a missing CHANGELOG is fine
+  const calm = releaseCheck((p) => {
+    for (const f of OLD_FILES) write(p, f, 'old\n'); // nothing is gone
+  }, ['--release']);
+  assert.equal(calm.status, 0, JSON.stringify(calm.out));
+  // things to describe but no CHANGELOG: silent while developing, an error for a release
+  const dev = releaseCheck(withMigration());
+  assert.deepEqual(dev.out.warnings, []);
+  const rel = releaseCheck(withMigration(), ['--release']);
+  assert.equal(rel.status, 1);
+  assert.ok(has(rel.out.errors, /CHANGELOG\.md: the file is missing/), JSON.stringify(rel.out.errors));
+});
+
+test('release notes: a project without git history is not asked about moved files', () => {
+  const r = check(withMigration((p) => write(p, 'CHANGELOG.md', '# Changelog\n\n## [Unreleased]\n\n### Upgrades\n- `0001-first-change`: Moves a setting.\n')));
+  assert.equal(r.status, 0, JSON.stringify(r.out));
+  assert.deepEqual(r.out.warnings, []);
+});
+
+test('release notes: signing is refused, and nothing is written, until the notes are complete', async () => {
+  const { generateKeyPairSync } = await import('node:crypto');
+  const { privateKey } = generateKeyPairSync('ed25519');
+  const sign = (p) => ['--write-manifest', '--sign-key', p.path('keys', 'release.pem')];
+  const setup = (p) => {
+    write(p, 'keys/release.pem', privateKey.export({ format: 'pem', type: 'pkcs8' }));
+    changelog('### Added\n- Something new.\n')(p);
+  };
+  // run the signing step in a project with the gaps, and look at what it left behind
+  const p = makeProject();
+  try {
+    copyFixture('validate/good', p);
+    write(p, 'system/release.json', '{"name":"alterbrain","version":"0.2.0","tag":"v0.2.0"}\n');
+    write(p, 'system/manifest.json', manifestOf('0.1.1', OLD_FILES));
+    for (const f of OLD_FILES) write(p, f, 'old\n');
+    gitIn(p, ['init', '-q', '-b', 'main']);
+    gitIn(p, ['add', '-A']);
+    gitIn(p, ['commit', '-q', '-m', 'release 0.1.1']);
+    gitIn(p, ['tag', 'v0.1.1']);
+    for (const f of OLD_FILES) rmSync(p.path(...f.split('/')), { force: true });
+    setup(p);
+    const before = read(p, 'system/manifest.json');
+    const refused = runScript('validate.mjs', [...sign(p), '--json'], p);
+    assert.equal(refused.status, 1);
+    assert.equal(read(p, 'system/manifest.json'), before, 'the manifest was not rewritten');
+    assert.throws(() => read(p, 'system/manifest.sig'), 'nothing was signed');
+    assert.ok(refused.json().release_blockers.length >= 1);
+    assert.equal(refused.json().manifest, undefined);
+    const text = runScript('validate.mjs', sign(p), p);
+    assert.match(text.stdout, /Nothing was written or signed: the release notes in CHANGELOG\.md are incomplete/);
+
+    // Complete the notes: now it signs.
+    changelog(LISTED_ALL_MOVED)(p);
+    const done = runScript('validate.mjs', [...sign(p), '--json'], p);
+    assert.equal(done.status, 0, done.stdout + done.stderr);
+    assert.equal(done.json().manifest.signed, 'system/manifest.sig');
+
+    // Writing the manifest alone (development) is never blocked by the notes.
+    changelog('### Added\n- Nothing about moves.\n')(p);
+    rmSync(p.path('system', 'manifest.sig'), { force: true });
+    const dev = runScript('validate.mjs', ['--write-manifest', '--json'], p);
+    assert.equal(dev.status, 0, dev.stdout + dev.stderr);
+    assert.ok(dev.json().manifest);
+  } finally {
+    p.cleanup();
+  }
+});
+
+/** Like check(), with extra command-line arguments. */
+function checkArgs(args, mutate) {
+  const p = makeProject();
+  try {
+    copyFixture('validate/good', p);
+    if (mutate) mutate(p);
+    const r = runScript('validate.mjs', ['--json', ...args], p);
+    return { status: r.status, out: r.json() };
+  } finally {
+    p.cleanup();
+  }
+}
+
+test('release documents: an ADR that a rule or script cites must exist', () => {
+  const setup = (cited) => (p) => {
+    write(p, 'docs/adr/0001-first-decision.md', '# ADR 0001\n');
+    write(p, '.claude/rules/framework-dev.md', `The policy is binding (ADR ${cited}).\n`);
+    write(p, 'system/lib/migrate.mjs', `// policy: see ADR ${cited}\n`);
+  };
+  const fine = checkArgs(['--release'], setup('0001'));
+  assert.equal(fine.status, 0, JSON.stringify(fine.out));
+  assert.deepEqual(fine.out.warnings, []);
+
+  const dev = checkArgs([], setup('0024'));
+  assert.equal(dev.status, 0, 'a dangling citation is only a warning while developing');
+  assert.ok(has(dev.out.warnings, /docs\/adr: ADR 0024 is cited in \.claude\/rules\/framework-dev\.md, system\/lib\/migrate\.mjs but there is no docs\/adr\/0024-\*\.md/), JSON.stringify(dev.out.warnings));
+
+  const rel = checkArgs(['--release'], setup('0024'));
+  assert.equal(rel.status, 1);
+  assert.ok(has(rel.out.errors, /ADR 0024 is cited in/));
+  assert.equal(rel.out.release_blockers.length, 1);
+  // no docs/adr folder at all (a person's own copy): nothing to check
+  const bare = checkArgs(['--release'], (p) => write(p, '.claude/rules/framework-dev.md', 'See ADR 0099.\n'));
+  assert.equal(bare.status, 0, JSON.stringify(bare.out));
+});
+
+test('release documents: with upgrade scripts the SPEC must describe the mechanism', () => {
+  const setup = (spec) => withMigration((p) => {
+    write(p, 'CHANGELOG.md', '# Changelog\n\n## [Unreleased]\n\n### Upgrades\n- `0001-first-change`: Moves a setting to its new place.\n');
+    if (spec !== null) write(p, 'docs/SPEC.md', spec);
+  });
+  const missing = checkArgs(['--release'], setup('# Spec\n\nNothing about upgrades.\n'));
+  assert.equal(missing.status, 1);
+  assert.ok(has(missing.out.errors, /docs\/SPEC\.md: the SPEC \(the binding contract\) does not mention state\/migrations\.json/), JSON.stringify(missing.out.errors));
+  const dev = checkArgs([], setup('# Spec\n'));
+  assert.equal(dev.status, 0);
+  assert.ok(has(dev.out.warnings, /docs\/SPEC\.md: the SPEC/));
+  const ok = checkArgs(['--release'], setup('# Spec\n\nUpgrades are recorded in `state/migrations.json`.\n'));
+  assert.equal(ok.status, 0, JSON.stringify(ok.out));
+  // no SPEC file (a person's own copy), or no upgrade scripts: nothing to check
+  assert.equal(checkArgs(['--release'], setup(null)).status, 0);
+  assert.equal(checkArgs(['--release'], (p) => write(p, 'docs/SPEC.md', '# Spec\n')).status, 0);
+});
+
+test('release notes: changelogSections reads sections and parts', async () => {
+  const { changelogSections } = await import('../../system/scripts/validate.mjs');
+  const sections = changelogSections('# Changelog\n\nIntro.\n\n## [Unreleased]\n\n### Upgrades\n- one\n\n### Moved\n- two\n\n## [0.1.1] - 2026-10-07\n\n### Added\n- three\n\n## 0.1.0\n\n### Moved\n- four\r\n');
+  assert.deepEqual(sections.map((s) => s.version), ['Unreleased', '0.1.1', '0.1.0']);
+  assert.match(sections[0].parts.Upgrades, /- one/);
+  assert.match(sections[0].parts.Moved, /- two/);
+  assert.equal(sections[1].parts.Moved, undefined);
+  assert.match(sections[2].parts.Moved, /- four/);
 });

@@ -18,7 +18,7 @@ Say at the start: "Let's connect your email and any extra tools. Remember: I onl
 Explain in one line: "A connector is a safe link between Claude and your Gmail. You switch it on in your Claude account; I never see your password."
 
 1. If Gmail tools are already available: say so, skip to Part B.
-2. Ask: "Do you use Gmail for school or job emails?" Yes (recommended) / No, I use Outlook / Skip email.
+2. Ask: "Do you use Gmail for study or work emails?" Yes (recommended) / No, I use Outlook / Skip email.
    - **Outlook:** point to the `outlook-m365` blueprint (`/menu`, "available to build") and skip to Part B.
 3. **The clicks** (send as a short numbered list):
    1. Open **claude.ai** in your browser (or the Claude desktop app) and sign in.
@@ -36,7 +36,7 @@ Explain in one line: "A connector is a safe link between Claude and your Gmail. 
 Explain: "Tools give me extra skills, like reading PDFs or searching your reading library. The basics are already on. Here are a few optional ones."
 
 1. Read `system/catalogue/mcp.json`. Offer only `tier: "optional"` entries that are not already enabled. Never offer `avoid`. Offer `high-risk` only if the user asks by name, and then read its `notes` and `tos_risk` aloud in plain words first.
-2. Group the list by goal and show at most 6, one line each: name, `what`, cost, and whether it needs a key or sign-in (`auth`). Recommend at most two that match what you know (for example Zotero if they mentioned it). The catalogue has no helper for the school's learning platform. If the user asks for one, do not offer to build it: course files arrive by download, and `/course` (`system/packs/mba/course-setup.md`) and `/ingest` cover that.
+2. Group the list by goal and show at most 6, one line each: name, `what`, cost, and whether it needs a key or sign-in (`auth`). Recommend at most two that match what you know (for example Zotero if they mentioned it). The catalogue has no helper for a learning platform (a school's, or a provider's such as Coursera or edX). If the user asks for one, do not offer to build it: course files arrive by download, and `/course` (`.claude/skills/course/references/course-setup.md`) and `/ingest` cover that.
 3. Ask with AskUserQuestion (multi-select): the recommended ones first, plus "None for now".
 4. For each pick:
    - `auth: "api-key"`: never ask for the key in chat. The file `.env.local` already exists in the Alterbrain folder (setup creates it from `.env.example`; if it is missing, run `node system/scripts/onboard-seed.mjs`). Do not ask the user to find or create it: Windows hides file extensions and Mac hides dot-files, so a hand-made file often ends up with the wrong name. Ask: "Shall I open the keys file for you?" (Yes (recommended) / I'll open it myself). On yes, run it in the background so the chat stays free: Windows `notepad .env.local`, Mac `open -e .env.local`. Then say: "Add a line `NAME=your-key` on its own line (no spaces around the `=`), save, close the file, and tell me done." You cannot read the file (it is blocked on purpose), so after "done" run `node system/scripts/mcp-gen.mjs`: it names any variable that is still missing (names only, never values) and warns if the file got the wrong name (`.env.local.txt`). Use the variable name from the entry's `env` placeholders. If they don't have the key yet, add a task with where to get it (from the entry's `notes`).

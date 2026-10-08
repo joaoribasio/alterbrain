@@ -1,9 +1,9 @@
 // Tests for system/scripts/jobs/ind-sponsors.mjs. Network is mocked; nothing real is downloaded.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, existsSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import path, { join } from 'node:path';
 import {
   parseRegister,
   normaliseName,
@@ -17,6 +17,8 @@ import {
   salaryVerdict,
   main,
   REGISTER_URL,
+  THRESHOLD_DOC,
+  OLD_THRESHOLD_DOC,
 } from '../../system/scripts/jobs/ind-sponsors.mjs';
 
 // ---- synthetic register page (no real organisations) ----
@@ -215,7 +217,9 @@ test('parseThresholds reads the table from the doc (made-up numbers, not hard-co
   assert.throws(() => parseThresholds('# nothing here'), /not found/);
 });
 
-test('the real pack doc parses and has the three keys the skill needs', () => {
+test('the real pack doc (country-nl) parses and has the three keys the skill needs', () => {
+  assert.match(THRESHOLD_DOC().replace(/\\/g, '/'), /system\/packs\/country-nl\/salary-thresholds\.md$/);
+  assert.ok(existsSync(THRESHOLD_DOC()), 'the threshold file is where the script looks');
   const t = loadThresholds();
   for (const k of ['hsm_30_plus', 'hsm_under_30', 'hsm_reduced']) assert.ok(t.amounts[k].monthly_eur > 1000, k);
   assert.ok(t.amounts.hsm_reduced.monthly_eur < t.amounts.hsm_under_30.monthly_eur);
@@ -252,4 +256,43 @@ test('main thresholds: flags out-of-date year and gives a verdict', async () => 
   assert.equal(stale.stale, true);
   assert.match(stale.note, /out of date/);
   assert.equal((await main(['thresholds', '--age-band', 'old'])).code, 2);
+});
+
+test('thresholds: a salary table you edited in its old place is named, never silently ignored', async () => {
+  // A project where an update left an edited copy at the old place (the update only archives copies you never edited).
+  const root = tmp();
+  const prev = process.env.CLAUDE_PROJECT_DIR;
+  try {
+    const real = readFileSync(THRESHOLD_DOC(), 'utf8');
+    mkdirSync(join(root, 'system', 'packs', 'country-nl'), { recursive: true });
+    writeFileSync(join(root, 'system', 'packs', 'country-nl', 'salary-thresholds.md'), real);
+    process.env.CLAUDE_PROJECT_DIR = root;
+    const now = new Date('2026-12-01T00:00:00Z');
+
+    const clean = JSON.parse((await main(['thresholds', '--json'], { now })).stdout);
+    assert.equal(clean.old_copy, null);
+    assert.equal(clean.note, null, 'no old copy and a current year: no warning');
+
+    const OLD = OLD_THRESHOLD_DOC();
+    assert.ok(OLD.split(path.sep).join('/').endsWith('system/packs/mba/jobs-nl/salary-thresholds.md'));
+    mkdirSync(join(root, 'system', 'packs', 'mba', 'jobs-nl'), { recursive: true });
+    writeFileSync(OLD, real.replace(/\| hsm_30_plus \| \d+ \|/, '| hsm_30_plus | 9999 |'));
+
+    const flagged = JSON.parse((await main(['thresholds', '--age-band', '30plus', '--json'], { now })).stdout);
+    assert.equal(flagged.old_copy, 'system/packs/mba/jobs-nl/salary-thresholds.md');
+    assert.ok(flagged.note.includes('An older salary table is still at system/packs/mba/jobs-nl/salary-thresholds.md.'));
+    assert.ok(flagged.note.includes('I no longer read it'));
+    assert.ok(flagged.note.includes('carry your changes over to system/packs/country-nl/salary-thresholds.md.'));
+    assert.notEqual(flagged.selected.monthly_eur, 9999, 'the amounts still come from the new place');
+
+    // in plain text it is a warning line, and it joins the out-of-date warning instead of replacing it
+    const text = await main(['thresholds', '--age-band', '30plus'], { now });
+    assert.match(text.stdout, /^Warning: An older salary table is still at /);
+    const both = JSON.parse((await main(['thresholds', '--json'], { now: new Date('2099-01-01T00:00:00Z') })).stdout);
+    assert.match(both.note, /out of date\. .*older salary table/);
+  } finally {
+    if (prev === undefined) delete process.env.CLAUDE_PROJECT_DIR;
+    else process.env.CLAUDE_PROJECT_DIR = prev;
+    rmSync(root, { recursive: true, force: true });
+  }
 });

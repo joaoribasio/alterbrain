@@ -26,8 +26,8 @@ Checked on 7 October 2026 and now closed. The details are in `docs/research/clau
 - **Built-in name clashes:** confirmed. `checkup` is an alias of `/doctor`, so the skill is called `health-check` (ADR 0017).
 - **Gmail connector tool names:** the connector tools are named `mcp__claude_ai_Gmail__<tool>` and include send tools, so draft-only is enforced by our own guard.
 - **Repo plugins in cloud sessions:** confirmed that they do not load, which supports ADR 0006.
-- **IND recognised-sponsor register format:** verified by the jobs package with a live run (see `system/packs/mba/jobs-nl/`).
-- **2026 highly-skilled-migrant salary thresholds:** verified by the jobs package and kept in one table, `system/packs/mba/jobs-nl/salary-thresholds.md`. They are updated every January and never hard-coded elsewhere.
+- **IND recognised-sponsor register format:** verified by the jobs package with a live run (see `system/packs/country-nl/`).
+- **2026 highly-skilled-migrant salary thresholds:** verified by the jobs package and kept in one table, `system/packs/country-nl/salary-thresholds.md`. They are updated every January and never hard-coded elsewhere.
 
 Still open:
 

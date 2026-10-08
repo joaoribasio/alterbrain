@@ -15,6 +15,8 @@ The exact process onboarding module M5 follows to learn how the user writes. The
 
 - Read `config/brain.json` → `user.languages`. These are the languages to cover.
 - Read `state/onboarding.json` to resume where the user stopped.
+- **Learner kind:** `config/brain.json` `learner.kind`. If it is missing or empty, treat it as `mba` when `packs` lists `mba` or a `school` block exists (older installs); otherwise ask the onboarding learner question (onboard M2). It sets the default sample topic in §6.
+- **Which recipient classes apply.** Ask once (multi-select), unless onboarding M5 already asked and you have the answer: "Who do you write to? Teachers or tutors, programme or provider staff, recruiters, colleagues or clients, classmates or course-mates, friends and family, groups or mailing lists." Recommend the classes that fit the learner kind (for example colleagues, clients and recruiters for a working professional). Only the classes the user picks are used for the guesses in §1, the grid in §3 and the blind test in §7; the definitions are in `drafting.md` §3.
 - Work folder for raw material: `state/local/tmp/voice/<lang>/`. It is gitignored and never leaves the machine.
 - Tell the user, in one short message, before touching anything:
   > "I'll read some of your sent emails and other writing to learn your style. I keep only your own words: other people's words would blur your voice. Your own writing is kept as you wrote it, whatever it is about. The finished voice files sync to your private GitHub backup, and I read them in sessions. Raw material stays on this computer and is deleted at the end. You can skip any source."
@@ -50,7 +52,7 @@ Brief for `mail-reader`:
    ```
    id | date (YYYY-MM) | lang | recipient_class guess | word_count | text (user's own words only)
    ```
-   where `recipient_class guess` is one of the seven classes in `drafting.md` §3: `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`.
+   where `recipient_class guess` is one of the classes the user writes to, defined in `drafting.md` §3 (`faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`).
    with other people's names, emails and phone numbers replaced by `[Name]`, `[Email]`, `[Phone]`. This keeps the samples about rhythm, not content, so a name from one sample cannot surface in another draft.
 6. End the list with one line: `COUNTS kept=<n> dropped=<n> removed_values=<n>` (`dropped` = too short, automatic or a template; `removed_values` = never-store values replaced in step 4).
 
@@ -105,7 +107,7 @@ If the user agrees:
 4. Count per language:
    - **30 or more** records: full profile.
    - **10 to 29**: profile marked `confidence: "low"`; tell the user and offer to add more later.
-   - **Under 10**: no profile yet. Offer two options: add documents in that language, or write 3 short emails in chat now (to a professor, a peer, a recruiter). Otherwise mark the language "not set up" in the summary.
+   - **Under 10**: no profile yet. Offer two options: add documents in that language, or write 3 short emails in chat now (to people from the classes they write to, for example a tutor or manager, a peer, a recruiter). Otherwise mark the language "not set up" in the summary.
 
 ---
 
@@ -115,7 +117,7 @@ From each corpus, choose **20 to 40** exemplars that cover the grid of channel �
 
 | channel | recipient classes (same names as `drafting.md` §3) |
 |---|---|
-| `email` | `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group` |
+| `email` | the classes the user writes to: `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group` |
 | `linkedin` | `recruiter`, `professional`, `peer`, `group` (posts) |
 | `document` | `group` (general reader) |
 
@@ -145,7 +147,7 @@ Real examples of how I write. Used for rhythm only, never for content.
 
 ## E01 · email · faculty
 <!-- 2026-09 · gmail-sent · 64 words -->
-Dear Professor [Name],
+Dear [Name],
 
 ...
 
@@ -201,9 +203,9 @@ Never ask "does this sound like you?" in the abstract. First show what you found
    - **Covered registers:** which channels and recipient classes the profile covers, and which are still unknown.
 
    Ask: "Anything wrong or missing?" Options: **Looks right** (recommended) · **Change an item** · **Add something**. Take changes one at a time. The user's word beats the stats.
-2. **Write a sample in their voice.** Ask the topic with three options plus their own:
-   - **Opening of a class presentation** (recommended for an MBA student): 60 seconds introducing a topic from one of their courses.
-   - **Explaining a fact from their field** to a classmate.
+2. **Write a sample in their voice.** Ask the topic with three options plus their own. The first is recommended and follows the learner kind:
+   - **By learner kind (recommended):** the opening of a class presentation (60 seconds introducing a topic from one of their courses) for `mba`, `degree`, `online` and `other`; a short project update (where a project stands, what is next, what you need, for a manager or colleague) for `professional`.
+   - **Explaining a fact from their field** to a classmate or colleague.
    - **A short LinkedIn-style post** about a lesson they learned.
 
    The `ghostwriter` writes 120 to 180 words using the profile and exemplars, then runs the slop check. It uses only facts from the fact sheet or `USER.md`; anything else becomes `[FACT NEEDED: …]`. Present it labelled **"Sample in your voice (not saved)"**.
@@ -222,7 +224,7 @@ Never ask "does this sound like you?" in the abstract. First show what you found
 Checks whether the twin can pass for the user.
 
 1. Hold out 5 real messages from the corpus that are **not** in `exemplars.md`, spread across classes.
-2. For each, write a one-line neutral brief of its purpose ("Ask the programme office to move an exam"), without copying any wording.
+2. For each, write a one-line neutral brief of its purpose ("Ask a contact to move a meeting to Thursday"), without copying any wording.
 3. Ask the `ghostwriter` to draft each brief using the profile and exemplars. The held-out messages must not be visible to it.
 4. Show each pair side by side as **A** and **B**, order randomised. Ask: "Which one did you write?"
 5. Score:

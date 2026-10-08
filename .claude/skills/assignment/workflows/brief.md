@@ -13,27 +13,27 @@ Models: research by the `researcher` agent (sonnet, medium); thesis options by a
 
 Build a list of paths. Do not read them all into the main session.
 
-1. The case text: from the case note's "Sources" section, or search `vault/40_sources/notes/` for the case title; use the extracted text in `vault/40_sources/text/`.
-2. The course note and its sessions: `vault/20_areas/courses/<course-slug>/course.md` and `sessions/`.
+1. The sources named in `assignment.md`. If the assignment is a case, the case text: from the case note's "Sources" section, or search `vault/40_sources/notes/` for the case title; use the extracted text in `vault/40_sources/text/`.
+2. The course note and its sessions, if the assignment has a course: `vault/20_areas/courses/<course-slug>/course.md` and `sessions/`.
 3. Course material: source notes linked from the course note (slides, readings, the syllabus).
 4. Relevant wiki pages: `vault/30_wiki/frameworks/`, `concepts/`, `companies/`, `industries/` (Grep for words from the questions).
 5. Any workbook or data file the user named.
 
-Ask once: "I will use these sources: <short list>. Anything else I should read, such as a reading the lecturer stressed?" If they point to new files, run the `ingest` skill on them first.
+Ask once: "I will use these sources: <short list>. Anything else I should read, such as a reading the assessor stressed?" If they point to new files, run the `ingest` skill on them first.
 
 If a source has `text_status: pending` in `vault/40_sources/manifest.jsonl`, read the raw file with the Read tool instead.
 
 ## 3. Research (researcher agent)
 
-Launch the `researcher` agent with this prompt, filled in:
+Launch the `researcher` agent with this prompt, filled in. Fill `<what the user is learning>` from the "Learning or working on" line of `vault/80_me/USER.md` (for example "an MBA student" or "an analyst taking an online course"); if it is empty, write "a learner".
 
 ```
 mode: vault-only
 format: caller
 today: <today, from the system>
-Research this assignment for an MBA student. Do not write or edit any file: return your findings as your answer, in the five parts below (not in your usual format).
-Case date: <case_date, or "not a case">. Use only facts knowable on that date. Anything later goes in one line at the end under "Outside the case".
-Read in full: <paths: case text, course note, course material, wiki pages>.
+Research this assignment for <what the user is learning>. Do not write or edit any file: return your findings as your answer, in the five parts below (not in your usual format).
+Case date: <case_date, or "none">. If there is one, use only facts knowable on that date. Anything later goes in one line at the end under "Outside the case".
+Read in full: <paths: case text if any, course note if any, course material, wiki pages>.
 Questions (word for word): <questions from assignment.md>.
 Rubric: <path to rubric.md>.
 Return, under 1,500 words:
@@ -45,7 +45,7 @@ Return, under 1,500 words:
 Label anything you could not verify [Unverified] and your own estimates [Inference]. Use only the files above: no web search, no captures.
 ```
 
-Only if the user asked for web research on a topic, change `mode` to `vault-and-web` and add "Web search is allowed for <topic>, and only for facts knowable at the case date. Give each page you used as a URL in your answer; do not save files." Keep `format: caller`.
+Only if the user asked for web research on a topic, change `mode` to `vault-and-web` and add "Web search is allowed for <topic>, and, if there is a case date, only for facts knowable at that date. Give each page you used as a URL in your answer; do not save files." Keep `format: caller`.
 
 ## 4. Write the fact base
 
@@ -68,16 +68,16 @@ thesis: ""
 5. `## Course concepts by question`: the concept, the reading or slide, and how it applies.
 6. `## Expected answer and where to beat it`: per question.
 7. `## Traps`.
-8. `## Open questions for you`: things only the user can settle (for example how the lecturer treats a point in class).
+8. `## Open questions for you`: things only the user can settle (for example how the assessor treats a point in class).
 
-Also fill the case note's "Key facts", "Exhibits", "Traps" and "Course concepts that apply" sections, with citations in the form `[Source: [[note]] | YYYY-MM-DD | confidence: high|medium|low]`. The case note is course knowledge that outlives the assignment.
+If the assignment is a case and has a case note, also fill the case note's "Key facts", "Exhibits", "Traps" and "Course concepts that apply" sections, with citations in the form `[Source: [[note]] | YYYY-MM-DD | confidence: high|medium|low]`. The case note is course knowledge that outlives the assignment. If the assignment is not a case, leave "Exhibits" out of `brief.md` when there are none, and say so in one line.
 
 ## 5. Thesis options (judgement pass, opus, high)
 
-Launch a general-purpose subagent with `model: "opus"`. Give it file paths only: `assignment.md`, `rubric.md`, `brief.md`, the course note and the case text. Prompt:
+Launch a general-purpose subagent with `model: "opus"`. Give it file paths only: `assignment.md`, `rubric.md`, `brief.md`, the course note (if any) and the case text (if any). Prompt:
 
 ```
-You are helping an MBA student choose the central thesis for a graded assignment. Read the files listed. Do not write or edit any file.
+You are helping <what the user is learning, from the "Learning or working on" line of USER.md; "a learner" if empty> choose the central thesis for a graded assignment. Read the files listed. Do not write or edit any file.
 Propose two or three distinct thesis options, labelled A, B and C. They must disagree on something that matters, not just differ in wording. For each:
 - the thesis in one line;
 - the answer it gives to each question, in one or two lines each;
@@ -87,7 +87,7 @@ Propose two or three distinct thesis options, labelled A, B and C. They must dis
 - fit: can it be argued within the page limit in assignment.md, and what it would have to leave out;
 - originality: is it the expected answer, or does it beat it, and is that risky?
 Then recommend one option in three lines, and say what would change your mind.
-Use only facts knowable at the case date. Label estimates [Inference] and anything unchecked [Unverified]. Under 1,200 words.
+If the assignment has a case date, use only facts knowable at that date. Label estimates [Inference] and anything unchecked [Unverified]. Under 1,200 words.
 ```
 
 If the subagent cannot run on opus (plan limits), run the same prompt in the main session and tell the user in one line.

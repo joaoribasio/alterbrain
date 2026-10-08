@@ -12,11 +12,11 @@ Welcome back. This is your dashboard. It updates by itself as your notes change.
 Open Claude Code in this project and try one of these:
 
 1. "What is due this week?"
-2. "Help me start my next assignment."
+2. "Help me start my next piece of work: an assignment, a report or a project."
 3. "Summarise the file I just added to the inbox."
-4. "Draft a reply to the latest email from my professor."
+4. "Draft a reply to the latest email I received."
 5. "Find three jobs that fit me and add them to my applications."
-6. "Make study cards from my last lecture notes."
+6. "Make study cards from my last set of notes."
 
 Not sure where to start? Type `/menu` and Alterbrain will show you what it can do.
 

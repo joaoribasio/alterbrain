@@ -2,7 +2,7 @@
 
 **Goal:** reports, CVs, cover letters and slides use the user's chosen fonts and colours, via one style file.
 **Time:** about 5 minutes. **Optional.**
-**Model / effort:** sonnet / medium. Reading a school template: sonnet / medium.
+**Model / effort:** sonnet / medium. Reading a template: sonnet / medium.
 
 Say at the start: "Let's choose how your documents look: colours, fonts and an optional logo. You can change it later in one file."
 
@@ -10,17 +10,17 @@ Say at the start: "Let's choose how your documents look: colours, fonts and an o
 
 - `vault/80_me/brand/_brand.yml` (already set up?).
 - `system/templates/brand/_brand.yml` (the starting point; plain comments explain each line).
-- A school template (Word `.docx`, PowerPoint `.pptx` or a PDF) if the user has one.
-- The school's name in `config/brain.json` (to suggest "use your school colours").
+- A template from the user's school, employer or provider (Word `.docx`, PowerPoint `.pptx` or a PDF) if they have one.
+- The school, employer or provider named in `USER.md` or in the programme note (`vault/20_areas/programmes/*.md`), to suggest "use their colours".
 
 ## Questions (one at a time)
 
 1. **Starting point.** AskUserQuestion: "How should your documents look?"
    - Clean and neutral: navy and teal, modern fonts (recommended)
-   - Match my school's template (I have a file)
+   - Match my school's, employer's or provider's template (I have a file)
    - I'll pick my own colours and fonts
-2. **School template (if chosen).** "Give me the template file." Ingest it first: `node system/scripts/ingest.mjs "<path>" --kind doc --origin "School template"` (`--kind slides` for PowerPoint). Read it and pull out the main colours (hex codes), heading and body fonts, and whether there is a logo.
-   - Say: "Check your school's rules before using its logo on personal documents." If the user wants the logo, ask them to save the image into `vault/80_me/brand/` themselves, or copy it there from the file they named.
+2. **Template (if chosen).** "Give me the template file." Ingest it first: `node system/scripts/ingest.mjs "<path>" --kind doc --origin "Template from my school, employer or provider"` (`--kind slides` for PowerPoint). Read it and pull out the main colours (hex codes), heading and body fonts, and whether there is a logo.
+   - Say: "Check their rules before using their logo on personal documents." If the user wants the logo, ask them to save the image into `vault/80_me/brand/` themselves, or copy it there from the file they named.
    - For Word output, also copy the `.docx` to `vault/80_me/brand/reference.docx` (Quarto uses it as the Word style). Do this with a copy command, never by retyping.
 3. **Own choice (if chosen).** Ask for: a main colour, an accent colour (a hex code like `#1F3A5F`, or a plain name like "dark green"; you turn names into hex), a body font and a heading font. Suggest free Google Fonts (for example Source Sans 3, Inter, Lato, Merriweather) and say why in a few words.
 4. **Logo (optional).** "Do you want a logo or monogram at the top?" No (recommended) / Yes, I have an image.
@@ -38,7 +38,7 @@ Show the choices as a short list (main colour, accent, body font, heading font, 
 
 - `vault/80_me/brand/_brand.yml`
 - Optional: `vault/80_me/brand/reference.docx`, a logo image in `vault/80_me/brand/`
-- Raw copy of any school template via `ingest.mjs`
+- Raw copy of any template via `ingest.mjs`
 
 ## Done criteria
 

@@ -9,7 +9,7 @@ case_date: "YYYY-MM-DD"
 ---
 # <Case title>
 
-<!-- Template for vault/20_areas/courses/<course-slug>/cases/<Case title>.md.
+<!-- Template for vault/20_areas/courses/<course-slug>/cases/<Case title>.md (the case method; only for assignments that are a case).
      case_type is one of: decision, evaluation, diagnosis.
      case_date is the date the case is set. Reviewers use only facts knowable on that date (hindsight rule). -->
 

@@ -38,6 +38,10 @@ Before building, Alterbrain asks a few questions to get it right (this is called
 
 Then just ask for it in your own words, or type `/my-case-summary`.
 
+## Packs: content for one kind of learner or one country
+
+A pack is a bundle of content, for example the business frameworks for an MBA or the Netherlands job-search checks (sponsor register, Dutch-language requirements, salary thresholds). Alterbrain does not build packs ahead of time. If you need one (checks for another country, frameworks for your own field), ask: "Could you build a pack for job search in Germany?" It drafts the pack with `/propose`, as your own skill (its name starts with `my-`), and you approve it like any other proposal. `/jobs` finds a country pack built this way. A pack you build is never written into Alterbrain's own files, so an update leaves it alone.
+
 ## Removing something
 
 Say "remove my-case-summary" or `/remove-skill my-case-summary`. Alterbrain shows what it will remove, asks, then removes the files and puts any settings back. Your notes stay.

@@ -6,27 +6,32 @@
     {
       "path": ".claude/agents/ghostwriter.md",
       "class": "text",
-      "sha256": "a9e1ccb9faae1338d07a3343fdfe56f1736c6fcbf53627f77c0ad007aeb75737"
+      "sha256": "66ca3256f5410da993f6622de85ef9d20287320ee2acbd38999ac4fcbc2f4cbf"
     },
     {
       "path": ".claude/agents/lens.md",
       "class": "text",
-      "sha256": "76d198796d47e0e0736e9f405db37300cd8b75ec08635067cc6a8bb0ed6f427d"
+      "sha256": "2571603aab1ef86258a536332a02e134aa0e6c6f02d39a21767e5efc263c8c3b"
     },
     {
       "path": ".claude/agents/mail-reader.md",
       "class": "text",
-      "sha256": "079b514026e94504f609186d3b3997e30aa410ebce0ca7edd6f961d32e2fc4f6"
+      "sha256": "3054c73c987a4c3fc3810a0e3908e02447e553e19d2ea00f2a7cc25e87cd8265"
     },
     {
       "path": ".claude/agents/researcher.md",
       "class": "text",
-      "sha256": "04fe9734ae9558e749e574443c1e7bc1b3e62b0f62155466f80ff4ca00479813"
+      "sha256": "3706c0ccfd70d29400a74b61e3fe734a7d1a9c8944a464caefd3d44475f0a236"
     },
     {
       "path": ".claude/rules/framework-dev.md",
       "class": "text",
-      "sha256": "6044681cc34b345e03dad1498ab85f790c15bc8c06221709c68147876eff17c2"
+      "sha256": "5560dd34cab3a96802133d076de1a3b30fa605dab56fe9e0ed4c954f3d7dea4c"
+    },
+    {
+      "path": ".claude/rules/migrations.md",
+      "class": "text",
+      "sha256": "8723aedafd896ae0be6be8af4898e8414377cd08f6d18dd96a83f92b140796da"
     },
     {
       "path": ".claude/rules/model-routing.md",
@@ -36,12 +41,12 @@
     {
       "path": ".claude/rules/vault.md",
       "class": "text",
-      "sha256": "074f7a2c1ff63ac17f09f1d094cf682ac35bd417b7cf40118f035b638ebca904"
+      "sha256": "0158baa801fbd4f5057ff04bf62ab5272acaf4b5336d83be37ef3cc6f511e6b8"
     },
     {
       "path": ".claude/rules/writing.md",
       "class": "text",
-      "sha256": "70040d8624dbac61ce4b61d7431806f0ded311fac1fb7e527bf826a1a596565e"
+      "sha256": "7a731a356690a42dd906751733bdb747f6898eafcbc8ce3ecdf07374079409ec"
     },
     {
       "path": ".claude/settings.json",
@@ -51,42 +56,72 @@
     {
       "path": ".claude/skills/ask/SKILL.md",
       "class": "text",
-      "sha256": "424bd18ddca6bb8f31280a76d61517b225bcd3001b237ba4955df979c6145cf2"
+      "sha256": "6be0c34ef9fa6fbd8472757ab26595524d4a297f4bec8554380cfaca2880a093"
     },
     {
       "path": ".claude/skills/assignment/SKILL.md",
       "class": "text",
-      "sha256": "0034c0c440d416e02fe29e2b21c6a93f999359d6e68de78ad7768f82292e2d2b"
+      "sha256": "36d64d1f2c34be008b453a67be18942893e8b9355199040e86c2842f2e4c9e13"
+    },
+    {
+      "path": ".claude/skills/assignment/references/lenses/board.md",
+      "class": "text",
+      "sha256": "d358f506417fe5f5a8a793ff0e593502923971c0a914a60d9372bdae2b083d81"
+    },
+    {
+      "path": ".claude/skills/assignment/references/lenses/consolidation.md",
+      "class": "text",
+      "sha256": "3ccc282f253288888c721b8a24c82567b1dba3c0241d7d839c8c5ee582837db9"
+    },
+    {
+      "path": ".claude/skills/assignment/references/lenses/devils-advocate.md",
+      "class": "text",
+      "sha256": "31ad0d6e80cf80736ad2e46b074d1dfeac0d0a46f5cdfc0d658bbcc251ca887e"
+    },
+    {
+      "path": ".claude/skills/assignment/references/lenses/grader.md",
+      "class": "text",
+      "sha256": "208ecd9b542ce0e302247fc829112d27285f9cd134fdaeae673cabde5599adce"
+    },
+    {
+      "path": ".claude/skills/assignment/references/lenses/premortem.md",
+      "class": "text",
+      "sha256": "0957ada14143fe65e860c5214de40b532a2ae8e5dbec2d07023381ef5c10ec94"
+    },
+    {
+      "path": ".claude/skills/assignment/references/lenses/specialists.md",
+      "class": "text",
+      "sha256": "d55c033fd60b7617d4d0add16fa0f24bceae1070a3910567eedf9cb4a13b34fb"
     },
     {
       "path": ".claude/skills/assignment/references/writing-rules.md",
       "class": "text",
-      "sha256": "2072746a77aede198da6600855f0e62ed0dd56b993fccec316c7034f2603dba5"
+      "sha256": "0a6c1c1762d5863f20b43ecdbb96ec835eb73911dddbc480f8e13d459778d04a"
     },
     {
       "path": ".claude/skills/assignment/workflows/brief.md",
       "class": "text",
-      "sha256": "e716972be0f3384003320d7323c5b4d23b07742e6364e2df402bb809e5507335"
+      "sha256": "90b74afd1e54c4be1466367426abb5210ee14fce1f634565053ebc50312ed45b"
     },
     {
       "path": ".claude/skills/assignment/workflows/critique.md",
       "class": "text",
-      "sha256": "43d586d71147db2b20d4b5fbadac16ee8b97f2bbb05454efd2bbe59777a4b68c"
+      "sha256": "c856b315b8070e4376927f42ab03a610452a56be533fc9dfd858b737ff368571"
     },
     {
       "path": ".claude/skills/assignment/workflows/draft.md",
       "class": "text",
-      "sha256": "78f293032455e7b1717abb78b63c2ca3f60894500bd303163a2339b90bd849a4"
+      "sha256": "41bd2c1ab5fe07409ae977a459340aaffc35434c53ce217c2af7a8639e3a91fa"
     },
     {
       "path": ".claude/skills/assignment/workflows/new.md",
       "class": "text",
-      "sha256": "cd5c0f7502dcf1108c368c4509440d34fe955111738601604ce88c0e3fd8d602"
+      "sha256": "cf84df21656d5b0c7cb08d11798ba5c73c7c17901044700e224a7fc12e4df569"
     },
     {
       "path": ".claude/skills/assignment/workflows/ship.md",
       "class": "text",
-      "sha256": "44d905abbb3f7cf9de42813b082e851fb3a08157439e1924059b155a82c6271c"
+      "sha256": "05c2fc6419b1ee63601f721ec1e4601cbb392dda63fcf1bab3764b0044688f34"
     },
     {
       "path": ".claude/skills/build/SKILL.md",
@@ -126,12 +161,12 @@
     {
       "path": ".claude/skills/clarify/checklists/application.md",
       "class": "text",
-      "sha256": "66b1b86e909a1943216513ac739610d94cd0b4da4df622ffc25bbfa55e17dc3e"
+      "sha256": "32b70ec578f09cacfe395298e1e2575e037798639326466dd861d2dfb0c9c25e"
     },
     {
       "path": ".claude/skills/clarify/checklists/assignment.md",
       "class": "text",
-      "sha256": "f3e572d82274cffee4d2068657e15bb14192fe74374623aecfb1045ad1d1bee6"
+      "sha256": "fb10eff838fcd58ac887b7a6cc230b91f5d376c7a1d99d229ade36bcbd1216d8"
     },
     {
       "path": ".claude/skills/clarify/checklists/automation.md",
@@ -156,7 +191,7 @@
     {
       "path": ".claude/skills/clarify/checklists/job-search.md",
       "class": "text",
-      "sha256": "dd9d5729daab9648b8238d562a916853119602b93291048f4921271d91e8ca7e"
+      "sha256": "ddd89c1cb2ad87345960588a6ecf201b8377760d0ff98d761ef9457dcfc608ad"
     },
     {
       "path": ".claude/skills/clarify/checklists/mcp.md",
@@ -176,12 +211,17 @@
     {
       "path": ".claude/skills/clarify/checklists/study.md",
       "class": "text",
-      "sha256": "29cad88669e6d4e84551dc939d6072624ffe54b23110926207213807c2fb7410"
+      "sha256": "5bc5c6ae694bfbad373fecbf6567ad0b15d085253ea0a07cd959fa0ef29c16f0"
     },
     {
       "path": ".claude/skills/course/SKILL.md",
       "class": "text",
-      "sha256": "ee4932c638e0bafce11cf5b1e5d3d5d8ac649ae05f232cb97e185a8f5801dca2"
+      "sha256": "daa3759ec17fc9bdb4029443011c0a60579b28a3be58825310a12d3d0a074cd6"
+    },
+    {
+      "path": ".claude/skills/course/references/course-setup.md",
+      "class": "text",
+      "sha256": "33dee6eb14b8f2f88cb8152b7d1a91f49b009ad9a0c7e8b3080d357e313b0149"
     },
     {
       "path": ".claude/skills/defuddle/LICENSE-obsidian-skills",
@@ -201,7 +241,7 @@
     {
       "path": ".claude/skills/edit-voice/SKILL.md",
       "class": "text",
-      "sha256": "eab16b8d546a9fccd8f71f7efebf29690011e50dd083648ac5801c2bd4d7dd53"
+      "sha256": "8f131bbf7b81a8f5532180a074cabca153a0c4b1ca322c320f35e7252f62bae7"
     },
     {
       "path": ".claude/skills/edit-voice/references/eval.md",
@@ -216,7 +256,7 @@
     {
       "path": ".claude/skills/framework/SKILL.md",
       "class": "text",
-      "sha256": "adbb275b40621448c7adef4f719162d0ff6de88c19d9f6470c477a62c56673c9"
+      "sha256": "d67bf15dd77a45b158d87291803fa5f9f83df16c407e006bef7be69803fa206e"
     },
     {
       "path": ".claude/skills/framework/references/note-layout.md",
@@ -241,12 +281,12 @@
     {
       "path": ".claude/skills/ingest/SKILL.md",
       "class": "text",
-      "sha256": "732ef7a7bb8e86173e247dd212e206ab36b853846bc22306a28882152779d262"
+      "sha256": "4644019cc17d05bd03ff6cc4af11c9ccb86da6dc274ab3355034c8ded3bb8bb9"
     },
     {
       "path": ".claude/skills/ingest/references/course-material.md",
       "class": "text",
-      "sha256": "d178b0a7f618f1bf65218c91a9b43d90512c7443b2674d5507e80b33e4b70dfd"
+      "sha256": "e9eb54e49ebca8f5471967305b1ee770a88de69b08a74da08d4d8316c1ba99c2"
     },
     {
       "path": ".claude/skills/ingest/references/note-formats.md",
@@ -261,17 +301,22 @@
     {
       "path": ".claude/skills/jobs/SKILL.md",
       "class": "text",
-      "sha256": "5c04a00502706de36a3c2d2a41e6e5dd9e455c22903aee392fc77b9ac90aff16"
+      "sha256": "e0c14db04b16cae9025890f3e1e634cb561103a1f481ffcb8ead9b4631482557"
+    },
+    {
+      "path": ".claude/skills/jobs/references/sources.md",
+      "class": "text",
+      "sha256": "b7b88130d2db68edeb58870163b0c2d4614fa16200692ec0fbd778adcd7fa6b2"
     },
     {
       "path": ".claude/skills/jobs/workflows/apply.md",
       "class": "text",
-      "sha256": "169a6a65be94a47117ae60ae7c992cda9067f3ad1adc9906ab7a8d63f080344f"
+      "sha256": "a147e55a3e4d6139ef133d05dd77d8a652582d274630f0e1ae78fbe3616f43b9"
     },
     {
       "path": ".claude/skills/jobs/workflows/scan.md",
       "class": "text",
-      "sha256": "bc4cf7e11b6043c32eb62d6e95461db5ed1f812166b45d8ed05af3e25ab01bd1"
+      "sha256": "7d996264e148f21dfde431d413a1bc6afc4502745af2057c085a0f75cf3bafff"
     },
     {
       "path": ".claude/skills/json-canvas/LICENSE-obsidian-skills",
@@ -296,12 +341,12 @@
     {
       "path": ".claude/skills/menu/SKILL.md",
       "class": "text",
-      "sha256": "b9e537cf37bf4109fbe4dcbbc191de368c65d10b6f2ed6f16ba07d914b430111"
+      "sha256": "5e8dce7434b845e140aa25bcdda2000d664a72023e2f8a6588c3cbf310ea473c"
     },
     {
       "path": ".claude/skills/menu/references/groups.md",
       "class": "text",
-      "sha256": "e7ad9f7cf3ddd135885fde560ea62b9f0390259c8316f6260747d83246f7023a"
+      "sha256": "5d2f7ca1461f0ac772df306445e4fc986c0cf9072adf66a1a3c6d6998f924130"
     },
     {
       "path": ".claude/skills/obsidian-bases/LICENSE-obsidian-skills",
@@ -376,17 +421,17 @@
     {
       "path": ".claude/skills/onboard/SKILL.md",
       "class": "text",
-      "sha256": "738330be0d429a4615c18bfe9010ea4c671a97eb5e158caa778488876f097ef4"
+      "sha256": "3f544671cd0ed3d10f4e33325b60064416cb3baed94118474d3d3f9b07f1b445"
     },
     {
       "path": ".claude/skills/onboard/references/state.md",
       "class": "text",
-      "sha256": "b9f0459ef635ee51840f1a33ea324ef05d3b7658666f3c25695120c4b8f54b68"
+      "sha256": "5ee747285e6feac01a25992f9bf645e7880242a863c3b99efdf54e47d7acd1fe"
     },
     {
       "path": ".claude/skills/onboard/workflows/M0-setup.md",
       "class": "text",
-      "sha256": "4ccd2b7b30727437ef79c001f9ea5b12bc2ea1b6a5e9897a859bf13fd861d839"
+      "sha256": "258ff2b7e323e961abe24c9ea2490e83c35d93e71dd2c853d0e232d5b0524662"
     },
     {
       "path": ".claude/skills/onboard/workflows/M1-identity.md",
@@ -396,42 +441,42 @@
     {
       "path": ".claude/skills/onboard/workflows/M2-you-and-facts.md",
       "class": "text",
-      "sha256": "f2f67fd973b25c26338d53dac3f9227d2639852bbcd32f76af8bc052982519b9"
+      "sha256": "e80f347631e9dc07184cb86dd78161de4d42d8d74796d6dbdd3cbe2cceb71a4b"
     },
     {
       "path": ".claude/skills/onboard/workflows/M3-programme.md",
       "class": "text",
-      "sha256": "6a3f25a47e7e8a3dcb4a9dee5eb21936e0d8a62ef6f142c68b33dc752336aebc"
+      "sha256": "cd118cb3e1ffcd91a444d53c255ff379fa7eb0cd602d9433a0d4ee603b04f541"
     },
     {
       "path": ".claude/skills/onboard/workflows/M4-autonomy.md",
       "class": "text",
-      "sha256": "de2e421a45244cc7519725e92cdaac55330d23599ecd073ee714eb92c633a916"
+      "sha256": "068b0e77de9789cbcd5dff1a6ed841943bd0501a865d2319f55ebb78829dea60"
     },
     {
       "path": ".claude/skills/onboard/workflows/M5-voice.md",
       "class": "text",
-      "sha256": "a2982841095f76bee4cdaf3a16f35d0e3a71b8159df9d0f9ba93a35ce10ca40d"
+      "sha256": "6f5508b2404e10e1d64508aead9a6e1e735c52fe006133d9a74ecb7128f7b068"
     },
     {
       "path": ".claude/skills/onboard/workflows/M6-career.md",
       "class": "text",
-      "sha256": "9bace8c595cc75a17931076c8f431d1e0e24ee60b0903e657d29517309a4ac9a"
+      "sha256": "b5caf644227c90d387af033af3716cdf2b2a8b0a57d58379265954d19f0a42cb"
     },
     {
       "path": ".claude/skills/onboard/workflows/M7-integrations.md",
       "class": "text",
-      "sha256": "fb6999f9efa8b9fa7a7ddfcc3c091f76b7b53cfac234b2dcc4c851d711fbc12c"
+      "sha256": "b573daae87ef4d30fd824da052b1594a91c7b122937bc73a8ac06e9a4b891b66"
     },
     {
       "path": ".claude/skills/onboard/workflows/M8-brand.md",
       "class": "text",
-      "sha256": "eea2be2dc35c8e956220218b1e53339e1d9477a33173af51f5c8bed23afca5e0"
+      "sha256": "e3db9551d3579e66108f7992ff9e003b0beb1443c8767763c0c799f0377d55b9"
     },
     {
       "path": ".claude/skills/onboard/workflows/M9-import.md",
       "class": "text",
-      "sha256": "b94ae57bfecb2732e83d31c8b8ddc7875eb5c9f4f36d076508a955b19bc8e6e0"
+      "sha256": "60f5dbab1c20fb3e260b0a4b009e377bc3f2e5018b10affd7eb76132d0e3477c"
     },
     {
       "path": ".claude/skills/propose/SKILL.md",
@@ -446,7 +491,7 @@
     {
       "path": ".claude/skills/reconfigure/SKILL.md",
       "class": "text",
-      "sha256": "0c501bb0642c03481d3cc98dc1aec95a84a1d10b131789ade04be9817e8e613a"
+      "sha256": "64595b94737b26d0b01097fc5447c0bdbbc34fe1c34a0cb5c525c2df1aed885a"
     },
     {
       "path": ".claude/skills/remove-skill/SKILL.md",
@@ -461,7 +506,7 @@
     {
       "path": ".claude/skills/render/references/cv-filling.md",
       "class": "text",
-      "sha256": "1276da958ecd87a46128351038a599ebab2799cfa908e29858d88f76ad412891"
+      "sha256": "17ea8a54f892696e40af776e17f4affc736f8d2f86fc5c0dd0d7d7031c71252b"
     },
     {
       "path": ".claude/skills/render/references/page-fit.md",
@@ -481,7 +526,7 @@
     {
       "path": ".claude/skills/reply/SKILL.md",
       "class": "text",
-      "sha256": "02c9755d39a2dd63b09672bd6320ad484c15e7ac94de811ef01e4671da659251"
+      "sha256": "e742f8367c9ee8505a056e9e37aac9e305444075c5af056645cf38ccb437a133"
     },
     {
       "path": ".claude/skills/reply/references/connect-gmail.md",
@@ -491,17 +536,17 @@
     {
       "path": ".claude/skills/reply/references/mail-reader-brief.md",
       "class": "text",
-      "sha256": "427a0b83cc5c4bf09ba24ec391b10ce1e69c45f224e65cfbace27430d37c483d"
+      "sha256": "32937b023dabbe21b23fdc6e9243c84c723a7f236937d861dd5ef85c13b5d81b"
     },
     {
       "path": ".claude/skills/study/SKILL.md",
       "class": "text",
-      "sha256": "488489f51c875372327b7c60cf6b2ab3a02477ea9c88460a1e8a6f5c16e01190"
+      "sha256": "bab3f855d25b484368ab6edf6fd23a47b98b645dea4fd141613a518d26f91dc1"
     },
     {
       "path": ".claude/skills/study/workflows/learn.md",
       "class": "text",
-      "sha256": "874c492050a3b69a12bf286f8acc30edf32d561d175de256526ff69dabd62137"
+      "sha256": "964c3363d2690628155d5b003eb88ee741e89684f43b8f3f9863407d797a4107"
     },
     {
       "path": ".claude/skills/study/workflows/quiz.md",
@@ -511,17 +556,17 @@
     {
       "path": ".claude/skills/update-alterbrain/SKILL.md",
       "class": "text",
-      "sha256": "4f4b15809d1d4c2efef0fce338ad1ca830c2360a8dd821843f8acb64ae4afbf3"
+      "sha256": "f8a7a4935145d54b4ecf9a0de01cf4e0bcd69b0a5fd2a59ad049acabffc1fda6"
     },
     {
       "path": ".claude/skills/update-alterbrain/references/merge-guide.md",
       "class": "text",
-      "sha256": "fb1797e88de8480c8fcf3bc9922efcee2bc7790951f50fb3f17ab42b4e839966"
+      "sha256": "e1b6000867aeef796a99e61e09fb89ce3ef24e93901d9df60ad33f7bdab2d5b6"
     },
     {
       "path": ".claude/skills/weekly-review/SKILL.md",
       "class": "text",
-      "sha256": "72ef895e461c94cf689a8d9da11301fb636f581864dd3be78e476b444cb888c8"
+      "sha256": "fe4a380acbf2bb540513c0a911a108651c3518f596fb075f097f08c42d3425ad"
     },
     {
       "path": ".claude/skills/weekly-review/references/numbers.md",
@@ -531,7 +576,7 @@
     {
       "path": ".env.example",
       "class": "text",
-      "sha256": "864690f39cdabf15e1b88c8e06ec62c888df1f4fa45a4eeb4eb5428a7939f163"
+      "sha256": "f34e5c04491f59cb72e074476fb6547f1bb29524b804fbb4021655da3ae34282"
     },
     {
       "path": ".gitattributes",
@@ -551,7 +596,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "68c5736e72e5ad1a7a31586c00c9f56f3f10c66e13e283057ffcde843ce8b4da"
+      "sha256": "99716a5bd9585ca88936a00553199f81ecddc1687e80ee8bee8b626abb96f756"
     },
     {
       "path": "CLAUDE.md",
@@ -566,7 +611,7 @@
     {
       "path": "README.md",
       "class": "text",
-      "sha256": "4dda937e3707704d743dc8ecf710c4e0166b02e5b9538bb652e5bccf3ff7a778"
+      "sha256": "ccfb1883980a89edc1a8b63bf67b6a25485b03b44bc8d46959c2d15c15c378e6"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -581,7 +626,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "a1c36b43999b18a9d713f11f7b978eb7e010817a95baee5bee1462641764a859"
+      "sha256": "e8d75e6151e1db05cbe88fb2d22d5bcd5c18e8f6af78dfc66a4d78ed2c0cce3f"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -694,9 +739,19 @@
       "sha256": "1d4dd6547e5420369b890e936141b67a1d722f1dbde7deda2c5c3a916158512e"
     },
     {
+      "path": "docs/adr/0023-learner-neutral-core-and-programme-notes.md",
+      "class": "text",
+      "sha256": "2d1a07b5026cbae43ec540aba4540671c2e14eb4a249314a917bed5513b336db"
+    },
+    {
+      "path": "docs/adr/0024-migrations-policy.md",
+      "class": "text",
+      "sha256": "d1dfaa82049d89bfb2617141c1b4a9bd8147e8757a739683091672bfea4a0230"
+    },
+    {
       "path": "docs/critique-panel-prompts.md",
       "class": "text",
-      "sha256": "fbd2be4174d7c1c3e3c92e937e294676387dbaf39833a8532bd9230cb77f43a5"
+      "sha256": "e5e792cc88413a76c4379198ff1bac5c552b917d9eddad6a34fbc9aedd70389f"
     },
     {
       "path": "docs/research/claude-code-mechanics.md",
@@ -706,7 +761,7 @@
     {
       "path": "docs/research/summary.md",
       "class": "text",
-      "sha256": "a7592849088fc66a9e25ff6c46effebfbd61407e5e047f241ef939d737133ec1"
+      "sha256": "788c382dad39b16ce5097fc3a7262cda849bfa0e116e9f9899d79dbeb9001556"
     },
     {
       "path": "system/blueprints/always-on-home-machine.md",
@@ -726,7 +781,7 @@
     {
       "path": "system/blueprints/assignment-extras.md",
       "class": "text",
-      "sha256": "e8d7e91e8e53a38ee3fd7589d73fa41b1d67b6ec193fc209b46030bb807e55f0"
+      "sha256": "dc41d73256a0d74f61132d580ae225555988a3b1da6d4db48692efb6685bb537"
     },
     {
       "path": "system/blueprints/cost-report.md",
@@ -756,7 +811,7 @@
     {
       "path": "system/blueprints/jobs-extras.md",
       "class": "text",
-      "sha256": "20bf20ee4948ec27e21ac36b7938e8d13838862e7c6dd2c1585b9195253ec4c5"
+      "sha256": "f4241dff8f4d231f06bf2f16236f06872ab193ce4eca4f01eb2c5b621d3566ef"
     },
     {
       "path": "system/blueprints/linkedin-data-portability.md",
@@ -831,17 +886,17 @@
     {
       "path": "system/core.md",
       "class": "code",
-      "sha256": "766a501b25df052cbeb1927f13a4664e7951e8356ca417a357cd39566a3f3b78"
+      "sha256": "d2684bd89a3f678a0002d129dbe1e5cef98e8cc41cbefc4f316d2e5ab5189fe1"
     },
     {
       "path": "system/docs/guides/autonomy-and-safety.md",
       "class": "text",
-      "sha256": "1d10c1f8806dd775cb7416ddb92b2b6310acb260d6566193bbe9702bd2f74443"
+      "sha256": "fba33b5d45d160ec1d2e557935905782c4b7487465b9440f83dfd1964ce271bf"
     },
     {
       "path": "system/docs/guides/bringing-in-course-material.md",
       "class": "text",
-      "sha256": "dd95f2bb44bbb31269937728b3175f76c6a245fe9e9fae7af3041d8be6197a47"
+      "sha256": "a2eb515a2af9aee5fd316a59277aeb355f59b84fe91d8b32e485afd3e650c0fa"
     },
     {
       "path": "system/docs/guides/encrypting-private-notes.md",
@@ -851,7 +906,7 @@
     {
       "path": "system/docs/guides/getting-started.md",
       "class": "text",
-      "sha256": "51d284c99d95abea4dd781acff35bbc138f4421968e4c4a7c71126e68cb29aa3"
+      "sha256": "e455eaf3179021bf7d66e29666a84f955e187184dc603c6f179dc28cb32b07fc"
     },
     {
       "path": "system/docs/guides/git-is-automatic.md",
@@ -861,7 +916,7 @@
     {
       "path": "system/docs/guides/models-and-costs.md",
       "class": "text",
-      "sha256": "272d8f0c38274b9f705e03d0d41d280bb2daed7828fe9315f22804481b69c838"
+      "sha256": "7461bd0b3aa620ad3e4db3fc5ea8355ac5a055abb4bc4bcd67e5061df4ef67c1"
     },
     {
       "path": "system/docs/guides/privacy-and-data.md",
@@ -871,7 +926,7 @@
     {
       "path": "system/docs/guides/self-build.md",
       "class": "text",
-      "sha256": "7b0d4457b9fe5644ec560e34d2a2b3f5aef15a9adbdb73b4936a49f60c415b84"
+      "sha256": "dc79c34e6449018a9b71a2890b01b2ba5bfaa4c81be5cacab676773f54f6e348"
     },
     {
       "path": "system/docs/guides/tasks-and-inbox.md",
@@ -886,17 +941,17 @@
     {
       "path": "system/docs/guides/updating.md",
       "class": "text",
-      "sha256": "24a3499859976555e4645d64375fcb422dfcbc09e3036dfc9e9ecd2450a4a2e6"
+      "sha256": "3a055bebdcfb917e0642e36962861610bd292c7d4d6ea1cc3a74899eb2135cc6"
     },
     {
       "path": "system/docs/guides/using-obsidian.md",
       "class": "text",
-      "sha256": "c33dca38d3d2e293d17763f0a6fa540bc40f31b28ea2f19d64a70a41e317e4d2"
+      "sha256": "9ac8b5ef3ded044149f61d5a08767d9e1b6a928a3c66433c3b17048640432150"
     },
     {
       "path": "system/docs/guides/what-can-i-ask.md",
       "class": "text",
-      "sha256": "a92584a4c44543c95d35aaeb3df3828cea0f84c45684421a87440d085f7495b7"
+      "sha256": "fcc377aa91dee971942a4a3051b95eb9f517f76610e225e652c435e389ab11f4"
     },
     {
       "path": "system/hooks/block_dangerous_git.mjs",
@@ -964,6 +1019,11 @@
       "sha256": "3a2ddc3f7e3d665f498357121e78fe292bb98397eb8d0139990c3f883b811210"
     },
     {
+      "path": "system/lib/migrate.mjs",
+      "class": "code",
+      "sha256": "6400c4233478cd24c20b1c825ff188e26d055e206efc5916c259f1d47c3ad5ec"
+    },
+    {
       "path": "system/lib/paths.mjs",
       "class": "code",
       "sha256": "c89bd27b6d1f2294ea4884d6239f966a29b7e3db7e941d8d9955ccd3f6d414c5"
@@ -994,14 +1054,49 @@
       "sha256": "0264c2681aa98a262f4acd1b691320edee512bdbb2e79cc9372292387dcd2c6f"
     },
     {
-      "path": "system/packs/mba/README.md",
+      "path": "system/packs/README.md",
       "class": "text",
-      "sha256": "f725b71c787ed034a88978bfb939befdc38c3b34128932c2db9da48bf8dc57e7"
+      "sha256": "cb75a86416d191cbe5df49797fa90154c533d274e613b51c2cce04c5e0865b4b"
     },
     {
-      "path": "system/packs/mba/course-setup.md",
+      "path": "system/packs/country-nl/README.md",
       "class": "text",
-      "sha256": "206e6efa7d5fcaf7b698c9c8dafe3bc0c3f7cdc5bafac6857277169459e37263"
+      "sha256": "7469882ffdb5c441d30d01ffc879f7275efe047612f20865e745e06fc0c9ad99"
+    },
+    {
+      "path": "system/packs/country-nl/dutch-language.md",
+      "class": "text",
+      "sha256": "db430577b163e1b466c524f3b1926cc2f6b1c173a29653ae5d8ecad29435ff66"
+    },
+    {
+      "path": "system/packs/country-nl/jobs.md",
+      "class": "text",
+      "sha256": "7615fd1328d55df31849b5178a9d68a855a0e8c00337559e5b1fb898a3c028a5"
+    },
+    {
+      "path": "system/packs/country-nl/salary-thresholds.md",
+      "class": "text",
+      "sha256": "1438332eb71f325374963517d645ed5b9e17176169d783d28cc346a2598756f1"
+    },
+    {
+      "path": "system/packs/country-nl/sources.md",
+      "class": "text",
+      "sha256": "9bc749dc17df9a847b679372aa07b12e1e44b71a6e77337c08a0f1ebd93c4086"
+    },
+    {
+      "path": "system/packs/country-nl/visa-and-sponsorship.md",
+      "class": "text",
+      "sha256": "d09ee70035d649bbcf402262794cbbb084e928c6eb1b9048a167404761f61490"
+    },
+    {
+      "path": "system/packs/mba/README.md",
+      "class": "text",
+      "sha256": "64828e3753347cb65ae0e583a8c21b1a2a769a1bcc99b9a65e3630e07781a2bd"
+    },
+    {
+      "path": "system/packs/mba/critique-presets.md",
+      "class": "text",
+      "sha256": "40022b3f1c32376a644bb6c4ea0118173e94656f89c767e3caffba416325e539"
     },
     {
       "path": "system/packs/mba/frameworks/Ansoff Matrix.md",
@@ -1129,89 +1224,19 @@
       "sha256": "48d5cf171649a838a0b3c378e4d255c22d2a0d3b7caf0106f65da26a72cc4b10"
     },
     {
-      "path": "system/packs/mba/jobs-nl/dutch-language.md",
-      "class": "text",
-      "sha256": "db430577b163e1b466c524f3b1926cc2f6b1c173a29653ae5d8ecad29435ff66"
-    },
-    {
-      "path": "system/packs/mba/jobs-nl/salary-thresholds.md",
-      "class": "text",
-      "sha256": "92c62aea0ac0574e5a5734f0cf080804187e64063f1999e62bcd414bf1d3bf04"
-    },
-    {
-      "path": "system/packs/mba/jobs-nl/sources.md",
-      "class": "text",
-      "sha256": "3057dc5b7a5945afd3d4f835be76dbd4d8a1268a6dccf64610c54a0e3e8bc36c"
-    },
-    {
-      "path": "system/packs/mba/jobs-nl/visa-and-sponsorship.md",
-      "class": "text",
-      "sha256": "20280966b3619fd601834e7b05b0f7eebe8be1a3c0dc2e644c6c546267d33a3b"
-    },
-    {
-      "path": "system/packs/mba/lenses/board.md",
-      "class": "text",
-      "sha256": "35ec34ca85bc29b49d154fb4a0c4a1a2dd67c75086f07a0341433637c118e482"
-    },
-    {
-      "path": "system/packs/mba/lenses/consolidation.md",
-      "class": "text",
-      "sha256": "d894e696f5c942f91f0d0cff314afc29c5e3b114846ae9cebad7c2b211cf5faa"
-    },
-    {
-      "path": "system/packs/mba/lenses/devils-advocate.md",
-      "class": "text",
-      "sha256": "931bcb8816bd32bef383f540ed3172b1b7ba21597975d9c3925a113d8998c0a2"
-    },
-    {
-      "path": "system/packs/mba/lenses/grader.md",
-      "class": "text",
-      "sha256": "da490a9e49e334c820426695d1facb0109c2f670cfb0d0b9074493dce05f6503"
-    },
-    {
-      "path": "system/packs/mba/lenses/premortem.md",
-      "class": "text",
-      "sha256": "306c9e0906897fe559564acfbde5e33ccce8b4d8c325eb4d111e405ccef5a708"
-    },
-    {
-      "path": "system/packs/mba/lenses/specialists.md",
-      "class": "text",
-      "sha256": "686d0c891a62b1354787ac75d47bf952c8c02841591f5c71ef6f40854d0b002f"
-    },
-    {
-      "path": "system/packs/mba/templates/assignment.md",
-      "class": "text",
-      "sha256": "88c332201fe1c28d5bbd14679bc25b257c1c5de74b1ec91c1d8697bd5e531438"
-    },
-    {
       "path": "system/packs/mba/templates/case.md",
       "class": "text",
-      "sha256": "63d5ba12a3a02f167010af9bd03a8770d8faa153354d87d1180647748607acca"
-    },
-    {
-      "path": "system/packs/mba/templates/critique.md",
-      "class": "text",
-      "sha256": "e0244250474853f2be46853640b7ce5439b86510433435c17475b6fdd965eaa4"
-    },
-    {
-      "path": "system/packs/mba/templates/decisions.md",
-      "class": "text",
-      "sha256": "70aa15a69ac5b03ccee3a744914492cbbc1860e15cb7e81d2a5ce914abe763a8"
-    },
-    {
-      "path": "system/packs/mba/templates/rubric.md",
-      "class": "text",
-      "sha256": "4f1afa275c84f9b651da446db5b77067760a57d87e2ae2e696c3509c465793a5"
+      "sha256": "261c59adbbbfc5cb1fef2cf3091eb09edd2bc63bdf4f2fcd412ed90b68cd7b20"
     },
     {
       "path": "system/packs/twin/drafting.md",
       "class": "text",
-      "sha256": "4a3d814a56020553f99c4043eb30c04f437779968c151a0c295fe17e7e05bd7f"
+      "sha256": "5cddb552c1d080781d7987bc4a313f7a126c1d165f1cdf9f5f6d059199df0eee"
     },
     {
       "path": "system/packs/twin/voice-import.md",
       "class": "text",
-      "sha256": "626f667c5a4a98a3ba39bd9f5e2131b7970656ac6097860813cdf184a4f8f5a5"
+      "sha256": "86aa9560ca7fa7cd6f1c6d34e31842fb12f13449212b65560238832f413d5c9a"
     },
     {
       "path": "system/quarto/NOTICE.md",
@@ -1486,17 +1511,42 @@
     {
       "path": "system/scripts/jobs/adzuna.mjs",
       "class": "code",
-      "sha256": "916de88cf9484e755767b709dd14d154209a08197a553dfe5b600270e3fbb48c"
+      "sha256": "481390334973d064f1192ca556ccd631e64034bea6d5eb9214c774b8a69c8b7a"
     },
     {
       "path": "system/scripts/jobs/ind-sponsors.mjs",
       "class": "code",
-      "sha256": "3c0eb955ed3be29ad8eef57dbc37bace451b5c90dbe98b891c0b2eae00d0d513"
+      "sha256": "d05244b6b5907d100a2866e009b9f52b361eed23ca3f7bc0835108462306f6b5"
     },
     {
       "path": "system/scripts/mcp-gen.mjs",
       "class": "code",
       "sha256": "a70c5a964fd9fd73f3ba67460c641d4116072ffb7d72f17e1c76274f51fb55af"
+    },
+    {
+      "path": "system/scripts/migrations/0001-remove-canvas.mjs",
+      "class": "code",
+      "sha256": "a8d5a08b18b8ffd034b25d5cc1f1b786eb176f18df5dfed2f53265614aeb182f"
+    },
+    {
+      "path": "system/scripts/migrations/0002-learner-and-packs.mjs",
+      "class": "code",
+      "sha256": "e3238271129e39c0392da3553a4126c8208ee32fe10552a782997186786ab112"
+    },
+    {
+      "path": "system/scripts/migrations/0003-programme-note.mjs",
+      "class": "code",
+      "sha256": "a6c53579f3aacddb47ea87eb3d0d9bee5a9d620ad6876e3a00753f30713207a6"
+    },
+    {
+      "path": "system/scripts/migrations/0004-old-pack-paths.mjs",
+      "class": "code",
+      "sha256": "c47032a2456205e224488cca452fbc5c4e9c5c09bca83171c86301269432ab7f"
+    },
+    {
+      "path": "system/scripts/migrations/0005-moved-file-edits.mjs",
+      "class": "code",
+      "sha256": "5fca55af88fd3c8a5409f209afa5181da5f8d39e0ab6234f24a6784e5a2fce34"
     },
     {
       "path": "system/scripts/obsidian-setup.mjs",
@@ -1506,12 +1556,12 @@
     {
       "path": "system/scripts/onboard-progress.mjs",
       "class": "code",
-      "sha256": "3f7988b05443491c5af033a1c24fab31c8e9ff38de5ddff144694a99525b40b2"
+      "sha256": "e2db88940fb58e1478a81acc3cbd6db165d03ea15c3ae534b4f3504f43762017"
     },
     {
       "path": "system/scripts/onboard-seed.mjs",
       "class": "code",
-      "sha256": "b5fed80fc919badca70e39c77b2b78cabdeb68f97a156b39ed795711e0547a55"
+      "sha256": "9e66674fe261e6488ff210b56fea6bdc8840f7505b5979fe3cebecdb79c3e13e"
     },
     {
       "path": "system/scripts/proposals.mjs",
@@ -1546,12 +1596,12 @@
     {
       "path": "system/scripts/update.mjs",
       "class": "code",
-      "sha256": "c5c68ae332685bf1e301f5d89c5d7485eef8e468beacf549e85419146d4501b7"
+      "sha256": "b9907804c3faeae00fe89b2ce34b974d6574236c0b8209dc3da7c59cdd6cd65b"
     },
     {
       "path": "system/scripts/validate.mjs",
       "class": "code",
-      "sha256": "c23c97868e6147e881fbe0a2d9f1fb340521d74da8977f948522874ab25f5a04"
+      "sha256": "bc59961e5ac5ff2397bbdbd557bf93e8cbe1ec9bb578c15095ea7e965c039f80"
     },
     {
       "path": "system/scripts/vault-key.mjs",
@@ -1581,7 +1631,7 @@
     {
       "path": "system/templates/config/brain.json",
       "class": "text",
-      "sha256": "f3caf155c81066f05967339db23fea992af7bfb7862eb08685d8c4cc23bb2ae8"
+      "sha256": "0a9dee73320772ef56fa80a6f1cd77a44444a7f109f5513d811d9c1ebb78b952"
     },
     {
       "path": "system/templates/config/limits.json",
@@ -1611,12 +1661,12 @@
     {
       "path": "system/templates/identity/USER.md",
       "class": "text",
-      "sha256": "7a66f6d5d1c115e36da84c5942c7932aa78ca150bf74f8ce09a2ead58b42ed1d"
+      "sha256": "1139e735692f23a78337d3c8930f23c528e241b6c696be26a05cf24da1b66b22"
     },
     {
       "path": "system/templates/identity/fact-sheet.md",
       "class": "text",
-      "sha256": "071a2099784e23ec680fb18a1a5694f8c6abedb3f990d52ef1c26bd282325685"
+      "sha256": "094b21edf3496d9c1bd3a8e9c5ecdc9c5f851e40578772731e931ff43432feae"
     },
     {
       "path": "system/templates/notes/application.md",
@@ -1626,7 +1676,7 @@
     {
       "path": "system/templates/notes/assignment.md",
       "class": "text",
-      "sha256": "cb65e8d06052a516154abde621ab7692336d2da4e3a685163c37382cb9e09650"
+      "sha256": "71e680df1e48509cc7fa6068cea5116448f40816b1006e633f174f7972811caa"
     },
     {
       "path": "system/templates/notes/card.md",
@@ -1636,7 +1686,7 @@
     {
       "path": "system/templates/notes/case.md",
       "class": "text",
-      "sha256": "823221e06977e1c9afbca3c855db3f2fd40065bca9bc83e07f34cabaf2cb14c1"
+      "sha256": "de6e0fabecc775fc0910e00d15868fa41e0ec5080b74a8bc490e6852bc0bad66"
     },
     {
       "path": "system/templates/notes/company.md",
@@ -1651,7 +1701,12 @@
     {
       "path": "system/templates/notes/course.md",
       "class": "text",
-      "sha256": "14e3d2852940682c5adecf2c55048e767c330fad2158a63424e83cb5102154c8"
+      "sha256": "4c64cad9ebfc38b405f0a71da16aa062db2c3f6ccb552a3fb6b2e4668e9c9e28"
+    },
+    {
+      "path": "system/templates/notes/critique.md",
+      "class": "text",
+      "sha256": "ea072fd846111d198f981102dc837fd96fb9768095c3eaad8a7a99ba9ae39300"
     },
     {
       "path": "system/templates/notes/daily.md",
@@ -1662,6 +1717,11 @@
       "path": "system/templates/notes/decision.md",
       "class": "text",
       "sha256": "229ee4b56588e8284f091283b46f0ee211dff497b174cee82ba5eb1ef3c3c23c"
+    },
+    {
+      "path": "system/templates/notes/decisions.md",
+      "class": "text",
+      "sha256": "4c2e2e7a09187676187cafd3d36be7dda8fcf5b064bc8dad524d84bbd104147f"
     },
     {
       "path": "system/templates/notes/draft.md",
@@ -1679,9 +1739,24 @@
       "sha256": "a5c954a1b9510a1cf83ac381ffb7d02863e3551d37bee18c9a00ecce09ebb1c0"
     },
     {
+      "path": "system/templates/notes/programme.md",
+      "class": "text",
+      "sha256": "3ffdb371371f7aa44b4b331f5b8f6e47af2b789a59e9d431ef2df864196bbe64"
+    },
+    {
+      "path": "system/templates/notes/project.md",
+      "class": "text",
+      "sha256": "c88d1eb6daa3cd80746847a65ff6991510c3127141ce334aff10b28b4c09f437"
+    },
+    {
       "path": "system/templates/notes/proposal.md",
       "class": "text",
       "sha256": "54bd71e468ba111b3e92895090481a74b62eb2079780858c266d466acf46c74a"
+    },
+    {
+      "path": "system/templates/notes/rubric.md",
+      "class": "text",
+      "sha256": "bcdf756f8d2b39ea7e88e42f64540f615caf791d1c84aebdb6fc50ec4d4d9796"
     },
     {
       "path": "system/templates/notes/source.md",
@@ -1721,7 +1796,7 @@
     {
       "path": "system/templates/vault/20_areas/README.md",
       "class": "text",
-      "sha256": "0d213abaaf621b0161f2b932b3f4389000a013e9b79e0bcbddde5e7c012caf9c"
+      "sha256": "f2a92a8bfa69501c74ff82f0b97d38698bf1f824be97213bc062535fbba03043"
     },
     {
       "path": "system/templates/vault/20_areas/career/applications/.gitkeep",
@@ -1737,6 +1812,11 @@
       "path": "system/templates/vault/20_areas/courses/.gitkeep",
       "class": "text",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "system/templates/vault/20_areas/programmes/README.md",
+      "class": "text",
+      "sha256": "41aa7618e3d03a249fc1ff406f7b8a4278020ee8d535da5f3b73d1a4261fafdf"
     },
     {
       "path": "system/templates/vault/30_wiki/companies/.gitkeep",
@@ -1841,7 +1921,7 @@
     {
       "path": "system/templates/vault/Home.md",
       "class": "text",
-      "sha256": "f4909f205ae9dee6c59b8d8a76913b6fb1db05e0c5de2e011d471b6608c293b6"
+      "sha256": "b544c454c7f115688957804e6046908ade457531eab727fa7cc9ba46b6a9c630"
     },
     {
       "path": "system/templates/vault/_views/Applications.base",
@@ -1881,12 +1961,12 @@
     {
       "path": "system/templates/voice/exemplars.md",
       "class": "text",
-      "sha256": "f5833af4abca53edc947e05954dea28a5c6701aa3a84473eea8884516ce8f8bf"
+      "sha256": "ecf0e51294f449b3c211f8336cb63c57b314ecc48a38eed811b6f2a9946dacea"
     },
     {
       "path": "system/templates/voice/profile.md",
       "class": "text",
-      "sha256": "c1a0ea35bb43e45bf8f1e3bb129a5495e74923535018ba17197482abd02364ac"
+      "sha256": "11d741a1eb78aadd7596a3afaaaa5713c3e68ad9bc491b133b5896741cc6e7fd"
     },
     {
       "path": "tests/fixtures/hooks/autonomy/approve.json",
@@ -1964,6 +2044,251 @@
       "sha256": "092ec1ce0e3927a141fb2fe0a3f0f42c24c5be6ee681eb2ff3c535ef9713e51a"
     },
     {
+      "path": "tests/fixtures/migrations/helpers.mjs",
+      "class": "code",
+      "sha256": "31286f471e5ad86122a0eb31a45d4f628be25518770c7c060970c81cf768c858"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/jobs-nl/dutch-language.md",
+      "class": "code",
+      "sha256": "db430577b163e1b466c524f3b1926cc2f6b1c173a29653ae5d8ecad29435ff66"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/jobs-nl/salary-thresholds.md",
+      "class": "code",
+      "sha256": "92c62aea0ac0574e5a5734f0cf080804187e64063f1999e62bcd414bf1d3bf04"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/jobs-nl/sources.md",
+      "class": "code",
+      "sha256": "3057dc5b7a5945afd3d4f835be76dbd4d8a1268a6dccf64610c54a0e3e8bc36c"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/jobs-nl/visa-and-sponsorship.md",
+      "class": "code",
+      "sha256": "20280966b3619fd601834e7b05b0f7eebe8be1a3c0dc2e644c6c546267d33a3b"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/lenses/board.md",
+      "class": "code",
+      "sha256": "35ec34ca85bc29b49d154fb4a0c4a1a2dd67c75086f07a0341433637c118e482"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/lenses/consolidation.md",
+      "class": "code",
+      "sha256": "d894e696f5c942f91f0d0cff314afc29c5e3b114846ae9cebad7c2b211cf5faa"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/lenses/devils-advocate.md",
+      "class": "code",
+      "sha256": "931bcb8816bd32bef383f540ed3172b1b7ba21597975d9c3925a113d8998c0a2"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/lenses/grader.md",
+      "class": "code",
+      "sha256": "da490a9e49e334c820426695d1facb0109c2f670cfb0d0b9074493dce05f6503"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/lenses/premortem.md",
+      "class": "code",
+      "sha256": "306c9e0906897fe559564acfbde5e33ccce8b4d8c325eb4d111e405ccef5a708"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/lenses/specialists.md",
+      "class": "code",
+      "sha256": "686d0c891a62b1354787ac75d47bf952c8c02841591f5c71ef6f40854d0b002f"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/templates/assignment.md",
+      "class": "code",
+      "sha256": "88c332201fe1c28d5bbd14679bc25b257c1c5de74b1ec91c1d8697bd5e531438"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/templates/critique.md",
+      "class": "code",
+      "sha256": "e0244250474853f2be46853640b7ce5439b86510433435c17475b6fdd965eaa4"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/templates/decisions.md",
+      "class": "code",
+      "sha256": "70aa15a69ac5b03ccee3a744914492cbbc1860e15cb7e81d2a5ce914abe763a8"
+    },
+    {
+      "path": "tests/fixtures/migrations/moved-files/system/packs/mba/templates/rubric.md",
+      "class": "code",
+      "sha256": "4f1afa275c84f9b651da446db5b77067760a57d87e2ae2e696c3509c465793a5"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/claude/agents/my-reviewer.md",
+      "class": "code",
+      "sha256": "f9c3b56d6463438e66278eefbb016971ee42514d990ce882872d3f5aa6e640e1"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/claude/skills/jobs/SKILL.md",
+      "class": "code",
+      "sha256": "c2eb2675a5576f9a6bdaa7ff2d5e8f8602a79d66ef7ab594110149dc50f934d7"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/claude/skills/my-canvas-sync/SKILL.md",
+      "class": "code",
+      "sha256": "265500211c36b6403c725c1f9127e50db62fcc8df0d44004641c86d369978bc5"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/claude/skills/my-jobs-scan/SKILL.md",
+      "class": "code",
+      "sha256": "4e1bcc3d74f96488779ad92a983e759c13c5605d7614bbe2900f2045d40fa5fc"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/config/brain.json",
+      "class": "code",
+      "sha256": "1445fe56c80fc915899049a9320f55b322236445b947eb35ab30e9fb9bacc0e8"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/config/mcp.selected.json",
+      "class": "code",
+      "sha256": "cd4c453732891076950ba641cee10b1fc4217941c3537d3f3e021b0dd4d3de10"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/state/built.json",
+      "class": "code",
+      "sha256": "0464897ec036309623306e6e4dabafadda54cf7bb56b2859f6769946175e27bf"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/system/.keep",
+      "class": "code",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/vault/00_inbox/Tasks.md",
+      "class": "code",
+      "sha256": "1a9d9aa396cad680daf18448102292deca6f61df22a113ce20d5e858e3d209ef"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/vault/20_areas/courses/ethics/course.md",
+      "class": "code",
+      "sha256": "600793ecb681e51f81bed85e88147661e570759b3b14a47edba029a88e01ad1e"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/vault/20_areas/courses/finance/course.md",
+      "class": "code",
+      "sha256": "d350c7c98f29715ae49aacfdbfa3ac199cdbe62a576caf584303bbead0a1ba3e"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/vault/20_areas/courses/notes-only/Session 1.md",
+      "class": "code",
+      "sha256": "8f4a7fcf8eb161fcb99e8a3ef529d0c581142cd56976861113de34822aa674fb"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/vault/20_areas/courses/strategy/course.md",
+      "class": "code",
+      "sha256": "a948cc646efd9ff089275247bf2c6788dedfc08416944b932252809d575ad92f"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.0/vault/40_sources/notes/Strategy Syllabus.md",
+      "class": "code",
+      "sha256": "faaf862844be31f7943c085a6398f4caebe4b7377016c4746c5e1b4f920781c4"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/claude/skills/jobs/SKILL.md",
+      "class": "code",
+      "sha256": "c2eb2675a5576f9a6bdaa7ff2d5e8f8602a79d66ef7ab594110149dc50f934d7"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/config/brain.json",
+      "class": "code",
+      "sha256": "8dde7772127c4c3359f69c86960b5e32bb858dd53a762dc9de9b70fe07606bc2"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/config/mcp.selected.json",
+      "class": "code",
+      "sha256": "a94e381dc072dae1cc8fd03f1628db6d29041a421f2df9170112b7d9934030cb"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/system/.keep",
+      "class": "code",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/vault/00_inbox/Tasks.md",
+      "class": "code",
+      "sha256": "1a9d9aa396cad680daf18448102292deca6f61df22a113ce20d5e858e3d209ef"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/vault/20_areas/courses/ethics/course.md",
+      "class": "code",
+      "sha256": "600793ecb681e51f81bed85e88147661e570759b3b14a47edba029a88e01ad1e"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/vault/20_areas/courses/finance/course.md",
+      "class": "code",
+      "sha256": "d350c7c98f29715ae49aacfdbfa3ac199cdbe62a576caf584303bbead0a1ba3e"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/vault/20_areas/courses/notes-only/Session 1.md",
+      "class": "code",
+      "sha256": "8f4a7fcf8eb161fcb99e8a3ef529d0c581142cd56976861113de34822aa674fb"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/vault/20_areas/courses/strategy/course.md",
+      "class": "code",
+      "sha256": "f95163f5fe7923da86acc302ff337474db6b0e94ed9d80edefcbf563ce77aeb3"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/vault/40_sources/notes/Strategy Syllabus.md",
+      "class": "code",
+      "sha256": "faaf862844be31f7943c085a6398f4caebe4b7377016c4746c5e1b4f920781c4"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-online/config/brain.json",
+      "class": "code",
+      "sha256": "f20f0e44ecc7ccbfea139f75abe4342ee7379f9f1dd2722a8ff726445c7cf27f"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-online/config/mcp.selected.json",
+      "class": "code",
+      "sha256": "a94e381dc072dae1cc8fd03f1628db6d29041a421f2df9170112b7d9934030cb"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-online/system/.keep",
+      "class": "code",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-online/vault/00_inbox/Tasks.md",
+      "class": "code",
+      "sha256": "1a9d9aa396cad680daf18448102292deca6f61df22a113ce20d5e858e3d209ef"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-online/vault/20_areas/courses/data-analytics/course.md",
+      "class": "code",
+      "sha256": "367c88ee3109558a6df95c7c2da026f20faf83903b020b5a43fb1f3df50c3b32"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-professional/config/brain.json",
+      "class": "code",
+      "sha256": "4f3829b60b42fe14c3c2cccbbb6346f594290508d1c915e518625f15c6fb99bd"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-professional/config/mcp.selected.json",
+      "class": "code",
+      "sha256": "a94e381dc072dae1cc8fd03f1628db6d29041a421f2df9170112b7d9934030cb"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-professional/system/.keep",
+      "class": "code",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-professional/vault/00_inbox/Tasks.md",
+      "class": "code",
+      "sha256": "1a9d9aa396cad680daf18448102292deca6f61df22a113ce20d5e858e3d209ef"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.2-professional/vault/10_projects/2026 pricing-review/project.md",
+      "class": "code",
+      "sha256": "6db4bebcd081caf2dba2ac6b25e2fc86d30b31f8356b8cdb14cac095cb934d9f"
+    },
+    {
       "path": "tests/fixtures/ops/helpers.mjs",
       "class": "code",
       "sha256": "ee816edea7d0f538848e53ed481c5ce0d8972860697b665d8ea4e8cfa1305632"
@@ -2026,7 +2351,7 @@
     {
       "path": "tests/fixtures/ops/release/new/system/scripts/migrations/001-example.mjs",
       "class": "code",
-      "sha256": "032a06122088fed52eca525a383a7844807d6e1437cf7ded8a36907e58e05590"
+      "sha256": "37632e83a2709930d3aa7913f4e68965f168f9c572be7311a6e7fefea3f2a1e0"
     },
     {
       "path": "tests/fixtures/ops/release/new/system/templates/notes/Concept.md",
@@ -2419,6 +2744,11 @@
       "sha256": "9d96541a4663a60ae499e1a43e4cdd4274bb63c62f4fe4ab8df2a0a0ab5e052e"
     },
     {
+      "path": "tests/scripts/course-procedure.test.mjs",
+      "class": "code",
+      "sha256": "b383d29b3578a9d7dd569a782c58a71fa2b7cee0bf90dfdd78573039f8960ca6"
+    },
+    {
       "path": "tests/scripts/doctor-bigfiles.test.mjs",
       "class": "code",
       "sha256": "256066f380344997485413fa641f0fbb4dd20a1abfe00a5dd0bc19b94826deb8"
@@ -2491,17 +2821,57 @@
     {
       "path": "tests/scripts/jobs-adzuna.test.mjs",
       "class": "code",
-      "sha256": "273df18757080f732046f07079c606fbf8040157a56106380fcee1e198b989d9"
+      "sha256": "5010eac41d876599c5bd114e2b7539240fcf8180aa7a6135aa70636a12914062"
     },
     {
       "path": "tests/scripts/jobs-ind-sponsors.test.mjs",
       "class": "code",
-      "sha256": "72d60516a585738f34ad03092ca2be4cb166368be3157eaba334f4e5e5549972"
+      "sha256": "e9673b997cd8e2bbb665a517ec4e643ef0ae4cc3d3fe46f99d187088622cfcb9"
     },
     {
       "path": "tests/scripts/mcp-gen.test.mjs",
       "class": "code",
       "sha256": "d830ce716ede160d070e53ff5086e8dfffb481a395f4b64e81ff7641cc794568"
+    },
+    {
+      "path": "tests/scripts/migrate-lib.test.mjs",
+      "class": "code",
+      "sha256": "d856937609301b4eae852dd45c63c6c2b2b2084457d2158b8920c11a77e8c4f6"
+    },
+    {
+      "path": "tests/scripts/migrations/0001-remove-canvas.test.mjs",
+      "class": "code",
+      "sha256": "430c30900ad58e4344656415ecae529f8473d1e58673741db50b202ecd52c344"
+    },
+    {
+      "path": "tests/scripts/migrations/0002-learner-and-packs.test.mjs",
+      "class": "code",
+      "sha256": "3cabb0f15f98ea411872a3fbaa2fb24518469f3587841eefab0c239c560659d0"
+    },
+    {
+      "path": "tests/scripts/migrations/0003-programme-note.test.mjs",
+      "class": "code",
+      "sha256": "883e6576c3d429e87920b6589a9fa5c6eb297ef6e3280abc74df1189763767b8"
+    },
+    {
+      "path": "tests/scripts/migrations/0004-old-pack-paths.test.mjs",
+      "class": "code",
+      "sha256": "49b7e830e54cfaf4b2e2b5a370dd5097885031e2eb2d73b92bf05428c77755a9"
+    },
+    {
+      "path": "tests/scripts/migrations/0005-moved-file-edits.test.mjs",
+      "class": "code",
+      "sha256": "88857152d2bf1527a5da63d572dfacd49921216b38d2339f7c31df358fde9e48"
+    },
+    {
+      "path": "tests/scripts/migrations/all-migrations.test.mjs",
+      "class": "code",
+      "sha256": "92dca713dd12b587f0630610599b42e765638cc3a52b1490076e9be2038ce8cc"
+    },
+    {
+      "path": "tests/scripts/migrations/update-flow.test.mjs",
+      "class": "code",
+      "sha256": "e18904e13f7cff9acaa0cf97ede6af53b031e78e4ad9a7c24ea2b95c47320411"
     },
     {
       "path": "tests/scripts/obsidian-setup.test.mjs",
@@ -2511,7 +2881,7 @@
     {
       "path": "tests/scripts/onboard-helpers.test.mjs",
       "class": "code",
-      "sha256": "44bb93249f259babea01dc51c6ad2afb25ec046b5929999e78ee980592608d50"
+      "sha256": "f25d2361a3fd43f9c83f808aba7d784e1f4b0d94d18285c678aed7a95ceb2a7b"
     },
     {
       "path": "tests/scripts/pre-push-hook.test.mjs",
@@ -2551,7 +2921,7 @@
     {
       "path": "tests/scripts/update.test.mjs",
       "class": "code",
-      "sha256": "d6fd7a93115d348cf1af2163768b4beb6c3267b5f5844619162078ef7e473b75"
+      "sha256": "cc0620efc82b05889db0f9c9029970b2e5fb1d73c517c5d1c0550ea0777b565e"
     },
     {
       "path": "tests/scripts/ux-flows.test.mjs",
@@ -2561,7 +2931,7 @@
     {
       "path": "tests/scripts/validate.test.mjs",
       "class": "code",
-      "sha256": "fe0c8fde6398e15c12262f9caaba47eca823d960db460e7d86df1f122e615c41"
+      "sha256": "78a6ed4963d0e2b4b319ef6918eb4301c3f2837a005defab04a9931d738fdc45"
     },
     {
       "path": "tests/scripts/vault-key.test.mjs",

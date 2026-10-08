@@ -1,6 +1,6 @@
 # M9 Import your existing files
 
-**Goal:** the user's existing course material (slides, readings, notes, cases) is copied into the vault with a source record, so `/ask` and `/study` can use it. This covers files already on the computer, including a zip downloaded from the school's course website (how to get one is in `system/packs/mba/course-setup.md`, "The download steps"; for a whole course, `/course new` asks for everything and sets the course up).
+**Goal:** the user's existing study or work files (slides, readings, notes, cases, reports) are copied into the vault with a source record, so `/ask` and `/study` can use them. This covers files already on the computer, including a zip downloaded from a course website (how to get one is in `.claude/skills/course/references/course-setup.md`, "The download steps"; for a whole course, `/course new` asks for everything and sets the course up).
 **Time:** about 10 minutes of the user's time; processing can continue in the background or later.
 **Optional.**
 **Model / effort:** copying and text extraction: `system/scripts/ingest.mjs` (script). Source notes and wiki updates: the `/ingest` skill (sonnet / medium; batches can use haiku / low for summaries).
@@ -10,19 +10,19 @@ Say at the start: "Let's bring in the files you already have. I keep an untouche
 ## Inference sources
 
 - `vault/40_sources/manifest.jsonl` (what is already imported; duplicates are skipped automatically).
-- `vault/20_areas/courses/` (to match folders to courses).
+- `vault/20_areas/courses/` (to match folders to courses; there may be none).
 - The folder paths the user gives.
 
 ## Questions (one at a time)
 
-1. **Where are the files?** "Which folders or zip files hold your course material? For example a 'MBA' folder in Documents, a synced OneDrive folder, or a zip you downloaded from your course website." Free text; accept several paths. Tip for finding a path: "In File Explorer (Windows) or Finder (Mac), right-click the folder and choose **Copy as path** (Windows) or hold **Option** and choose **Copy as Pathname** (Mac)."
+1. **Where are the files?** "Which folders or zip files hold your study or work files? For example a 'Study' folder in Documents, a synced OneDrive folder, or a zip you downloaded from a course website." Free text; accept several paths. Tip for finding a path: "In File Explorer (Windows) or Finder (Mac), right-click the folder and choose **Copy as path** (Windows) or hold **Option** and choose **Copy as Pathname** (Mac)."
 2. **Versions.** "If you have several versions of a file, like `Report_v1` and `Report_v3`, should I keep only the latest?" Only the latest (recommended) / Keep all versions.
-3. **Anything to leave out?** "Any subfolders that are private or not for school (photos, personal admin)?" Free text, or "no". Never import a folder the user calls private.
+3. **Anything to leave out?** "Any subfolders that are private or not for study or work (photos, personal admin)?" Free text, or "no". Never import a folder the user calls private.
 
 ## Steps
 
 1. **Preview first.** For each folder, count files and total size with a quick read-only listing (Glob). Say: "That folder has 312 files (1.8 GB). Big videos over 100 MB stay on this computer only and are not uploaded to your backup." For a zip you cannot count the files this way: say its size and "I unpack it in a temporary folder and delete that folder afterwards. The zip itself is not changed." A zip that is far too big (many thousands of files or several GB) is refused with a plain message; then ask the user to unzip it and give you one course folder at a time. Ask "Go ahead?" (Yes (recommended) / Choose fewer folders).
-2. **Match to courses.** If a folder or zip name matches a course in `vault/20_areas/courses/`, ask one question before you copy: "Is the 'Corporate Finance' folder for your Corporate Finance course?" (Yes (recommended): the files are linked to that course when the notes are written. / Another course / Not a course). Use the answer as `--course` in step 3. If the zip also holds the course's syllabus or assignment sheets, `/ingest` offers to pull the deadlines into the course note and the task list.
+2. **Match to courses.** Only if course notes exist in `vault/20_areas/courses/` (skip this step otherwise, and use no `--course`): if a folder or zip name matches a course there, ask one question before you copy: "Is the 'Corporate Finance' folder for your Corporate Finance course?" (Yes (recommended): the files are linked to that course when the notes are written. / Another course / Not a course). Use the answer as `--course` in step 3. If the zip also holds the course's syllabus or assignment sheets, `/ingest` offers to pull the deadlines into the course note and the task list.
 3. **Copy.** Folders and zips go in separate runs, one run per course when a folder or zip belongs to one:
    - Folders: `node system/scripts/ingest.mjs "<folder 1>" "<folder 2>" --latest-only --origin "Onboarding import" [--course "<Course name>"] --json`
    - A zip: `node system/scripts/ingest.mjs "<zip>" --latest-only [--course "<Course name>"] --json`. Leave `--origin` out: each file then keeps "<zip name>/<path inside>" as its origin. The zip itself is not stored.
@@ -34,7 +34,7 @@ Say at the start: "Let's bring in the files you already have. I keep an untouche
      `node system/scripts/tasks.mjs add "Turn imported files into notes. Say: /ingest pending (about 50 files each time)" --tag ingest --priority low`
      Say: "I'll turn them into notes when you ask. Type `/ingest pending`; each run takes a few minutes and does about 50 files."
    - Do not run `ingest.mjs` again on the same folders to "restart": it would only report duplicates.
-6. **Text pending.** If files show `text_status: "pending"` (no text extractor available), sort them by `ext`. PDFs, images and plain text: say "I can still read those when needed." Word, PowerPoint and Excel files (`.docx .pptx .xlsx` and similar): the Read tool does not open them, so say "I kept N Word, PowerPoint or Excel files, but I cannot read inside them yet. A PDF version of each works with nothing to install." The optional document reader helps only files copied after it is installed, because `ingest.mjs` skips a file it already holds, so do not offer it as the fix for these (`system/packs/mba/course-setup.md` section 2, step 1). Never write a summary of a file you cannot read.
+6. **Text pending.** If files show `text_status: "pending"` (no text extractor available), sort them by `ext`. PDFs, images and plain text: say "I can still read those when needed." Word, PowerPoint and Excel files (`.docx .pptx .xlsx` and similar): the Read tool does not open them, so say "I kept N Word, PowerPoint or Excel files, but I cannot read inside them yet. A PDF version of each works with nothing to install." The optional document reader helps only files copied after it is installed, because `ingest.mjs` skips a file it already holds, so do not offer it as the fix for these (`.claude/skills/course/references/course-setup.md` section 2, step 1). Never write a summary of a file you cannot read.
 
 ## Files written
 

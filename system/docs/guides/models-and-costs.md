@@ -21,7 +21,7 @@ Each job also has an **effort** level (low, medium, high): how long the model th
 
 ## Pro or Max
 
-- **Pro:** fine for most students. Alterbrain runs up to 3 helpers at the same time and suggests lighter options (for example 3 critique lenses instead of 5).
+- **Pro:** fine for most people. Alterbrain runs up to 3 helpers at the same time and suggests lighter options (for example 3 critique lenses instead of 5).
 - **Max:** more usage, and up to 8 helpers at once. Useful in heavy assignment weeks.
 
 Tell Alterbrain your plan: `/reconfigure` → plan.
