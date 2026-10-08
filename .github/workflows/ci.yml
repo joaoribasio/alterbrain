@@ -1,8 +1,24 @@
 name: CI
 
+# These tests cover the framework code, which learners never edit. Every learner's notes repository is a copy of this one, and
+# each automatic save there is a push, so the checks run only in the framework's own repository (the `if` on the job), and a push
+# that changes only notes, settings or progress (vault/, config/, state/) starts no run at all.
 on:
   push:
+    paths-ignore:
+      - 'vault/**'
+      - 'config/**'
+      - 'state/**'
   pull_request:
+    paths-ignore:
+      - 'vault/**'
+      - 'config/**'
+      - 'state/**'
+
+# A newer push to the same branch replaces a run that is still going, so quick pushes do not queue duplicate runs.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 # Nothing here needs to write to the repo: read-only is enough.
 permissions:
@@ -11,6 +27,7 @@ permissions:
 jobs:
   check:
     name: Check on ${{ matrix.os }}
+    if: github.repository == 'joaoribasio/alterbrain'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

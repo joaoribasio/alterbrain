@@ -3,6 +3,12 @@
 All notable changes to Alterbrain are listed here. Newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-10-08
+
+### Fixed
+- The automatic checks (CI) no longer run in your notes repository. Your copy includes the framework's check workflow, and every automatic save is a push, so each save started a long Windows and macOS test run that only checks framework code you never edit, using up the free GitHub Actions minutes of a private repository. The workflow now runs its checks only in the framework's own repository; a push that changes only `vault/`, `config/` or `state/` starts no run at all; and a newer push cancels a run still going on the same branch. The update replaces the workflow file for you.
+- Three upload-check tests failed on GitHub's Windows machines (red CI since 0.2.0, also in notes repositories that run it). They chose Git for Windows' `bin\sh.exe`, a launcher that puts Git's own folders back on the PATH, so the real `git` and `git-lfs` hid the restricted PATH the tests build. The tests now use Git's plain shell (`usr\bin\sh.exe`), never the launcher, check that the restricted PATH really holds before testing (and skip with the reason if it does not, so they test the hook rather than the computer), and log which shell ran. The upload check itself was not affected.
+
 ## [0.2.0] - 2026-10-08
 
 A major release: Alterbrain now works for anyone who learns or works, not only MBA students, and gains a template engine, critique for every deliverable, a contact book, routines and upgrades that ask first. From this version the licence is PolyForm Shield (see Changed). Update with `/update-alterbrain`; it walks you through the upgrade questions.

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "version": "0.2.0",
-  "tag": "v0.2.0",
+  "version": "0.2.1",
+  "tag": "v0.2.1",
   "files": [
     {
       "path": ".claude/agents/ghostwriter.md",
@@ -691,7 +691,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "code",
-      "sha256": "7548625581830e8398fe0fbbc21fe58df2359b8c6d1d4acfc5c46164094b7a02"
+      "sha256": "696d84d2f777cabdb130134c062955f7e56ed2752b69629e333b25cc566f5f35"
     },
     {
       "path": ".gitignore",
@@ -701,7 +701,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "b1924bbf00a768113a185615e18ec827e58977705fba582c17610c106b9be23b"
+      "sha256": "9356d04a46165e370d1604e32aecb30dc2df5c45f1ba0e8f9e4644764bf129fc"
     },
     {
       "path": "CLAUDE.md",
@@ -1691,7 +1691,7 @@
     {
       "path": "system/release.json",
       "class": "code",
-      "sha256": "8f1d38d76be89eab6235a8cbba276f5b78f1a3afe01c95e07449d1ae5d43c675"
+      "sha256": "338e5e45e8cbbb4b725e6cee6a7dcf6eb04a6396e41e8f0d4d5f1c0d535c7a39"
     },
     {
       "path": "system/scripts/built.mjs",
@@ -3234,6 +3234,11 @@
       "sha256": "9d96541a4663a60ae499e1a43e4cdd4274bb63c62f4fe4ab8df2a0a0ab5e052e"
     },
     {
+      "path": "tests/scripts/ci-workflow.test.mjs",
+      "class": "code",
+      "sha256": "090c06156c7be501f357a6889b063dc60b256cf02945bb28796ebb578ab9adc9"
+    },
+    {
       "path": "tests/scripts/course-procedure.test.mjs",
       "class": "code",
       "sha256": "09c49d41c398ac809630811c3203bfd148a93e480c9db46cb36bfe82dbdd3a15"
@@ -3406,7 +3411,7 @@
     {
       "path": "tests/scripts/pre-push-hook.test.mjs",
       "class": "code",
-      "sha256": "edf55e9a88349a5f91cbc682ed7a8a7b355ccf8036247014c21575b6221ef2b5"
+      "sha256": "6d4feb03c4964cfcd6ee3c4495164b6c57b484c44267485240b59dd6ff5f19e9"
     },
     {
       "path": "tests/scripts/proposals.test.mjs",

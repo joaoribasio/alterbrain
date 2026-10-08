@@ -776,24 +776,78 @@ test('Git LFS step is given exactly the lines git gave the hook, and its failure
 // itself under a shell whose PATH holds only wrappers for git, cat and grep, so git-lfs cannot be found. (A real push cannot test
 // this on Windows: Git for Windows puts its own folder, which holds git-lfs, on the PATH of every hook.)
 
+/** The folders Git for Windows was installed in (from "where git"), for finding its own shell tools. Empty elsewhere. */
+function gitRoots() {
+  if (process.platform !== 'win32') return [];
+  const where = spawnSync('where', ['git'], { encoding: 'utf8', windowsHide: true });
+  const roots = [];
+  for (const line of (where.stdout || '').split(/\r?\n/).filter(Boolean)) {
+    let up = dirname(line);
+    for (let i = 0; up && i < 4; i++, up = dirname(up)) if (!roots.includes(up)) roots.push(up);
+  }
+  return roots;
+}
+
+/**
+ * Git for Windows ships two sh programs. <Git>\usr\bin\sh.exe is the plain shell. <Git>\bin\sh.exe is a launcher that puts
+ * /mingw64/bin and /usr/bin back in front of the PATH, so the real git and git-lfs would shadow the restricted PATH these tests
+ * build (the windows-latest runner lists <Git>\bin before <Git>\usr\bin on its PATH). So on Windows: the plain shell next to Git
+ * first, and never a launcher (an sh.exe whose folder's parent also holds usr\bin\sh.exe).
+ */
+function findShell() {
+  if (process.platform !== 'win32') return findProgram('sh');
+  for (const root of gitRoots()) {
+    const plain = join(root, 'usr', 'bin', 'sh.exe');
+    if (existsSync(plain)) return plain;
+  }
+  const dirs = (process.env[PATH_KEY] || '').split(';').filter(Boolean);
+  const isLauncher = (dir) => existsSync(join(dirname(dir), 'usr', 'bin', 'sh.exe'));
+  return dirs.filter((d) => !isLauncher(d)).map((d) => join(d, 'sh.exe')).find((f) => existsSync(f)) || null;
+}
+
 /** A program by name: the PATH first, then next to Git (Git for Windows keeps its shell tools under usr/bin). null when not found. */
 function findProgram(name) {
   const sep = process.platform === 'win32' ? ';' : ':';
   const exe = process.platform === 'win32' ? `${name}.exe` : name;
   const dirs = (process.env[PATH_KEY] || '').split(sep).filter(Boolean);
-  const where = spawnSync(process.platform === 'win32' ? 'where' : 'which', ['git'], { encoding: 'utf8', windowsHide: true });
-  let up = dirname((where.stdout || '').split(/\r?\n/)[0] || '');
-  for (let i = 0; up && i < 4; i++, up = dirname(up)) dirs.push(join(up, 'usr', 'bin'), join(up, 'bin'));
+  for (const root of gitRoots()) dirs.push(join(root, 'usr', 'bin'), join(root, 'bin'));
+  if (process.platform !== 'win32') {
+    const where = spawnSync('which', ['git'], { encoding: 'utf8', windowsHide: true });
+    let up = dirname((where.stdout || '').split(/\r?\n/)[0] || '');
+    for (let i = 0; up && i < 4; i++, up = dirname(up)) dirs.push(join(up, 'usr', 'bin'), join(up, 'bin'));
+  }
   return dirs.map((d) => join(d, exe)).find((f) => existsSync(f)) || null;
 }
 
 /**
- * Set up the restricted PATH. Returns { sh, bin } or null when this computer lacks a shell or a tool to wrap.
+ * Ask the chosen shell, with only `bin` on its PATH, where it finds git and git-lfs. The tests check the hook, not the computer:
+ * if the shell still sees a real git or git-lfs from somewhere else, the restricted PATH did not hold, so the test is skipped with
+ * the reason instead of failing.
+ */
+function pathProblem(sh, bin, { lfsExpected }) {
+  const res = spawnSync(sh, ['-c', 'echo "git=$(command -v git)"; echo "lfs=$(command -v git-lfs)"'], {
+    encoding: 'utf8',
+    env: { ...process.env, [PATH_KEY]: bin },
+    windowsHide: true,
+  });
+  const out = (res.stdout || '').replace(/\r/g, '');
+  const gitAt = (out.match(/^git=(.*)$/m) || [])[1] || '';
+  const lfsAt = (out.match(/^lfs=(.*)$/m) || [])[1] || '';
+  const inBin = (p) => /\/restricted-path\/[^/]+$/.test(p.replace(/\\/g, '/'));
+  if (res.status !== 0) return `the shell ${sh} could not be asked where it finds git (exit ${res.status})`;
+  if (!inBin(gitAt)) return `the shell ${sh} finds git at "${gitAt}", not the wrapper, so its PATH is not the restricted one`;
+  if (lfsExpected ? !inBin(lfsAt) : lfsAt) return `the shell ${sh} finds git-lfs at "${lfsAt || 'nowhere'}", so the restricted PATH did not hold`;
+  return null;
+}
+
+/**
+ * Set up the restricted PATH. Returns { sh, bin }, { skip: reason } when the restricted PATH does not hold under this computer's
+ * shell, or null when this computer lacks a shell or a tool to wrap.
  * With `lfsLog`, a program called git-lfs exists on that PATH and "git lfs ..." is answered by the wrapper (it writes what it was
  * given to the log), so the test does not depend on how a particular Git finds its LFS program.
  */
 function restrictedShell(parent, { lfsLog = null } = {}) {
-  const sh = findProgram('sh');
+  const sh = findShell();
   const tools = Object.fromEntries(['git', 'cat', 'grep'].map((n) => [n, findProgram(n)]));
   if (!sh || Object.values(tools).some((f) => !f)) return null;
   const bin = join(parent, 'restricted-path');
@@ -812,7 +866,23 @@ function restrictedShell(parent, { lfsLog = null } = {}) {
     writeFileSync(join(bin, 'git-lfs'), '#!/bin/sh\nexit 0\n');
     chmodSync(join(bin, 'git-lfs'), 0o755);
   }
-  return { sh, bin };
+  const problem = pathProblem(sh, bin, { lfsExpected: Boolean(lfsLog) });
+  return problem ? { skip: problem } : { sh, bin };
+}
+
+/** The shell for a test, or null after skipping it with the reason. Logs which shell ran, so a failure explains itself. */
+function shellFor(t, parent, opts) {
+  const shell = restrictedShell(parent, opts);
+  if (!shell) {
+    t.skip('this computer has no shell or tool to build a PATH without git-lfs');
+    return null;
+  }
+  if (shell.skip) {
+    t.skip(shell.skip);
+    return null;
+  }
+  t.diagnostic(`shell: ${shell.sh}`);
+  return shell;
 }
 
 /** Run the hook file for a push of main, as git would, with only `bin` on the PATH. */
@@ -835,11 +905,8 @@ const LFS_RULE = '"vault/30_wiki/big scan.pdf" filter=lfs diff=lfs merge=lfs -te
 test('Git LFS cannot be found: a folder that keeps big files in LFS is not uploaded, as with the standard LFS hook', (t) => {
   const p = makeVaultProject({ remote: true });
   try {
-    const shell = restrictedShell(p.parent);
-    if (!shell) {
-      t.skip('this computer has no shell or tool to build a PATH without git-lfs');
-      return;
-    }
+    const shell = shellFor(t, p.parent);
+    if (!shell) return;
     // The folder as Alterbrain leaves it after routing a big file: a rule in vault/.gitattributes (not yet saved)
     write(p.root, 'vault/.gitattributes', `# Big files (Git LFS). Alterbrain adds one line here for each file that is too big.\n${LFS_RULE}`);
     const refused = runHookWithout(p, shell);
@@ -865,11 +932,8 @@ test('Git LFS cannot be found: a folder that keeps big files in LFS is not uploa
 test('Git LFS cannot be found: LFS set up in this folder\'s own settings is enough to refuse', (t) => {
   const p = makeVaultProject({ remote: true });
   try {
-    const shell = restrictedShell(p.parent);
-    if (!shell) {
-      t.skip('this computer has no shell or tool to build a PATH without git-lfs');
-      return;
-    }
+    const shell = shellFor(t, p.parent);
+    if (!shell) return;
     assert.equal(runHookWithout(p, shell).code, 0, 'nothing says the folder uses LFS');
     git(p.root, ['config', '--local', 'filter.lfs.clean', 'git-lfs clean -- %f']);
     assert.equal(runHookWithout(p, shell).code, 2);
@@ -881,11 +945,8 @@ test('Git LFS cannot be found: LFS set up in this folder\'s own settings is enou
 test('Git LFS cannot be found: a folder that does not use LFS uploads as before, even with LFS mentioned in a comment', (t) => {
   const p = makeVaultProject({ remote: true });
   try {
-    const shell = restrictedShell(p.parent);
-    if (!shell) {
-      t.skip('this computer has no shell or tool to build a PATH without git-lfs');
-      return;
-    }
+    const shell = shellFor(t, p.parent);
+    if (!shell) return;
     const plainFolder = runHookWithout(p, shell);
     assert.equal(plainFolder.code, 0, plainFolder.stderr);
     assert.equal(plainFolder.stderr, '');
@@ -902,11 +963,8 @@ test('Git LFS can be found: the upload step runs with the lines git gave the hoo
   const p = makeVaultProject({ remote: true });
   try {
     const log = join(p.parent, 'lfs-stub.log');
-    const shell = restrictedShell(p.parent, { lfsLog: log });
-    if (!shell) {
-      t.skip('this computer has no shell or tool to build a PATH for the stand-in');
-      return;
-    }
+    const shell = shellFor(t, p.parent, { lfsLog: log });
+    if (!shell) return;
     write(p.root, 'vault/.gitattributes', LFS_RULE);
     const res = runHookWithout(p, shell);
     assert.equal(res.code, 0, res.stderr);
