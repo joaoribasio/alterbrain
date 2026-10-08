@@ -92,3 +92,7 @@ Front matter: `title`, `subtitle`, `author`, `date`. Options under `format: alte
 ## Brand
 
 `vault/80_me/brand/_brand.yml` is used when it exists, else `system/quarto/brand/_brand.yml`. It needs `color.primary`. Only fonts installed on the computer work in PDFs (`node system/quarto/tools/fonts.mjs` checks).
+
+## Templates (template.yml)
+
+Every built-in template folder has a `template.yml`, and so does each template the user makes (`vault/80_me/templates/<slug>/`, see `/template`). `render.mjs --template <folder>` reads it and adds only what the document does not set itself: the brand file, the reference document (Word and PowerPoint output), the citation style and the Quarto extension. Which template applies is decided by `node system/scripts/template.mjs resolve --kind <kind> --for <source> --json`. Fields: `.claude/skills/template/references/new-template.md`.

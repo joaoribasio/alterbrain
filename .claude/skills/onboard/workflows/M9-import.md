@@ -3,7 +3,7 @@
 **Goal:** the user's existing study or work files (slides, readings, notes, cases, reports) are copied into the vault with a source record, so `/ask` and `/study` can use them. This covers files already on the computer, including a zip downloaded from a course website (how to get one is in `.claude/skills/course/references/course-setup.md`, "The download steps"; for a whole course, `/course new` asks for everything and sets the course up).
 **Time:** about 10 minutes of the user's time; processing can continue in the background or later.
 **Optional.**
-**Model / effort:** copying and text extraction: `system/scripts/ingest.mjs` (script). Source notes and wiki updates: the `/ingest` skill (sonnet / medium; batches can use haiku / low for summaries).
+**Model / effort:** copying and text extraction: `system/scripts/ingest.mjs` (script). Source notes and wiki updates: the `/ingest` skill, which follows its own rules for helpers: `helper-triage` classifies, `helper-draft` writes source notes only, and the main session writes the wiki pages, `index.md` and `log.md`.
 
 Say at the start: "Let's bring in the files you already have. I keep an untouched copy of each one, so every answer can point back to the original."
 
@@ -35,6 +35,13 @@ Say at the start: "Let's bring in the files you already have. I keep an untouche
      Say: "I'll turn them into notes when you ask. Type `/ingest pending`; each run takes a few minutes and does about 50 files."
    - Do not run `ingest.mjs` again on the same folders to "restart": it would only report duplicates.
 6. **Text pending.** If files show `text_status: "pending"` (no text extractor available), sort them by `ext`. PDFs, images and plain text: say "I can still read those when needed." Word, PowerPoint and Excel files (`.docx .pptx .xlsx` and similar): the Read tool does not open them, so say "I kept N Word, PowerPoint or Excel files, but I cannot read inside them yet. A PDF version of each works with nothing to install." The optional document reader helps only files copied after it is installed, because `ingest.mjs` skips a file it already holds, so do not offer it as the fix for these (`.claude/skills/course/references/course-setup.md` section 2, step 1). Never write a summary of a file you cannot read.
+
+## Import safety (read `.claude/skills/ingest/SKILL.md` for the full rules)
+
+- A file that says it must not be used with AI tools is flagged once, and no note is written for it until the user decides (the script reports it as `ai_notice`).
+- Client or company material: remind the user once that it is better kept in a private backup, and that encrypting private notes is an option (`/reconfigure`, `system/docs/guides/encrypting-private-notes.md`).
+- A roster or class list becomes business facts only (name, role, organisation), never contact details or personal data.
+- Bulk import: helpers write source notes only, each on its own files; the main session writes the wiki pages and spot-checks one helper note against its text before carrying on.
 
 ## Files written
 

@@ -36,3 +36,7 @@ A deck has no page limit by default. If the user gives a number of slides, count
 
 - A CV: two pages at most for the designed layout. If it spills by a few lines, shorten the oldest role first.
 - A letter: one page. About 300 words at 10.5 pt. Shorten the text. Do not shrink the font.
+
+## Limits that come from a template
+
+A template can carry its own `page_limit`, `font_size_pt` and `max_upload_mb` (the `resolve` result shows them). The assignment's `limits` win for pages; the template's font size is a floor you never go below. The upload limit is checked at the delivery gate, not here.

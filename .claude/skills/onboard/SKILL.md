@@ -96,8 +96,8 @@ It is a ritual, not a gate. Never block another skill because onboarding is unfi
 ### Model routing inside onboarding
 
 - Interview, summaries, file writing: this skill (sonnet / medium).
-- Reading a CV, LinkedIn PDF or syllabus to pull out fields: sonnet / medium in the main thread, or a haiku / low subagent for a long list of files.
-- Voice profile writing (M5): **opus / high** via a subagent (see `workflows/M5-voice.md`).
+- Reading a CV, LinkedIn PDF or syllabus to pull out fields: sonnet / medium in the main thread, or the `helper-triage` agent (haiku / low) for a long list of files.
+- Voice profile writing (M5): the `helper-judgement` agent (opus / high; see `workflows/M5-voice.md`). If it cannot run, this skill writes the profile itself and says so in one line.
 - Mechanical work (copying templates, stats, config generation): scripts only.
 
 ## Outputs

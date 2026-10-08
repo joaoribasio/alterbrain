@@ -60,7 +60,7 @@ Build each chosen add-on through the normal self-build flow (`/build`, SPEC §11
   `node system/scripts/tasks.mjs add "Reply to <Name>: <subject>" --tag email-triage --due <date> --priority medium`
   Each task suggests `/reply <subject>`.
 - Skip threads that already have an outbox draft or an open `#ab/reply` task.
-- If scheduled: register the routine with the scheduling tool the user chose; failures become a `#ab/email-triage` task.
+- If scheduled: register the job with the scheduling tool the user chose; failures become a `#ab/email-triage` task. Write the routine note `vault/90_routines/Email triage.md` (`runs: "/my-email-triage"`, `may: "draft only"`) as `/build` describes under "Routine notes": the body is the exact instruction the host runs and ends with the `record` step, and the note stays `paused` until the schedule exists on the host (and, for a cloud or server host, until the run can push its note change). Every scheduled job is a routine note; point the user to it ("check my routines").
 
 **2. `my-meeting-brief`** (sonnet / medium)
 - Read tomorrow's events from the Google Calendar connector (read tools only).
@@ -101,6 +101,6 @@ Use a test thread you send to yourself from another address (synthetic content, 
 ## How to undo
 
 - Run `/remove-skill my-<slug>` for each add-on. This removes the skill folder and its line in `state/built.json`.
-- Turn off any scheduled triage in the tool where it was scheduled.
+- If triage was scheduled: pause the routine note `Email triage` in `vault/90_routines/` (set `status: "paused"`, recommended) or delete it, and delete the schedule in the tool where it was scheduled (the Claude app's Scheduled tasks or Routines page, or your server's scheduler), or it keeps running.
 - Optional: delete `vault/80_me/voice/<lang>/edits-log.md` and `state/local/triage-last.json`. Daily-note sections and ticked tasks can stay; they are just notes.
 - Disconnect Google Calendar in claude.ai → Settings → Connectors if you no longer need it.

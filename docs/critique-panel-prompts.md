@@ -1,6 +1,6 @@
 # Critique panel prompts (portable)
 
-These are the six reviewer prompts used by Alterbrain's `/assignment critique`, rewritten so you can use them in any chat (Claude.ai, another assistant, a study group).
+These are the six core reviewer prompts used by Alterbrain's `/critique` and `/assignment critique` (Alterbrain has more lenses for other kinds of file, such as structure, signature, production and model audit; they live in the same folder), rewritten so you can use them in any chat (Claude.ai, another assistant, a study group).
 
 ## How to use them
 
@@ -14,7 +14,7 @@ These are the six reviewer prompts used by Alterbrain's `/assignment critique`, 
 3. **Fill in the placeholders** in each prompt: `{CASE_DATE}` (write `none` if the work is not a case), `{ROUND}`, and for the board and specialists `{SEATS}`.
 4. **Choose a panel:**
    - **Full panel:** all five reviewers. Use it for the first and final rounds.
-   - **Lite panel:** devil's advocate, premortem and grader. Use it for middle rounds or when usage is limited.
+   - **Quick panel:** devil's advocate, premortem and grader. Use it for middle rounds or when usage is limited.
 5. **Consolidate.** Open a new chat with the consolidation prompt, the same materials and all reviewer outputs from the round.
 6. **Decide.** Accept or reject each proposed decision, and add the rejected ones to your decisions log so later rounds don't raise them again.
 7. **When to stop:** when the grader's estimate stops rising, a plateau, ideally at 9 out of 10 or above, and your thesis fits in one sentence.
@@ -225,4 +225,4 @@ Word cap: 3,000 (tables count). Group low-stakes items in one line. Plain Englis
 
 ---
 
-Adapted from Alterbrain's lens briefs (`.claude/skills/assignment/references/lenses/`), MIT licence.
+Adapted from Alterbrain's lens briefs (`.claude/skills/critique/references/lenses/`), MIT licence.

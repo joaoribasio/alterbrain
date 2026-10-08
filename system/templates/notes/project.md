@@ -4,6 +4,8 @@ created: "{{date}}"
 status: "active"
 due: ""
 area: ""
+templates: []
+tone: ""
 ---
 # {{title}}
 
@@ -11,6 +13,7 @@ area: ""
      status is active, done or dropped.
      due is "YYYY-MM-DD" and may stay empty. A date you have confirmed also goes on your task list.
      area is the focus area from vault/80_me/USER.md (Current focus) that this project belongs to, or empty.
+     templates: slugs of document templates for this project's deliverables. tone: academic, professional or conversational; empty means the recommended default.
      Only write what the user told you or a document says. Remove this comment when you fill the note. -->
 
 ## Goal

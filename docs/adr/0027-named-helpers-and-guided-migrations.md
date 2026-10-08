@@ -1,0 +1,36 @@
+# 0027. Named routing helpers, guided migrations and the weekly update check
+
+Status: accepted (2026-10-08, product owner)
+
+## Context
+Three things in 0.2.0 needed a decision that ADR 0003 (model routing), ADR 0023 (learner-neutral core) and ADR 0024 (migrations) left open.
+
+**Model routing in prose.** Skills said "spawn a subagent on haiku with low effort" in a sentence. [Unverified] A per-call effort override is not available to the caller when a subagent is spawned, so a sentence like that sets the model at best, and nothing checked it. The five-class table was a rule that each skill had to remember.
+
+**A migration that needs judgement.** ADR 0024 made every shape change ship a script or a documented fallback. Migration 0003 turned the `school` block in `config/brain.json` into a programme note and linked courses to it. A script does that without asking. The programme note is the user's own content, and which courses belong to it, what to call it and whether the user wants one at all are judgement calls. The owner's words for the better design: the client should evaluate and do it if it is better.
+
+**Updates that nobody knows about.** `/update-alterbrain` works when the user runs it, and the user only runs it if they know a release exists.
+
+## Decision
+- **Four named helpers, one per routing class.** `.claude/agents/helper-triage.md` (haiku, low; Read, Grep, Glob), `helper-draft.md` (sonnet, medium; Read, Grep, Glob, Write, Edit), `helper-review.md` (sonnet, high; read-only) and `helper-judgement.md` (opus, high; Read, Grep, Glob, Write). Each class in `routing.json` names its `helper`. Every skill that handed work to an ad-hoc subagent with a model or effort in prose now names the helper of its class. `validate.mjs` fails on framework text that asks for a generic subagent with a model or effort and names no helper (a warning for a user's `my-*` skill), and checks that each class's helper exists with the same model and effort. If `helper-judgement` cannot run (plan limits), the main session does the pass and says so. Delegated work is never reported done on a helper's word (ADR 0026).
+- **`lens` is deprecated.** It stays, unchanged, until 0.4.0 at the earliest, so a user's `my-*` skill that names it keeps working (the same expand-then-contract rule as ADR 0024).
+- **Guided migrations.** Besides mechanical scripts (`NNNN-*.mjs`), a release can ship `NNNN-*.md` in the same folder and number space: instructions that the user's own Claude follows after the update. The rule: scripts are only for mechanical must-do fixes (a removed id, a renamed key, a retired path); anything that needs judgement about the user's own content is guided. A guided file has a fixed format (front matter and six sections: who it is for, evaluate, propose, apply, if skipped, never), is code class and listed in the manifest with its checksum, and is never run by a script. Claude evaluates the user's vault read-only, proposes what makes sense, applies only what the user approves, and the user can skip it and run it again later.
+- **How the update handles them.** `update.mjs plan` lists them under "Upgrades I will ask you about after the update"; `finish` lists the pending ones (manifest-listed, checksum matching, not recorded, not baseline), adds one task, and never runs them. `update.mjs guided list|savepoint|done|skip` records the answer in `state/migrations.json` as `{ id, at, tag, kind: "guided", outcome: "done"|"skipped" }`. A guided upgrade needs a restore point as scripts do: `apply-safe` and `finish` refuse without one when any is pending, and the skill confirms or makes one before its first write. `/update-alterbrain` walks the user through them one at a time. `validate.mjs` checks the format and that the CHANGELOG names each one.
+- **0003 is converted** from a script to a guided migration (`0003-programme-note.md`), as the owner asked; it was not released as a script, so no installed copy has run the old one. 0001, 0002, 0004 and 0005 stay scripts: each is a mechanical fix or a report. **0006-brand-to-template** is the second guided migration (ADR 0025).
+- **A weekly update check.** At session start, if the last check in `state/local/update-check.json` is seven or more days old, `system/lib/updatecheck.mjs` asks GitHub for the latest public release tag of the repo named in `system/release.json` (unauthenticated, 1.5 second timeout) and compares it with the installed tag. If newer, the digest gets one line: "Alterbrain vX is available. Say 'update Alterbrain' when you're not mid-assignment." It never applies anything. Offline or any error: silent, nothing is written, and the next session tries again. It is skipped in developer mode and on a compact. `ALTERBRAIN_UPDATE_CHECK=off` turns it off. `/update-alterbrain` stays manual, any time.
+- **The catalogue pin (A4).** The yahoo-finance entry keeps its exact commit pin; the PyPI package of the same name was found but could not be tied to the same author, so the registry version was not adopted. The question is open for the owner (SPEC §16, §17).
+
+## Consequences
+- The routing table is now enforced by agent files and a lint, not by each skill's wording. A helper's tools are least-privilege: only `helper-draft` and `helper-judgement` can write, and `helper-review` and `helper-triage` cannot.
+- Updating from 0.1.x to 0.2.0 now has a second phase: after the scripts run, the user answers one or two questions (programme note, brand template). A user who says "not now" is asked again; "skip it" is final until they ask. The first update from 0.1.x is planned by the old `update.mjs`, which knows nothing about guided upgrades, so the user sees them through the CHANGELOG `### Upgrades` lines and the new `finish`.
+- A guided file is prose that a model follows, so its behaviour is not unit-tested the way a script is. The format is linted, the commands and the record are tested (`guided.test.mjs`), and each file's **Never** section is its guard. [Unverified] The walk-through was not run end to end in a live session.
+- One more network call per week at session start, with no data sent and no credentials. It can be turned off.
+- ADR 0023 and ADR 0024 each carry a one-line amendment pointing here (0023 for the helper names in the assignment studio's review step, 0024 for the script-or-guided rule and the 0003 change).
+
+## Alternatives considered
+- **Keep the routing prose and add a reminder.** Costs nothing and has never been enforced. Rejected.
+- **One agent whose model the caller sets per call.** [Unverified] Not available to the caller. Rejected; four small agent files are the form that works.
+- **Run 0003 as a script that asks questions.** Scripts run in a child process with no user to ask, and putting a conversation in one is brittle. Rejected.
+- **Do nothing for 0003: a fallback only.** Possible (the `school` block is still read), and the user would never get a programme note unless they knew to ask. Rejected as the only route; the fallback stays for anyone who skips it.
+- **Update automatically.** Convenient and wrong: the update touches the user's files and can interrupt an assignment. Rejected; only the notice is automatic.
+- **Check on every session.** Simpler than a timestamp, and a network call and a line every session. Rejected for weekly.

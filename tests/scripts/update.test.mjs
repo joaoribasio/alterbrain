@@ -781,3 +781,201 @@ test('migrationSummary reads the description from the first three lines only', a
     cleanup(dir);
   }
 });
+
+test('fallback: a record entry without "kind" is a script and one without "outcome" is done', () => {
+  const { parent, root } = makeInstalled();
+  // the record as the 0.1.x updater wrote it: no kind, no outcome
+  write(join(root, 'state', 'migrations.json'), JSON.stringify({ schema: 1, applied: [{ id: '001-example.mjs', at: '2026-01-01T00:00:00.000Z', tag: 'v0.1.0' }] }));
+  const rel = makeRelease();
+  try {
+    const plan = jsonOf(upd(root, ['plan', TAG, '--json', '--source-dir', rel]));
+    assert.deepEqual(plan.migrations_pending, [], 'the legacy entry counts as done');
+    assert.equal(upd(root, ['apply-safe', TAG, '--no-commit']).code, 0);
+    const fin = jsonOf(upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']));
+    assert.equal(fin.migrations_run.includes('001-example.mjs'), false, 'a legacy entry still counts as done');
+    assert.equal(existsSync(join(root, 'state', 'migration-001.txt')), false);
+    // a legacy entry on a guided id also reads as done
+    const md = '0007-example-question.md';
+    const body = '---\ntype: "guided-migration"\nid: "0007-example-question"\nsummary: "Asks an example question."\nsince: "0.2.0"\n---\n# Example\n';
+    write(join(root, 'system', 'scripts', 'migrations', md), body);
+    const manifestFile = join(root, 'system', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
+    manifest.files[`system/scripts/migrations/${md}`] = { class: 'code', sha256: sha(Buffer.from(body)) };
+    write(manifestFile, JSON.stringify(manifest));
+    const record = JSON.parse(readRoot(root, 'state/migrations.json'));
+    record.applied.push({ id: md, at: '2026-01-02T00:00:00.000Z', tag: 'v0.1.0' });
+    write(join(root, 'state', 'migrations.json'), JSON.stringify(record));
+    const all = jsonOf(upd(root, ['guided', 'list', '--all', '--json']));
+    assert.deepEqual(all.guided.map((g) => [g.id, g.status]), [[md, 'done']]);
+    assert.equal(jsonOf(upd(root, ['guided', 'list', '--json'])).guided.length, 0);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('guided: usage errors exit 2, an unknown or changed upgrade is refused with exit 1 and nothing is recorded', () => {
+  const { parent, root } = makeInstalled();
+  try {
+    for (const args of [['guided'], ['guided', 'done'], ['guided', 'skip', 'a', 'b'], ['guided', 'list', 'x'], ['guided', 'done', 'x.md', '--all'], ['guided', 'nope']]) {
+      const r = upd(root, args);
+      assert.equal(r.code, 2, args.join(' '));
+      assert.match(r.stderr, /Usage:/);
+    }
+    for (const id of ['0009-not-there.md', '../../etc/passwd', 'system/lib/paths.mjs', '0009-not-there']) {
+      const r = upd(root, ['guided', 'done', id]);
+      assert.equal(r.code, 1, id);
+      assert.match(r.stderr, /is not an upgrade question that came with this release, so nothing was recorded\./);
+    }
+    assert.equal(existsSync(join(root, 'state', 'migrations.json')), false);
+    const none = upd(root, ['guided', 'list']);
+    assert.equal(none.code, 0);
+    assert.match(none.stdout, /No upgrade questions are waiting\./);
+  } finally {
+    cleanup(parent);
+  }
+});
+
+const GUIDED_BODY = '---\ntype: "guided-migration"\nid: "0007-example-question"\nsummary: "Asks an example question."\nsince: "0.2.0"\n---\n# Example\n';
+const guidedOnlyRelease = () => makeRelease((dir, manifest) => {
+  rmSync(join(dir, 'system', 'scripts', 'migrations'), { recursive: true, force: true });
+  delete manifest.files['system/scripts/migrations/001-example.mjs'];
+  mkdirSync(join(dir, 'system', 'scripts', 'migrations'), { recursive: true });
+  addMigration(dir, manifest, '0007-example-question.md', GUIDED_BODY);
+});
+
+test('no Git and only an upgrade question in the release: apply-safe still stops before it changes a file', () => {
+  const p = makeProject({ repo: false });
+  cpSync(OLD, p.root, { recursive: true });
+  write(join(p.root, 'system', 'manifest.json'), JSON.stringify(manifestFor(OLD, '0.1.0', 'v0.1.0')));
+  const rel = guidedOnlyRelease();
+  try {
+    const plan = jsonOf(upd(p.root, ['plan', TAG, '--json', '--source-dir', rel]));
+    assert.deepEqual(plan.migrations_pending, []);
+    assert.equal(plan.guided_pending.length, 1);
+    const a = upd(p.root, ['apply-safe', TAG, '--json', '--no-commit']);
+    assert.equal(a.code, 1);
+    const out = jsonOf(a);
+    assert.equal(out.no_restore_point, true);
+    assert.equal(out.guided_pending.length, 1);
+    assert.equal(readRoot(p.root, 'system/hooks/session_start.mjs'), '// hook version 1\n');
+    assert.equal(existsSync(join(p.root, 'system', 'scripts', 'migrations', '0007-example-question.md')), false);
+  } finally {
+    cleanup(p.parent, rel);
+  }
+});
+
+test('finish refuses without the restore point when an upgrade question is waiting', () => {
+  const { parent, root } = makeInstalled();
+  const rel = guidedOnlyRelease();
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    assert.equal(upd(root, ['apply-safe', TAG, '--no-commit']).code, 0);
+    git(root, ['tag', '-d', `pre-update-${TAG}`]);
+    const f = upd(root, ['finish', TAG, '--json', '--no-commit', '--no-doctor']);
+    assert.equal(f.code, 1);
+    const out = jsonOf(f);
+    assert.equal(out.no_restore_point, true);
+    assert.equal(out.guided_pending.length, 1);
+    assert.equal(existsSync(join(root, 'state', 'local', 'update', TAG, 'finished.json')), false);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+// A half-finished rebase stops the automatic save (git-auto commit exits 1).
+const blockSave = (root) => mkdirSync(join(root, '.git', 'rebase-merge'), { recursive: true });
+
+test('apply-safe refuses and changes nothing when unsaved work cannot be saved', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease();
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    write(join(root, 'vault', 'my-note.md'), 'unsaved work\n');
+    blockSave(root);
+    const a = upd(root, ['apply-safe', TAG, '--json']);
+    assert.equal(a.code, 1, a.stdout + a.stderr);
+    const out = jsonOf(a);
+    assert.equal(out.ok, false);
+    assert.equal(out.save_failed, true);
+    assert.equal(out.safety_tag, null);
+    assert.match(out.error, /could not be saved.*changed nothing.*\/health-check/);
+    assert.equal(git(root, ['tag', '--list', `pre-update-${TAG}`]), '');
+    assert.equal(readRoot(root, 'system/hooks/session_start.mjs'), '// hook version 1\n');
+    assert.equal(existsSync(join(root, 'system', 'blueprints', 'new-thing.md')), false);
+    assert.equal(existsSync(join(root, 'state', 'local', 'update', TAG, 'applied.json')), false);
+    const text = upd(root, ['apply-safe', TAG]);
+    assert.equal(text.code, 1);
+    assert.match(text.stdout, /^! Your latest work could not be saved/);
+    assert.doesNotMatch(text.stdout, /restore point was saved/);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('apply-safe goes on when the save is blocked but nothing is unsaved: the tag is the restore point', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease();
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    blockSave(root);
+    const a = upd(root, ['apply-safe', TAG, '--json']);
+    assert.equal(a.code, 0, a.stdout + a.stderr);
+    assert.equal(jsonOf(a).safety_tag, `pre-update-${TAG}`);
+    assert.equal(git(root, ['tag', '--list', `pre-update-${TAG}`]), `pre-update-${TAG}`);
+    assert.equal(readRoot(root, 'system/hooks/session_start.mjs'), '// hook version 2\n');
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('apply-safe refuses unsaved work when automatic saving is switched off, and says so', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease();
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    write(join(root, 'config', 'brain.json'), JSON.stringify({ git: { auto_commit: false } }));
+    git(root, ['add', '-A']);
+    git(root, ['commit', '-m', 'config']);
+    write(join(root, 'vault', 'my-note.md'), 'unsaved work\n');
+    const a = upd(root, ['apply-safe', TAG, '--json']);
+    assert.equal(a.code, 1, a.stdout + a.stderr);
+    const out = jsonOf(a);
+    assert.equal(out.ok, false);
+    assert.equal(out.safety_tag, null);
+    assert.match(out.error, /switched off in config\/brain\.json.*unsaved changes.*changed nothing/);
+    assert.equal(git(root, ['tag', '--list', `pre-update-${TAG}`]), '');
+    assert.equal(readRoot(root, 'system/hooks/session_start.mjs'), '// hook version 1\n');
+    const text = upd(root, ['apply-safe', TAG]);
+    assert.doesNotMatch(text.stdout, /restore point was saved/);
+    // a clean folder with saving switched off still gets its tag
+    unlinkSync(join(root, 'vault', 'my-note.md'));
+    const ok = upd(root, ['apply-safe', TAG, '--json']);
+    assert.equal(ok.code, 0, ok.stdout + ok.stderr);
+    assert.equal(jsonOf(ok).safety_tag, `pre-update-${TAG}`);
+  } finally {
+    cleanup(parent, rel);
+  }
+});
+
+test('finish reports a failed final save as a problem, with a task', () => {
+  const { parent, root } = makeInstalled();
+  const rel = makeRelease();
+  try {
+    assert.equal(upd(root, ['plan', TAG, '--source-dir', rel]).code, 0);
+    assert.equal(upd(root, ['apply-safe', TAG, '--json', '--no-commit']).code, 0);
+    write(join(root, 'vault', 'my-note.md'), 'unsaved work\n');
+    blockSave(root);
+    const f = upd(root, ['finish', TAG, '--json', '--no-doctor']);
+    assert.equal(f.code, 1, f.stdout + f.stderr);
+    const out = jsonOf(f);
+    assert.equal(out.ok, false);
+    assert.equal(out.save_failed, true);
+    assert.match(out.error, /final save failed.*\/health-check/);
+    assert.match(readRoot(root, 'vault/00_inbox/Tasks.md'), /final save failed.*#ab\/git/);
+    const text = upd(root, ['finish', TAG, '--no-doctor']);
+    assert.match(text.stdout, /^! |\n! The update finished, but the final save failed/);
+    assert.doesNotMatch(text.stdout, /Update v0\.2\.0 finished/);
+  } finally {
+    cleanup(parent, rel);
+  }
+});

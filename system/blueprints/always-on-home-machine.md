@@ -54,7 +54,7 @@ A spare computer at home stays switched on, so Alterbrain's jobs run even when y
    - more advanced: start `claude --bg` sessions for longer work, and use Remote Control to watch from a phone. Confirm the exact commands against the docs named above before you give them [Unverified until tried on this machine].
 7. Set the machine to stay awake and to start the app after a restart. Show the user the setting; they apply it.
 8. Make sure auto-commit and auto-push are on (`config/brain.json`) so the home copy and the laptop copy stay in step.
-9. Add a `#ab/automation` task for any step the user still has to do. Record the build in `state/built.json`.
+9. Add a `#ab/automation` task for any step the user still has to do. Every scheduled job on this machine is a routine note (`vault/90_routines/<Name>.md`, `host: "server"`), written as `/build` describes under "Routine notes"; point the user to it. Record the build in `state/built.json`.
 
 ## How to test
 
@@ -64,4 +64,4 @@ A spare computer at home stays switched on, so Alterbrain's jobs run even when y
 
 ## How to undo
 
-Stop the jobs, sign out of Claude Code on the home machine, remove Tailscale from it, and delete the repository copy. Your main vault is unaffected.
+Stop the jobs, set their routine notes in `vault/90_routines/` to `status: "paused"` (or delete them), sign out of Claude Code on the home machine, remove Tailscale from it, and delete the repository copy. Your main vault is unaffected.

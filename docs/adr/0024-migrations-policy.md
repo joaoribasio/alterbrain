@@ -2,6 +2,8 @@
 
 Status: accepted (2026-10-08, product owner)
 
+Amendment (ADR 0027): a release can also ship guided migrations (`NNNN-*.md`, same number space). Scripts are only for mechanical must-do fixes; anything that needs judgement about the user's own content is guided and is applied by the user's Claude only after the user approves. Migration 0003 (programme note) is converted to a guided migration, and 0006 (brand to template) is guided. Where this ADR says "a migration", read "a script or a guided migration".
+
 ## Context
 A release replaces framework files. The user's data is not framework: `config/*.json`, the notes in `vault/`, `state/*.json` and the user's own `my-*` skills and agents stay as they are. A changed template, skill, pack or catalogue entry therefore reaches new installs only. Anyone already using Alterbrain keeps the old shape until something rewrites it.
 

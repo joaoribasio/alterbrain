@@ -1,0 +1,23 @@
+# Built-in cover letter template. Fields are explained in .claude/skills/template/references/new-template.md.
+schema: 1
+name: "Cover letter"
+slug: "letter"
+kind: "letter"
+style: "memo"
+base: "letter"
+format: ""
+outputs: [pdf]
+brand: ""
+reference_doc: ""
+quarto_extension: ""
+csl: ""
+max_upload_mb: null
+page_limit: 1
+font_size_pt: null
+fonts: []
+house_rules:
+  - "One page."
+  - "Open with the reason for writing and what you offer, not with your name."
+  - "Use only facts that are in the fact sheet."
+structure: []
+source: "built-in"

@@ -43,15 +43,15 @@ Never use any other site automatically (see `.claude/skills/jobs/references/sour
 - Remove adverts older than 30 days.
 - Keep `salary_*` as given. If `salary_predicted` is true, treat the salary as unknown (it is Adzuna's estimate).
 
-## 4. Score the fit (haiku, low)
+## 4. Score the fit (`helper-triage`)
 
-Write the candidates to `state/local/tmp/jobs/to-score-<n>.json` (at most 15 jobs per file). Start one subagent per file at `model: haiku`, low effort, not more in parallel than the cap for `plan_tier` (3 on pro, 8 on max). Pass paths only: the candidate file, `vault/80_me/USER.md`, `vault/20_areas/career/career.md`. The subagent returns JSON only:
+Write the candidates to `state/local/tmp/jobs/to-score-<n>.json` (at most 15 jobs per file). Start one `helper-triage` call per file (no model override; the helper fixes model and effort), not more in parallel than the cap for `plan_tier` (3 on pro, 8 on max). Pass paths only: the candidate file, `vault/80_me/USER.md`, `vault/20_areas/career/career.md`. The helper returns JSON only:
 
 ```
 [{"id":"<id or url>","score":0-100,"why":["<reason 1>","<reason 2>"],"gaps":["<gap>"]}]
 ```
 
-**Rubric (tell the subagent):**
+**Rubric (tell the helper):**
 - 40 points: role and level match the user's targets.
 - 20 points: skills and sector match `USER.md` / `career.md`.
 - 15 points: city or remote option matches.

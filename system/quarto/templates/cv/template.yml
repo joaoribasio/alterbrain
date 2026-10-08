@@ -1,0 +1,23 @@
+# Built-in CV template. It covers the designed CV (base cv) and the plain one (cv-ats).
+schema: 1
+name: "CV"
+slug: "cv"
+kind: "cv"
+style: "report"
+base: "cv"
+format: ""
+outputs: [pdf]
+brand: ""
+reference_doc: ""
+quarto_extension: ""
+csl: ""
+max_upload_mb: null
+page_limit: 2
+font_size_pt: null
+fonts: []
+house_rules:
+  - "Also make the plain layout (cv-ats) from the same facts, for online application forms."
+  - "Every line comes from the fact sheet; leave a line out rather than guess."
+  - "Start bullets with a verb and end with a result."
+structure: []
+source: "built-in"

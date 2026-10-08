@@ -23,7 +23,7 @@ For each card:
 
 ## 3. Grade kindly
 
-Grading may be delegated to a haiku / low helper. Give it only the question, the correct answer and the user's reply.
+Grading may be delegated to the `helper-triage` agent (haiku / low). Give it only the question, the correct answer and the user's reply.
 
 - **Right:** the key idea is there, even if the wording differs. A small slip in a detail is still right if the idea is sound. Say so warmly.
 - **Partly right:** schedule it as wrong, but say first which part was right.

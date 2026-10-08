@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
-import { REPO, abs, changedPaths, cleanup, copyFixture, listMigrations, read, readJsonIn, snapshot } from '../../fixtures/migrations/helpers.mjs';
+import { REPO, abs, changedPaths, cleanup, copyFixture, listGuided, listMigrations, read, readJsonIn, snapshot } from '../../fixtures/migrations/helpers.mjs';
 
 const TAG = 'v0.2.0';
 const LIBS = ['migrate.mjs', 'paths.mjs', 'fsx.mjs', 'tasks.mjs', 'frontmatter.mjs'];
@@ -35,6 +35,7 @@ function makeRelease(root, { version = '0.2.0', tag = TAG, extraMigrations = {} 
   };
   for (const lib of LIBS) add(`system/lib/${lib}`, readFileSync(join(REPO, 'system', 'lib', lib)));
   for (const name of listMigrations()) add(`system/scripts/migrations/${name}`, readFileSync(join(REPO, 'system', 'scripts', 'migrations', name)));
+  for (const name of listGuided()) add(`system/scripts/migrations/${name}`, readFileSync(join(REPO, 'system', 'scripts', 'migrations', name)));
   for (const [name, body] of Object.entries(extraMigrations)) add(`system/scripts/migrations/${name}`, body);
   add('system/release.json', JSON.stringify({ name: 'alterbrain', version, tag, repo: 'example/alterbrain' }, null, 2) + '\n');
   writeFileSync(join(dir, 'system', 'manifest.json'), JSON.stringify({ schema: 1, version, tag, files }, null, 2));
@@ -69,7 +70,7 @@ function installOld(fixture, { repo = true } = {}) {
 function installFresh(fixture, { repo = true } = {}) {
   const root = copyFixture(fixture);
   const files = {};
-  for (const name of listMigrations()) {
+  for (const name of [...listMigrations(), ...listGuided()]) {
     const buf = readFileSync(join(REPO, 'system', 'scripts', 'migrations', name));
     files[`system/scripts/migrations/${name}`] = { class: 'code', sha256: sha(buf) };
     mkdirSync(abs(root, 'system/scripts/migrations'), { recursive: true });
@@ -94,7 +95,9 @@ test('an MBA install from 0.1.0 is upgraded by the real migrations, and the plan
 
   const plan = update(root, ['plan', TAG, '--source-dir', release]);
   assert.equal(plan.code, 0, plan.stdout + plan.stderr);
-  assert.match(plan.stdout, /Upgrades to your notes and settings \(run at the end\):\n {2}- Removes the retired Canvas connection from your tools list, if you had switched it on\.\n {2}- If you started on Alterbrain 0\.1, records that you are doing an MBA and switches on the MBA and Netherlands packs you already use\.\n {2}- If your settings name a school or programme, creates a programme note from them and links your courses to it\.\n {2}- Checks the skills and helpers you built, and your identity notes, for links to Alterbrain files that moved\.\n/);
+  assert.match(plan.stdout, /Upgrades to your notes and settings \(run at the end\):\n {2}- Removes the retired Canvas connection from your tools list, if you had switched it on\.\n {2}- If you started on Alterbrain 0\.1, records that you are doing an MBA and switches on the MBA and Netherlands packs you already use\.\n {2}- Checks the skills and helpers you built, and your identity notes, for links to Alterbrain files that moved\.\n/);
+  assert.match(plan.stdout, /Upgrades I will ask you about after the update:\n {2}- If your settings name a school or programme, offers to make a programme note from them and link your courses to it\.\n/);
+  assert.deepEqual(JSON.parse(update(root, ['plan', TAG, '--json', '--source-dir', release]).stdout).guided_pending.map((g) => g.id), listGuided());
   // planning changes nothing in the notes and settings
   assert.equal(readJsonIn(root, 'config/mcp.selected.json').enabled.includes('canvas-mcp'), true);
 
@@ -109,7 +112,8 @@ test('an MBA install from 0.1.0 is upgraded by the real migrations, and the plan
   assert.deepEqual(out.migrations_skipped, []);
   assert.match(out.migration_notes['0001-remove-canvas.mjs'], /^Removed the retired Canvas connection from your tools list\.\nAdded a task to remove the Canvas sync you built\.$/);
   assert.match(out.migration_notes['0002-learner-and-packs.mjs'], /^Recorded that you are doing an MBA/);
-  assert.match(out.migration_notes['0003-programme-note.mjs'], /^Created your programme note "Full-time MBA – Example Business School"/);
+  assert.deepEqual(out.guided_pending.map((g) => g.id), listGuided(), 'the guided upgrade is listed, never run');
+  assert.equal(out.migration_notes['0003-programme-note.md'], undefined);
   assert.match(out.migration_notes['0004-old-pack-paths.mjs'], /^2 of your own skills or helpers point to files that moved\./);
 
   assert.deepEqual(readJsonIn(root, 'config/mcp.selected.json').enabled, ['mcpvault', 'playwright', 'context7']);
@@ -117,21 +121,25 @@ test('an MBA install from 0.1.0 is upgraded by the real migrations, and the plan
   assert.equal(readJsonIn(root, 'state/migrations.json').applied.length, listMigrations().length);
   assert.ok(readJsonIn(root, 'state/migrations.json').applied.every((a) => !a.baseline), 'these upgrades really ran');
   const tasks = read(root, 'vault/00_inbox/Tasks.md').split('\n').filter((l) => l.startsWith('- [ ]'));
-  assert.equal(tasks.length, 2, 'one task for the Canvas sync, one for the skills that point to moved files');
+  assert.equal(tasks.length, 3, 'one task for the Canvas sync, one for the skills that point to moved files, one for the upgrade question');
+  const n = listGuided().length;
+  assert.equal(tasks.filter((l) => l.includes(`Alterbrain has ${n} upgrade question${n === 1 ? '' : 's'} for you. Say "run the pending upgrades". #ab/update-alterbrain`)).length, 1);
+  assert.equal(readJsonIn(root, 'config/brain.json').school.name, 'Example Business School', 'a guided upgrade changes nothing by itself');
 
   // Only settings, notes and the update's own records changed; the person's own skills did not.
   const changed = changedPaths(before, snapshot(root));
   assert.deepEqual(changed.filter((p) => p.startsWith('.claude/')), []);
   assert.deepEqual(changed.filter((p) => p.startsWith('vault/') || p.startsWith('config/') || p.startsWith('state/')).sort(), [
     'config/brain.json', 'config/mcp.selected.json', 'state/local/update/v0.2.0/finished.json', 'state/migrations.json',
-    'vault/00_inbox/Tasks.md', 'vault/20_areas/courses/finance/course.md', 'vault/20_areas/courses/strategy/course.md',
-    'vault/20_areas/programmes/Full-time MBA – Example Business School.md',
+    'vault/00_inbox/Tasks.md',
   ].sort());
 
   // Finishing again runs nothing twice.
   const again = JSON.parse(update(root, ['finish', TAG, '--json', '--no-doctor']).stdout);
   assert.deepEqual(again.migrations_run, []);
   assert.equal(again.ok, true);
+  const tasksAgain = read(root, 'vault/00_inbox/Tasks.md').split('\n').filter((l) => l.includes('upgrade question'));
+  assert.equal(tasksAgain.length, 1, 'the upgrade task is not added twice');
 });
 
 test('a fresh 0.2 install is told about no upgrade: the plan is silent and finish runs and prints nothing', () => {
@@ -147,6 +155,7 @@ test('a fresh 0.2 install is told about no upgrade: the plan is silent and finis
     const planJson = JSON.parse(update(root, ['plan', 'v0.2.1', '--json', '--source-dir', release]).stdout);
     assert.deepEqual(planJson.migrations_pending, [], fixture);
     assert.deepEqual(planJson.migrations_baseline, listMigrations(), `${fixture}: the plan says what it treats as already in place`);
+    assert.deepEqual(planJson.guided_pending, [], fixture);
     assert.equal(existsSync(abs(root, 'state/migrations.json')), false, 'planning writes nothing');
 
     assert.equal(update(root, ['apply-safe', 'v0.2.1']).code, 0);
@@ -161,8 +170,10 @@ test('a fresh 0.2 install is told about no upgrade: the plan is silent and finis
     );
     // The record says they were already in place, so a later release does not list them either.
     const record = readJsonIn(root, 'state/migrations.json').applied;
-    assert.deepEqual(record.map((a) => a.id), listMigrations());
+    assert.deepEqual(record.map((a) => a.id).sort(), [...listMigrations(), ...listGuided()].sort());
     assert.ok(record.every((a) => a.baseline === true));
+    assert.ok(record.filter((a) => a.id.endsWith('.md')).every((a) => a.kind === 'guided' && a.outcome === 'done'));
+    assert.doesNotMatch(read(root, 'vault/00_inbox/Tasks.md'), /upgrade question/, fixture);
   }
 });
 
@@ -182,8 +193,8 @@ test('a fresh 0.2 install that gets one new upgrade is told about that one only,
   assert.deepEqual(fin.migration_notes, { [FAKE_NEW]: 'Did the new thing.' });
   assert.equal(read(root, 'state/marker-0099.txt'), 'done\n');
   const record = readJsonIn(root, 'state/migrations.json').applied;
-  assert.deepEqual(record.map((a) => a.id), [...listMigrations(), FAKE_NEW]);
-  assert.deepEqual(record.filter((a) => a.baseline).map((a) => a.id), listMigrations());
+  assert.deepEqual(record.map((a) => a.id).sort(), [...listMigrations(), ...listGuided(), FAKE_NEW].sort());
+  assert.deepEqual(record.filter((a) => a.baseline).map((a) => a.id).sort(), [...listMigrations(), ...listGuided()].sort());
 
   // The release after that sees all of them as done.
   const next = makeRelease(root, { version: '0.2.2', tag: 'v0.2.2', extraMigrations: { [FAKE_NEW]: FAKE_NEW_BODY } });

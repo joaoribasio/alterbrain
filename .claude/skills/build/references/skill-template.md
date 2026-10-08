@@ -58,5 +58,6 @@ Built by self-build from [[<proposal card name>]]. To change it, say "improve my
 
 - `description` is what makes Claude pick the skill. Name the input, the output and the user's real words. Avoid words that belong to other skills ("study", "assignment", "reply") unless this skill is the better match.
 - `model` / `effort` follow SPEC §6: sorting → haiku/low, drafting → sonnet/medium, checking → sonnet/high, judgement → opus/high.
+- To delegate, name a helper agent (`helper-triage`, `helper-draft`, `helper-review`, `helper-judgement`, or `researcher`, `ghostwriter`, `mail-reader`); never a generic subagent with a model in prose. The helper fixes the model and effort.
 - No other frontmatter keys.
 - Only write inside `vault/` (or this skill's own folder for reference files).

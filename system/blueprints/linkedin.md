@@ -52,6 +52,7 @@ Alterbrain can look up a company, a job post or a public profile on LinkedIn, an
    - every fact saved with source URL and date;
    - post and message drafts go to `vault/00_inbox/outbox/` with `channel: "linkedin"`;
    - a `#ab/linkedin` task is created for each draft.
+   - looking up a person for the contact book (`/people`) follows `.claude/skills/people/references/enrichment.md`: only on request, one profile at a time, after `rate-guard.mjs status`, and the facts saved are business facts with source and date.
 7. Record the build in `state/built.json`.
 
 ## How to test

@@ -47,7 +47,7 @@ Work variant:
 - "Make this email sound more like me."
 
 ## 4. Jobs
-Skills: `jobs`
+Skills: `jobs`, `people`
 
 Study variant:
 - "Find internships or graduate roles in my city that fit my profile."
@@ -59,20 +59,23 @@ Work variant:
 - "Write a cover letter for this job ad, using only facts from my fact sheet."
 - "Which of my applications need something from me this week?"
 
+Contacts (`people`, a fourth prompt for both variants):
+- "Add Sam Example from this email to my contacts and remind me to follow up in two weeks."
+
 With `country-nl` in `packs`, swap the first prompt for "Find strategy roles in Rotterdam from employers that can sponsor a visa." when the user needs sponsorship (`jobs.needs_sponsorship`).
 
 ## 5. Documents
-Skills: `render`, `edit-voice`
+Skills: `render`, `template`, `critique`, `edit-voice`
 
 Study variant:
 - "Turn this note into a PDF with my colours and fonts."
-- "Make a one-page memo from my case notes."
-- "Check this text for phrases that sound like AI."
+- "Use my school's PowerPoint template for all my slides." (`/template`)
+- "Critique this report like a tough reviewer before I hand it in." (`/critique`; `edit-voice` also checks text for phrases that sound like AI)
 
 Work variant:
 - "Turn this note into a PDF with my colours and fonts."
-- "Make a one-page memo from my project notes."
-- "Check this text for phrases that sound like AI."
+- "Use my company's slide template for my decks." (`/template`)
+- "Critique this proposal like a sceptical decision-maker." (`/critique`; `edit-voice` also checks text for phrases that sound like AI)
 
 ## 6. Knowledge
 Skills: `ingest`, `ask`, `capture`, `weekly-review`, `learn`
@@ -106,6 +109,7 @@ Skills: `reconfigure`, `onboard`, `health-check`, `update-alterbrain`, `menu`
 - "Let me approve emails before they are sent."
 - "Something isn't working. Can you check my setup?"
 - "Is there a new version of Alterbrain?"
+- "Check my routines." (scheduled jobs: which are active, which are overdue)
 
 To change what the user is learning or doing (MBA, degree, online courses, working), `/reconfigure` has a row for it. It has another row to switch the 25 MBA business frameworks on or off, for a user who is not on an MBA. Mention either only when the user's words point that way.
 
@@ -124,6 +128,7 @@ Use the blueprint `title` and `kind` to place each "available to build" item und
 | LinkedIn, job | Jobs |
 | Instagram, Telegram, WhatsApp | Build something new (channels) |
 | always-on, schedule, server, morning brief, cost | Settings & help (automations) |
+| routine, routines, scheduled job, "did it run", overdue job | Settings & help: "Check my routines". Every scheduled job is a note in `vault/90_routines/`; `node system/scripts/routines.mjs list` and `overdue` show them. Alterbrain runs no scheduler of its own: the job runs from the Claude app (desktop scheduled task or cloud routine) or a server. |
 
 When unsure, put it under "Build something new".
 

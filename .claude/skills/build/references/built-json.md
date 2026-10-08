@@ -55,5 +55,6 @@ node system/scripts/built.mjs remove <name-or-blueprint-slug>
 - `paths`: every file or folder the build created (project-relative, forward slashes). `/remove-skill` deletes exactly these.
 - `mcp`: catalogue ids added to `config/mcp.selected.json` by this build.
 - `channels`: autonomy channels this build makes real (`email`, `calendar`, `jobs`, `linkedin`, `social`, `messaging`, `web-forms`). `auto` on a channel counts only when an entry lists that channel **and** comes from a blueprint.
+- An automation lists its routine note (`vault/90_routines/<Name>.md`) in `paths`. `/remove-skill` pauses or deletes that note and tells the user to delete the schedule on the host.
 - Same `name` again replaces the old entry (a rebuild).
 - **Is blueprint X built?** An entry whose `name` or `blueprint` equals X.

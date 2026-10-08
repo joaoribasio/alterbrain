@@ -14,6 +14,7 @@ Alterbrain saves and uploads your work after each session. If that fails, it add
 - **Signed out of GitHub:** say "sign me in to GitHub again". It shows you a code to paste on the GitHub page.
 - **Changes on two computers at once:** say "fix the backup". Alterbrain combines them; it never throws work away.
 - **"Your private notes are locked" or "stopped the online backup" (only if you turned on encryption):** see [Encrypting your private notes](encrypting-private-notes.md).
+- **"Half-finished save or join" (the health check, `git-in-progress`):** a join of your work with the online copy was started and never finished, so automatic saves refuse to run until it is cleared. Your files are safe. Say "fix the backup" and Alterbrain asks first, then undoes the half-finished join (`git rebase --abort` or `git merge --abort`, whichever the check names; never a reset, which would throw work away). Then it checks again and your next session saves as usual. If the undo fails, Alterbrain stops, adds a task and explains in one sentence.
 - **"Big files were left out" or "A very big file was saved as an ordinary file":** see "Big files" below.
 
 See [Git is automatic](git-is-automatic.md).
@@ -30,6 +31,14 @@ Files of 50 MB or more are stored with Git LFS, a free add-on for very large fil
 - **Health check warns "Big-file check for Obsidian Git":** run `node system/scripts/git-auto.mjs hook`. If it says another tool already has a check before saves, Alterbrain leaves that tool alone: keep big files out of the vault, or switch Obsidian Git off, until you decide.
 - **Health check warns about the size of your backup:** your saved history is getting large. Deleting a file does not shrink the history, because old versions stay in it. Put new big files you do not need backed up in `vault/40_sources/raw/_local/`, which stays on your computer only.
 - **"A big upload is running in the background":** nothing to do. A big upload carries on after you close Claude and finishes by itself.
+
+## Alterbrain cannot look at the pages of my PDF
+
+Before it hands over a report or deck, Alterbrain looks at every page itself. For a PDF that needs a small free tool, the **PDF page renderer** (Poppler, about 30 MB). The health check and setup offer it once, never in the middle of your work. If you said no, or it is missing, Alterbrain tells you which pages it could not look at, and asks you to look at them.
+
+- **To install it,** say "install the PDF page renderer". Alterbrain asks first. On Windows it runs `winget install --id oschwartz10612.Poppler -e`; on a Mac, `brew install poppler`. Then close and reopen Claude so the new tool is found, and run `/health-check` again.
+- **A Word, PowerPoint or Excel file** is turned into a PDF copy through the program itself, if it is installed and closed. If it is open, or not installed, Alterbrain uses LibreOffice instead when you have it, and warns you that fonts and line breaks may look different from your real file. Close the file and try again for the exact look.
+- [Unverified] The Mac route for PowerPoint and Word was written from the programs' documentation and has not been run on a Mac. If it fails, save the file as PDF yourself and give Alterbrain the PDF.
 
 ## Gmail doesn't work
 

@@ -130,3 +130,73 @@ test('usage errors exit with 2', () => {
     p.cleanup();
   }
 });
+
+test('add keeps CRLF line endings in a Tasks.md that uses them (no mixed endings)', () => {
+  const p = makeProject();
+  try {
+    write(p, FILE, '# Tasks\r\n\r\n## Inbox\r\n- [ ] Old one\r\n\r\n## Today\r\n\r\n## Done (archive weekly)\r\n');
+    assert.equal(runScript('tasks.mjs', ['add', 'New one', '--tag', 'a'], p).status, 0);
+    const text = read(p, FILE);
+    assert.ok(text.includes('- [ ] New one #ab/a\r\n'));
+    assert.equal(text.replace(/\r\n/g, '').includes('\n'), false, 'every line break is CRLF');
+    assert.equal(text.replace(/\r\n/g, '').includes('\r'), false);
+    // done and list still work on the CRLF file and keep its endings
+    assert.equal(runScript('tasks.mjs', ['done', 'Old one'], p).status, 0);
+    const after = read(p, FILE);
+    assert.match(after, /- \[x\] Old one\r\n/);
+    assert.equal(after.replace(/\r\n/g, '').includes('\n'), false);
+    assert.match(runScript('tasks.mjs', ['list', '--json'], p).stdout, /New one #ab\/a"/);
+  } finally {
+    p.cleanup();
+  }
+});
+
+test('add to a CRLF file with no Inbox heading adds one with CRLF', () => {
+  const p = makeProject();
+  try {
+    write(p, FILE, '# Tasks\r\n\r\n## Today\r\n');
+    runScript('tasks.mjs', ['add', 'Fresh'], p);
+    const text = read(p, FILE);
+    assert.ok(text.includes('## Inbox\r\n- [ ] Fresh\r\n'));
+    assert.equal(text.replace(/\r\n/g, '').includes('\n'), false);
+  } finally {
+    p.cleanup();
+  }
+});
+
+test('add keeps LF in an LF file, and a new Tasks.md is LF', () => {
+  const p = makeProject();
+  try {
+    runScript('tasks.mjs', ['add', 'First'], p);
+    assert.equal(read(p, FILE).includes('\r'), false);
+    runScript('tasks.mjs', ['add', 'Second'], p);
+    const text = read(p, FILE);
+    assert.equal(text.includes('\r'), false);
+    assert.ok(text.includes('- [ ] First\n- [ ] Second\n'));
+  } finally {
+    p.cleanup();
+  }
+});
+
+test('add to CRLF files in the edge cases leaves no bare LF and no lone CR', () => {
+  const cases = [
+    '# Tasks\r\n\r\n## Today\r\n- [ ] a',
+    '# Tasks\r\n\r\n## Inbox\r\n',
+    '# Tasks\r\n\r\n## Inbox',
+    '# Tasks\r\n\r\n## Inbox\r\n- [ ] old',
+  ];
+  for (const input of cases) {
+    const p = makeProject();
+    try {
+      write(p, FILE, input);
+      assert.equal(runScript('tasks.mjs', ['add', 'New task'], p).status, 0);
+      const text = read(p, FILE);
+      assert.equal(text.replace(/\r\n/g, '').includes('\n'), false, `bare LF for ${JSON.stringify(input)}`);
+      assert.equal(text.replace(/\r\n/g, '').includes('\r'), false, `lone CR for ${JSON.stringify(input)}`);
+      assert.ok(text.endsWith('\r\n'), 'ends with CRLF');
+      assert.ok(text.includes('- [ ] New task\r\n'));
+    } finally {
+      p.cleanup();
+    }
+  }
+});

@@ -33,6 +33,12 @@ test('permission rules use valid syntax and cover the Gmail send tools', () => {
     'Bash(node system/scripts/tasks.mjs *)', 'Bash(node system/scripts/doctor.mjs *)', 'Bash(node system/scripts/ingest.mjs *)',
     'Bash(node system/quarto/tools/render.mjs *)', 'PowerShell(node system/scripts/tasks.mjs *)', 'PowerShell(node system/quarto/tools/render.mjs *)',
   ]) assert.ok(allow.includes(rule), rule);
+  // v0.2.0 helpers: guided upgrades, templates, delivery checks, page viewing and contacts, in both shells.
+  for (const shell of ['Bash', 'PowerShell']) {
+    for (const script of ['update.mjs guided', 'template.mjs', 'release-scan.mjs', 'deliver-check.mjs', 'workbook-check.mjs', 'pages.mjs', 'people.mjs']) {
+      assert.ok(allow.includes(`${shell}(node system/scripts/${script} *)`), `${shell} ${script}`);
+    }
+  }
   // Only the documented trailing-wildcard forms: a space before the star.
   for (const rule of allow.filter((r) => /^(Bash|PowerShell)\(git /.test(r))) assert.match(rule, / \*\)$/, rule);
   // Nothing in "allow" may be a blanket rule.
@@ -55,6 +61,7 @@ test('the allow list is exact: nothing that replaces code, publishes or runs arb
     'node system/scripts/update.mjs apply-safe v1',
     'node system/scripts/update.mjs plan v1 --source-dir C:/stage',
     'node system/scripts/update.mjs finish v1',
+    'node system/scripts/update.mjs guidedx done 0003-programme-note.md',
     'node system/scripts/setup-github.mjs --name x',
     'node system/scripts/built.mjs add gmail-send-approval',
     'node system/scripts/rate-guard.mjs reset-throttle linkedin',

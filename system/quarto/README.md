@@ -22,7 +22,7 @@ Each template folder has its own `README.md` with the details.
 
 1. A text file (`.qmd`, or an Obsidian note ending in `.md`) holds your words.
 2. A template decides how it looks: fonts, colours, spacing, page size.
-3. Your brand file decides the colours and fonts. It is `vault/80_me/brand/_brand.yml`. If you do not have one yet, the built-in `brand/_brand.yml` is used.
+3. A template decides the look and the house rules (see "Templates" below). Without one, your brand file decides the colours and fonts. It is `vault/80_me/brand/_brand.yml`. If you do not have one yet, the built-in `brand/_brand.yml` is used.
 4. Quarto puts them together and writes the result next to your source file:
    - in `_out/` while you work (a scratch folder that is replaced each time and never saved to git);
    - in `releases/<date>/` when you ask for a final version (every version is kept);
@@ -52,6 +52,22 @@ Other useful commands:
 | `node system/quarto/tools/pagecount.mjs file.pdf --max 6` | Counts the pages of any PDF |
 
 Every command accepts `--json` for scripts.
+
+## Templates
+
+A template is a folder with a short description file, `template.yml`: what kind of document it is for, its style, an optional brand file, an optional Word or PowerPoint reference file, a citation style, page and upload limits and house rules in plain sentences. The four folders under `templates/` are the built-in ones. Yours (from a school, an employer or a provider) live in `vault/80_me/templates/<name>/`; make one with `/template`.
+
+Which one applies is decided for you, most specific first: the document itself, then its project or assignment, its course, its programme, your default for that kind (`config/brain.json`, `templates.defaults`), and last the built-in. If two templates tie at the same level, Alterbrain asks. Your personal brand file keeps working as the default look when no template is set.
+
+| Command | What it does |
+|---|---|
+| `node system/scripts/template.mjs list` | Lists the built-in templates and yours |
+| `... template.mjs resolve --kind deck --for <file>` | Shows which template a document would use, with its tone and style |
+| `... template.mjs check <folder>` | Checks a template folder and names each problem |
+| `... template.mjs inspect <file.pptx>` | Reads colours, fonts and slide layouts from a PowerPoint or Word file |
+| `... render.mjs <file> --type deck --template <folder>` | Renders with that template; `--reference-doc` and `--csl` add a Word or PowerPoint style file or a citation style |
+
+A template only adds what the document does not set itself, and school artwork stays in your vault, never in this folder.
 
 ## Page limits
 
@@ -89,7 +105,7 @@ system/quarto/
   NOTICE.md           where the third-party parts come from, and their licences
   brand/              the built-in default colours and fonts (_brand.yml)
   fonts/              drop extra font files here
-  templates/
+  templates/          each folder also has a template.yml
     cv/               designed CV and ATS-plain CV (they share cv-data.yml)
     letter/           cover letter
     report/           report, memo, assignment (A4, APA 7 references)
@@ -103,4 +119,4 @@ system/quarto/
 - Tests: `node --test tests/quarto/quarto.test.mjs`. They render every template and skip cleanly when Quarto is not on the PATH. Rendered files go to `state/local/tmp/quarto/tests/`.
 - The scripts have no dependencies beyond Node 20.
 - The CV layout is a lightly patched copy of an open-source extension. The patches are listed in `templates/cv/_extensions/awesomecv/PATCHES.md`.
-- To add a template: make a folder under `templates/` with a starter `.qmd`, a `README.md` and an `_extensions/<name>/` folder; add one entry to `TYPES` in `tools/lib.mjs`; add a test.
+- To add a template: make a folder under `templates/` with a starter `.qmd`, a `README.md` and an `_extensions/<name>/` folder; add a `template.yml` (check it with `node system/scripts/template.mjs check`); add one entry to `TYPES` in `tools/lib.mjs`; add a test. The resolver is `system/lib/templates.mjs`.

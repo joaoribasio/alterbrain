@@ -39,6 +39,10 @@ export function childEnv(root, extra = {}) {
     GIT_CONFIG_GLOBAL: join(root, '..', 'no-such-gitconfig'),
     GIT_TERMINAL_PROMPT: '0',
     ALTERBRAIN_GIT_RETRY_MS: '20',
+    // The hook's real time limits (12 s and 13 s) are for a person's computer. The suite runs hundreds of tests in parallel, and a
+    // push that went over would be handed to the background and not be online yet when a test looks. Tests of the hand-over set their own.
+    ALTERBRAIN_HOOK_COMMIT_TIMEOUT_MS: '90000',
+    ALTERBRAIN_HOOK_PUSH_TIMEOUT_MS: '90000',
     // The throw-away folders sit inside this checkout: git must never walk up out of them into the real repository.
     GIT_CEILING_DIRECTORIES: existsSync(TMP_BASE) ? realpathSync(TMP_BASE) : TMP_BASE,
     ...extra,

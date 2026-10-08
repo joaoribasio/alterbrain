@@ -38,3 +38,10 @@ The render tool already turns most errors into plain sentences (`Problem: ...`).
 - `quarto typst compile <file>.typ out-{p}.png --ppi 80` makes pictures of the pages for checking layout.
 - `node system/quarto/tools/render.mjs ... --json` returns `problems`, `notes` and `technical`.
 - If `system/quarto/**` itself looks broken, do not edit it. Tell the user, and use `/health-check`.
+
+## Template problems
+
+- **"The template ... has a problem" or "There is no template.yml":** run `node system/scripts/template.mjs check <folder>`. It lists each problem in plain words (a file named in template.yml that is missing, a reference document of the wrong kind, a slug that differs from the folder name). Fix the line it names.
+- **A Word or PowerPoint output looks like the default, not the template:** the template has no `reference_doc`, or the document sets its own `reference-doc` (the document wins). For slides, run `template.mjs inspect` on the file: missing layout names are taken from Quarto's default.
+- **A `.potx` or `.dotx` is named as the reference document:** Quarto needs `.pptx` or `.docx`. Ask the user to save a copy in that form; do not convert it.
+- **Two templates fit equally well:** this is not an error. Ask which one, then attach it (`/template attach`) so it is not asked again.

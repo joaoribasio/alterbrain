@@ -12,7 +12,7 @@
 - **professional:** about 3 minutes.
 
 "Later" is always an answer, so the module never has to take longer than the user wants.
-**Model / effort:** sonnet / medium. The per-course work is `.claude/skills/course/references/course-setup.md`, which says when a helper may read syllabi.
+**Model / effort:** sonnet / medium. The per-course work is `.claude/skills/course/references/course-setup.md`, which says when the `helper-triage` agent may read syllabi.
 
 ## Which branch
 

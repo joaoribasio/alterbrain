@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
 import {
-  makeProject, runScript, write, sha, cleanup, existsSync, join,
+  makeProject, runScript, write, sha, cleanup, existsSync, join, git, gitTry,
 } from '../fixtures/ops/helpers.mjs';
 
 const RELEASE = {
@@ -34,7 +35,7 @@ const doctor = (root, args = []) => {
 };
 const byId = (out, id) => out.checks.find((c) => c.id === id);
 
-const MACHINE_IDS = ['git-repo', 'git-lfs', 'gh', 'origin', 'quarto', 'obsidian-app', 'obsidian-config', 'claude-code', 'onboarding', 'vault', 'disk'];
+const MACHINE_IDS = ['git-repo', 'git-lfs', 'gh', 'origin', 'quarto', 'obsidian-app', 'obsidian-config', 'claude-code', 'onboarding', 'vault', 'disk', 'git-in-progress', 'pdf-pages'];
 
 test('--ci passes on a healthy repository and skips every machine-specific check', () => {
   const { parent, root } = healthy();
@@ -228,7 +229,13 @@ test('obsidian settings check understands a prepared vault', () => {
     assert.equal(byId(doctor(root).out, 'obsidian-config').status, 'warn');
     write(join(dir, 'plugins', 'demo', 'main.js'), 'x');
     write(join(dir, 'plugins', 'demo', 'manifest.json'), '{}');
-    assert.equal(byId(doctor(root).out, 'obsidian-config').status, 'ok');
+    const ok = byId(doctor(root).out, 'obsidian-config');
+    assert.equal(ok.status, 'ok');
+    assert.match(ok.tip, /Word, PowerPoint and Excel/, 'a tip, not a warning, when documents are hidden');
+    write(join(dir, 'app.json'), JSON.stringify({ showUnsupportedFiles: true }));
+    const shown = byId(doctor(root).out, 'obsidian-config');
+    assert.equal(shown.status, 'ok');
+    assert.equal(shown.tip, undefined);
   } finally {
     cleanup(parent);
   }
@@ -248,6 +255,69 @@ test('text output is readable and exit codes follow the contract', () => {
     assert.match(bad.stdout, /Fix: /);
     assert.equal(runScript('doctor.mjs', ['--wat'], root).code, 2);
     assert.equal(existsSync(join(root, 'state', 'local', 'tmp')), false, 'doctor writes nothing');
+  } finally {
+    cleanup(parent);
+  }
+});
+
+test('git-in-progress: clean repository is ok; a half-finished rebase or merge warns with the one command that clears it', () => {
+  const { parent, root } = healthy();
+  try {
+    assert.equal(byId(doctor(root).out, 'git-in-progress').status, 'ok');
+    mkdirSync(join(root, '.git', 'rebase-merge'));
+    const rebase = byId(doctor(root).out, 'git-in-progress');
+    assert.equal(rebase.status, 'warn');
+    assert.match(rebase.detail, /rebase/);
+    assert.match(rebase.fix, /git rebase --abort/);
+    assert.doesNotMatch(rebase.fix, /reset/);
+    cleanup(join(root, '.git', 'rebase-merge'));
+    mkdirSync(join(root, '.git', 'rebase-apply'));
+    assert.equal(byId(doctor(root).out, 'git-in-progress').status, 'warn');
+    cleanup(join(root, '.git', 'rebase-apply'));
+    assert.equal(byId(doctor(root).out, 'git-in-progress').status, 'ok');
+  } finally {
+    cleanup(parent);
+  }
+});
+
+test('git-in-progress: a real unfinished merge is found; --ci skips the check', () => {
+  const { parent, root } = healthy();
+  try {
+    git(root, ['checkout', '-b', 'other']);
+    write(join(root, 'README.md'), 'other side\n');
+    git(root, ['commit', '-am', 'other']);
+    git(root, ['checkout', 'main']);
+    write(join(root, 'README.md'), 'main side\n');
+    git(root, ['commit', '-am', 'main']);
+    gitTry(root, ['merge', 'other']);
+    assert.ok(existsSync(join(root, '.git', 'MERGE_HEAD')), 'the test set up a merge in progress');
+    const c = byId(doctor(root).out, 'git-in-progress');
+    assert.equal(c.status, 'warn');
+    assert.match(c.fix, /git merge --abort/);
+    assert.equal(byId(doctor(root, ['--ci']).out, 'git-in-progress').status, 'skip');
+  } finally {
+    cleanup(parent);
+  }
+});
+
+test('pdf-pages: a tip when the renderer is missing, quietly ok when present, skipped in CI', () => {
+  const { parent, root } = healthy();
+  try {
+    const fake = join(parent, 'pdftoppm-fake');
+    write(fake, 'x');
+    const run = (env, args = []) => {
+      const r = runScript('doctor.mjs', ['--json', ...args], root, env);
+      return JSON.parse(r.stdout);
+    };
+    const missing = byId(run({ ALTERBRAIN_PDFTOPPM: join(parent, 'nope') }), 'pdf-pages');
+    assert.equal(missing.status, 'ok', 'optional: never a warning');
+    assert.equal(missing.fix, null);
+    assert.match(missing.tip, /Poppler|poppler/);
+    assert.match(missing.tip, /reopen Claude/);
+    const present = byId(run({ ALTERBRAIN_PDFTOPPM: fake }), 'pdf-pages');
+    assert.equal(present.status, 'ok');
+    assert.equal(present.tip, undefined);
+    assert.equal(byId(run({ ALTERBRAIN_PDFTOPPM: fake }, ['--ci']), 'pdf-pages').status, 'skip');
   } finally {
     cleanup(parent);
   }

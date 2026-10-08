@@ -24,7 +24,7 @@ Run `node system/scripts/date.mjs --from <last-checked> --plus 90`. It prints th
 ## 2. Read what is in use (read-only)
 
 - Classes: `system/catalogue/routing.json`.
-- Models in use: Grep the `model:` and `effort:` lines of `.claude/skills/*/SKILL.md` and `.claude/agents/*.md`. Group the skills and agents by class so the card can name every file a change would touch.
+- Models in use: Grep the `model:` and `effort:` lines of `.claude/skills/*/SKILL.md` and `.claude/agents/*.md`. Group the skills and agents by class so the card can name every file a change would touch, and list the four helper agents (`helper-triage`, `helper-draft`, `helper-review`, `helper-judgement`; one per class) separately as release-only changes.
 - Main session: the `model` line of `.claude/settings.json`, and `.claude/settings.local.json` if it exists (read only; a local setting wins).
 
 ## 3. Fetch the current models
@@ -85,8 +85,8 @@ Write the card with `/propose` (`.claude/skills/propose/SKILL.md` steps 1 to 4, 
 `/build` does **not** apply these cards (it builds only into `my-*` folders). `/health-check` does, and only after the user says yes in chat.
 
 1. Set the card `status: "approved"`. Re-read the file list in the card; apply nothing that is not on it.
-2. For each skill or agent on the list, edit only its `model:` and `effort:` frontmatter lines (use the Edit tool; these are text files). Apply the matching row in `.claude/rules/model-routing.md`.
-3. Run `node system/scripts/validate.mjs`. If it reports a problem you caused, put the old values back and tell the user plainly.
+2. For each skill or agent on the list, edit only its `model:` and `effort:` frontmatter lines (use the Edit tool; these are text files). Apply the matching row in `.claude/rules/model-routing.md`. **Do not edit the four helper agents** (`helper-triage`, `helper-draft`, `helper-review`, `helper-judgement`) or `routing.json`: they must match each other, `validate.mjs` reports an error if they differ, and they change only in a new Alterbrain release. List them in the card as "changes with the next release", so the user knows the class change is complete for their own skills and agents now and for the helpers later. Say that `/update-alterbrain` will ask before merging these edited files.
+3. Run `node system/scripts/validate.mjs`. It should stay clean, because the helpers and `routing.json` were not touched. If it reports a problem you caused, put the old values back and tell the user plainly.
 4. **Main session model.** Never edit `.claude/settings.json`. Tell the user: "To change the model I talk with, type `/model <alias>` for this session. To make it stick, put `{ "model": "<alias>" }` in `.claude/settings.local.json`; that file is yours and Alterbrain does not touch it." Offer to show the exact text. Do not stop anything that is running.
 5. Set the card `status: "built"`, run `node system/scripts/proposals.mjs mark model-routing-<YYYY-MM> built --card "vault/00_inbox/proposals/<file>.md"`, tick the task, and update `state/local/model-check.json` (`"outcome": "applied"`).
 6. Say what changed, that it starts with the next session or agent, and that `/update-alterbrain` will ask before merging these edited files.

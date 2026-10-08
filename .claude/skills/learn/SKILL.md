@@ -16,6 +16,7 @@ Turn what went well, and what went wrong, into a few lines that make the next se
 - The end of a long session in which the user corrected you or showed a clear preference.
 - `/weekly-review` surfaced a lesson.
 - The user keeps asking for the same thing, and a skill might save them time.
+- **The user states a standing rule** ("always cite the page number", "I never use bullet points in emails"). Offer `/learn` in the same turn, in one line, so the rule lands in `vault/80_me/MEMORY.md` and is not left only in Claude's private memory. If they say yes, run the steps below on that rule; if they ignore the offer, do not repeat it.
 
 ## Before you start
 

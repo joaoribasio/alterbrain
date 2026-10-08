@@ -4,9 +4,9 @@ Alterbrain is your **second brain**, your **digital twin** and your **doer**. It
 
 - **Second brain.** It remembers what you read, attend and write. It keeps the original files, tells you where every answer came from, and helps you learn.
 - **Digital twin.** It learns how you write, in each language you use, and drafts in your voice. It only uses facts you have approved.
-- **Doer.** It helps with assignments, email replies, job hunting (Netherlands pack included) and studying. It prepares things. It never sends anything unless you allow it.
+- **Doer.** It helps with assignments, reports, decks and workbooks, email replies, job hunting (Netherlands pack included), studying and keeping in touch with people. It prepares things. It never sends or uploads anything unless you allow it.
 
-Alterbrain is open source (MIT). During the pilot the repository is **private**: the maintainer adds you as a collaborator first, and you sign in with `gh auth login` (the installer and the setup prompt tell you when). After the pilot and a red-team check it becomes public. It is made for anyone who learns or works and is not technical, MBA students first: a university degree, online courses such as Coursera, or a job with no courses all work. It is also meant to be easy for maintainers to read and extend.
+Alterbrain is free to use and change, for yourself, your studies and your work, under the PolyForm Shield licence (see "Credits and licence" below). The repository is public, so installing and updating need no GitHub sign-in. It is made for anyone who learns or works and is not technical, MBA students first: a university degree, online courses such as Coursera, or a job with no courses all work. It is also meant to be easy for maintainers to read and extend.
 
 ---
 
@@ -133,7 +133,10 @@ Example prompts:
 | `/course` | Set up a course with all its material: slides, readings, Excel files, briefs. It records the AI rules and deadlines and keeps a list of what you have and what is missing |
 | `/ask` | Ask a question, answered from your own notes with sources |
 | `/framework` | Apply a business framework (for example SWOT, Porter) to a case |
-| `/render` | Make a PDF, CV, cover letter or deck with Quarto |
+| `/render` | Make a PDF, CV, cover letter or deck with Quarto, in the template that applies |
+| `/critique` | A panel of blind reviewers on any file you made (report, deck, workbook, memo, CV, letter), then only the changes you approve |
+| `/template` | Turn a school or employer template (PowerPoint, Word or a Quarto folder) into one your documents use; list, attach, preview, remove |
+| `/people` | Your contact book: add someone from a signature, a profile, an event or a card, set follow-ups, see who is due |
 | `/weekly-review` | A short weekly tidy-up |
 | `/learn` | Save a lesson so Claude remembers it |
 | `/edit-voice` | Clean up a draft so it sounds like you, not like an AI |
@@ -150,12 +153,25 @@ Each add-on has **one working case** that you can use today. Each also has a **b
 
 | Add-on | Works today | Blueprint ideas |
 |---|---|---|
-| **Assignments** (`/assignment`) | Set up an assignment (with or without a course), write a brief, draft it, get blind critiques from several "lenses" (devil's advocate, pre-mortem, board, specialists, grader), then ship a PDF within the page limit | Page budget, fact-check, Excel model, class prep, team review |
+| **Assignments** (`/assignment`) | Set up an assignment (with or without a course and a team), write a brief, draft it, get blind critiques from several "lenses" (devil's advocate, pre-mortem, board, specialists, grader, structure and more), pass the delivery gate, ship within the page and upload limits, then record the grade and feedback that come back | Page budget, fact-check, Excel model, class prep, team review |
 | **Email replies** (`/reply`) | Reads a thread safely, drafts a reply in your voice, saves it as a draft and adds a task. Nothing is sent. | Inbox triage, meeting briefs, calendar, learning from your edits, Outlook |
 | **Jobs** (`/jobs`; country packs, Netherlands first) | `scan` finds and ranks roles in the country you choose. With the Netherlands pack it also flags the sponsor register, Dutch-language and visa points. `apply` prepares a tailored CV and cover letter in your outbox. Another country gets the same flow without country checks until a pack for it is built (ask for one with `/propose`). | Weekly scan, pipeline view, LinkedIn (read-only), networking messages |
 | **Study** (`/study`) | Explains a topic from your own sources and makes cards. Due reviews appear in your task list. `/study quiz` runs them. | Session notes from a syllabus, lecture transcripts, Anki |
 
-More blueprints (always-on options, Instagram, Zotero, morning brief, cost report) are listed in `/menu` as "available to build". Just say "build the morning brief" and Claude will start with some questions.
+### Every deliverable meets one standard
+
+Reports, decks, workbooks, memos, CVs and letters follow the same rules, whichever skill makes them.
+
+- **Your voice, with a tone dial.** Drafts sound like you (from your voice profile). Tone is a dial on top: academic, professional or conversational, with a recommended default for your programme, course or project, which you can change for one deliverable.
+- **Built to be read.** Answer first, a storyline you approve before slides are built, full-sentence slide titles, one message per slide, sources on data. A school template or a rubric that prescribes a structure wins.
+- **Your template, resolved quietly.** Give Alterbrain a school or employer template once and it is used for the course, programme or project it belongs to. Your own colours and fonts keep working as your default. `/render` says in one line which template it used.
+- **A delivery gate before you upload.** Cover complete, file names right, every page looked at, workbook values calculated, numbers agreeing across files, size within the upload limit, and no working labels or placeholders left in. Alterbrain never uploads: the last step is a task for you.
+- **A critique, offered once.** At the end of each deliverable Alterbrain offers a quick panel (two or three reviewers, cheaper on Pro) or a full panel. Routine emails are not offered one.
+- **After a deck is approved,** an optional rehearsal pack: speaker notes in your voice, a timing plan, the ten likeliest questions with short answers, and a one-page cheat sheet.
+- **Contacts.** `/people` keeps a light profile for each person (role, how you met, last contact, next follow-up). The weekly review lists who is due. Business facts only unless you ask for more. Public look-ups happen only when you ask.
+- **Routines.** Scheduled jobs (a weekly contacts check, a morning brief) get one note each in `90_routines`: what runs, when, where, and when it last ran. Alterbrain runs no scheduler of its own; it makes your jobs visible, portable to another computer, and flags the ones that stopped. Draft only.
+
+More blueprints (always-on options, keep-in-touch monitoring for your contacts, Instagram, Zotero, morning brief, cost report) are listed in `/menu` as "available to build". Just say "build the morning brief" and Claude will start with some questions.
 
 ### Grow it yourself (self-build)
 
@@ -194,9 +210,9 @@ Details: [Privacy and your data](system/docs/guides/privacy-and-data.md).
 
 ## Updating
 
-Type `/update-alterbrain`. Claude checks the newest release, explains what changed in plain words, and saves a safe restore point first. Core files are replaced exactly. Files you customised are shown to you, and merged only if you approve. Your `my-*` skills and your own words are never touched.
+Type `/update-alterbrain`. Once a week, at the start of a session, Alterbrain also looks (quietly, and only for the number) whether a newer release exists and adds one line to the start-of-session summary if so. It never installs anything by itself. Claude checks the newest release, explains what changed in plain words, and saves a safe restore point first. Core files are replaced exactly. Files you customised are shown to you, and merged only if you approve. Your `my-*` skills and your own words are never touched.
 
-A release sometimes needs a small upgrade to how your notes or settings are stored, for example a new line in a note's header. Those upgrades are listed before you say yes, run only after the restore point is saved, and reported afterwards in plain words. See [Updating Alterbrain](system/docs/guides/updating.md).
+A release sometimes needs a small upgrade to how your notes or settings are stored, for example a new line in a note's header. Those upgrades are listed before you say yes, run only after the restore point is saved, and reported afterwards in plain words. Upgrades that need your judgement about your own notes (for example turning a school setting into a programme note) are not run for you: after the update Claude explains each one, proposes what makes sense, applies only what you approve, and you can skip it and run it later. See [Updating Alterbrain](system/docs/guides/updating.md).
 
 ---
 
@@ -220,9 +236,9 @@ alterbrain/
    ├─ 30_wiki/        what Claude has learned for you (concepts, frameworks, companies)
    ├─ 40_sources/     untouched originals, extracted text, source notes
    ├─ 50_learning/    study cards
-   ├─ 60_people/      people notes (business facts only)
+   ├─ 60_people/      people notes: your contact book (business facts only)
    ├─ 70_journal/     daily, weekly, decisions
-   └─ 80_me/          who you are: soul, identity, facts, voice, brand
+   └─ 80_me/          who you are: soul, identity, facts, voice, brand, templates
 ```
 
 ## For maintainers and contributors
@@ -246,9 +262,9 @@ node system/scripts/doctor.mjs --ci
 
 ## Credits and licence
 
-Alterbrain is released under the **MIT licence** (see `LICENSE`).
+From v0.2.0, Alterbrain is released under the **PolyForm Shield License 1.0.0** (see `LICENSE`). In plain words: you may use, copy and change it for any purpose, including your studies and your job, but you may not use it to offer a product that competes with Alterbrain or with products its maintainer builds on it. This summary is not the licence; the `LICENSE` text decides. Versions up to v0.1.1 were released under MIT and stay under MIT. Contributions are welcome under the terms in `CONTRIBUTING.md`.
 
-It builds on ideas and files from other open-source work, credited in `THIRD_PARTY_NOTICES.md` and `UPSTREAM-SYNC.md`:
+It builds on ideas and files from open-source work, which keep their own licences, credited in `THIRD_PARTY_NOTICES.md` and `UPSTREAM-SYNC.md`:
 
 - COG-second-brain (MIT, Huy Tieu)
 - no-ai-slop (MIT, Peter Yang)

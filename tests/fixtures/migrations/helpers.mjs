@@ -62,6 +62,11 @@ export function listMigrations() {
   return readdirSync(MIGRATIONS_DIR).filter((n) => n.endsWith('.mjs')).sort();
 }
 
+/** Every guided upgrade (NNNN-*.md) in the framework: instructions for the person's Claude, never run by a script. */
+export function listGuided() {
+  return readdirSync(MIGRATIONS_DIR).filter((n) => /^\d{4}-[a-z0-9-]+\.md$/.test(n)).sort();
+}
+
 /** Sorted [relative path, sha256] of every file under a folder: two snapshots are equal when nothing changed. */
 export function snapshot(root) {
   const out = [];

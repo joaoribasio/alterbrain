@@ -4,16 +4,27 @@
 //
 // Exit code: 0 = fine (or no limit given), 1 = more pages than the limit, 2 = usage problem or unreadable PDF.
 import { readFileSync } from 'node:fs';
-import { inflateSync } from 'node:zlib';
+import { constants, inflateSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { isMainModule } from '../../lib/paths.mjs';
 
-/** Return the text of the PDF dictionary that starts at the "<<" before `index` (nesting aware). */
+/**
+ * Return the text of the PDF dictionary that contains `index` (nesting aware, so a /Resources << ... >> entry
+ * before /Type does not cut the dictionary short).
+ */
 function dictAround(text, index) {
-  const open = text.lastIndexOf('<<', index);
-  if (open === -1) return '';
+  // Walk back to the "<<" that is still open at `index`.
   let depth = 0;
+  let open = -1;
+  for (let i = index; i > 0; i--) {
+    if (text[i] === '<' && text[i - 1] === '<') {
+      if (depth === 0) { open = i - 1; break; }
+      depth--; i--;
+    } else if (text[i] === '>' && text[i - 1] === '>') { depth++; i--; }
+  }
+  if (open === -1) return '';
+  depth = 0;
   for (let i = open; i < text.length - 1; i++) {
     if (text[i] === '<' && text[i + 1] === '<') { depth++; i++; }
     else if (text[i] === '>' && text[i + 1] === '>') {
@@ -24,24 +35,27 @@ function dictAround(text, index) {
   return text.slice(open, open + 600);
 }
 
-/** Collect text sources: the raw file, plus every zlib-compressed stream (object streams hide page trees there). */
+/**
+ * Collect text sources: the raw file, plus every Flate-compressed object stream (LuaTeX and pdfTeX keep the page tree
+ * there). The "stream" keyword must not be the end of "endstream", or the stream after another stream is skipped.
+ */
 function sources(buf) {
-  const out = [buf.toString('latin1')];
-  const raw = out[0];
-  const re = /stream\r?\n/g;
+  const raw = buf.toString('latin1');
+  const out = [raw];
+  const re = /(?<!end)stream\r?\n/g;
   let m;
   while ((m = re.exec(raw))) {
     const start = m.index + m[0].length;
     const end = raw.indexOf('endstream', start);
     if (end === -1) break;
-    const dictStart = raw.lastIndexOf('<<', m.index);
-    const head = dictStart === -1 ? '' : raw.slice(dictStart, m.index);
+    const objStart = raw.lastIndexOf(' obj', m.index);
+    const head = raw.slice(objStart === -1 ? Math.max(0, m.index - 600) : objStart, m.index);
     if (/FlateDecode/.test(head) && /\/ObjStm/.test(head)) {
       try {
-        out.push(inflateSync(buf.subarray(start, end)).toString('latin1'));
+        out.push(inflateSync(buf.subarray(start, end), { finishFlush: constants.Z_SYNC_FLUSH }).toString('latin1'));
       } catch { /* not readable: ignore this stream */ }
     }
-    re.lastIndex = end;
+    re.lastIndex = end + 9;
   }
   return out;
 }

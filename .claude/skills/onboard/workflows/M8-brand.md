@@ -34,9 +34,14 @@ Show the choices as a short list (main colour, accent, body font, heading font, 
 - Check: every colour is a 6-digit hex code, and every font named in `base` or `headings` is listed under `fonts`.
 - If Quarto is installed (`quarto --version`), offer a one-page preview via `/render` so they can see it. Otherwise say the style will be used when Quarto is set up.
 
+## Offer a template package
+
+After the user has said yes to the look, offer once: "Do you want to save this as a template you can attach to a course or project?" Save as a template (recommended): "lets you attach it per course, programme or project, with page and upload limits." / Not now: "the style file above stays your default for everything, no extra steps." On a yes, follow the steps of `/template new` (`.claude/skills/template/SKILL.md`) using the files already ingested here. Without a template, `vault/80_me/brand/_brand.yml` keeps working as the default.
+
 ## Files written
 
 - `vault/80_me/brand/_brand.yml`
+- Optional: `vault/80_me/templates/<slug>/` (the template package)
 - Optional: `vault/80_me/brand/reference.docx`, a logo image in `vault/80_me/brand/`
 - Raw copy of any template via `ingest.mjs`
 

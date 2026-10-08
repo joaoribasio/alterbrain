@@ -1,0 +1,47 @@
+filters:
+  and:
+    - 'type == "person"'
+    - 'dnc != true'
+properties:
+  role:
+    displayName: "Role"
+  org:
+    displayName: "Organisation"
+  last_contact:
+    displayName: "Last contact"
+  next_follow_up:
+    displayName: "Next follow-up"
+  cadence:
+    displayName: "Keep in touch"
+  tags:
+    displayName: "Tags"
+views:
+  - type: table
+    name: "Follow-ups"
+    filters:
+      and:
+        - 'next_follow_up != ""'
+    order:
+      - file.name
+      - role
+      - org
+      - last_contact
+      - next_follow_up
+      - cadence
+      - tags
+    sort:
+      - property: next_follow_up
+        direction: ASC
+  - type: table
+    name: "Everyone"
+    order:
+      - file.name
+      - role
+      - org
+      - last_contact
+      - next_follow_up
+      - cadence
+      - tags
+    sort:
+      - property: file.name
+        direction: ASC

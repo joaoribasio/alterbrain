@@ -78,6 +78,7 @@ test('offline mode writes the settings and skips downloads', () => {
     assert.equal(app.newFileLocation, 'folder');
     assert.equal(app.newFileFolderPath, '00_inbox');
     assert.equal(app.useMarkdownLinks, false);
+    assert.equal(app.showUnsupportedFiles, true, 'Word, PowerPoint and Excel files show in the file list');
     assert.match(app.attachmentFolderPath, /^00_inbox\//);
 
     const core = readJson(join(vault, '.obsidian', 'core-plugins.json'));
@@ -162,6 +163,7 @@ test('keeps settings the user already had', () => {
     const app = readJson(join(vault, '.obsidian', 'app.json'));
     assert.equal(app.fontSize, 18);
     assert.equal(app.newFileLocation, 'folder');
+    assert.equal(app.showUnsupportedFiles, true, 'a re-run adds the setting to an existing app.json');
     const core = readJson(join(vault, '.obsidian', 'core-plugins.json'));
     assert.ok(core.includes('random-note'));
     assert.ok(!core.includes('sync'));

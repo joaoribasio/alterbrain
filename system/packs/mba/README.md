@@ -7,7 +7,7 @@ This pack adds what is specific to an MBA (or other business programme) on top o
 These work for every learner, with or without this pack:
 
 - **Course setup** (`/course`): the syllabus, slides, readings, data files, briefs and exams of each course, with the AI rule and deadlines. The procedure is `.claude/skills/course/references/course-setup.md`.
-- **The assignment studio** (`/assignment`): set-up, research brief, Quarto draft, blind reviewer panel and final PDF. Its reviewer briefs live in `.claude/skills/assignment/references/lenses/`, and its note templates in `system/templates/notes/`.
+- **The assignment studio** (`/assignment`): set-up, research brief, Quarto draft, blind reviewer panel and final PDF. Its reviewer briefs are the core lens library in `.claude/skills/critique/references/lenses/` (also used by `/critique`), and its note templates in `system/templates/notes/`.
 - **Study** (`/study`): flashcards and spaced-repetition quizzes from your own notes.
 - **Job search** (`/jobs`): finding and ranking vacancies and preparing drafts. The checks for one country (Netherlands first) are in a country pack, `system/packs/country-nl/`, not here.
 
@@ -15,7 +15,7 @@ These work for every learner, with or without this pack:
 
 1. **Frameworks library** (`system/packs/mba/frameworks/`). 25 short notes on the models you meet in an MBA, such as Porter's Five Forces, VRIO and DCF. Each note is written the same way, so they are easy to scan and use. See the list below.
 2. **Case method** (`system/packs/mba/templates/case.md`). The case note template, with the case date the reviewers need for the hindsight rule, the exhibits table and the traps. `/assignment` uses it when the assignment is a case.
-3. **Business critique presets** (`system/packs/mba/critique-presets.md`). Seat suggestions for the board and the specialists when `/assignment critique` reviews a business assignment: a CFO or a buyer, a treasurer or a consultant, an audit partner or a valuation expert, and specialist fields such as valuation or competition law.
+3. **Business critique presets** (`system/packs/mba/critique-presets.md`). Seat suggestions for the board and the specialists when `/critique` or `/assignment critique` reviews a business assignment, deck, memo or proposal: a CFO or a buyer, a treasurer or a consultant, an audit partner or a valuation expert, and specialist fields such as valuation or competition law.
 4. **MBA wording.** Menus, examples and onboarding questions that speak about business, a programme and "after the programme" use this wording while the pack is on. Without it they use neutral words.
 
 ## How the frameworks get into your vault

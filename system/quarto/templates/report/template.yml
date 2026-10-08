@@ -1,0 +1,25 @@
+# Built-in report template. Fields are explained in .claude/skills/template/references/new-template.md.
+schema: 1
+name: "Report, memo or assignment"
+slug: "report"
+kind: "report"
+style: "report"
+base: "report"
+format: ""
+outputs: [pdf, docx]
+brand: ""
+reference_doc: ""
+quarto_extension: ""
+csl: "apa"
+max_upload_mb: null
+page_limit: null
+font_size_pt: null
+fonts: []
+house_rules:
+  - "Start with an executive summary that gives the answer."
+  - "Headings are full-sentence takeaways where the reader skims."
+  - "Every chart title states what the chart shows, and data has a source line."
+  - "Keep numbers, units and terms identical across the text, tables and charts."
+  - "Put backup material in an appendix."
+structure: []
+source: "built-in"

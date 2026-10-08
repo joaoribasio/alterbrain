@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FIXTURES, makeProject, runScript, read } from '../fixtures/scripts/helpers.mjs';
-import { applyLatestOnly, htmlToText, inferKind, isJunk, sanitiseName, toFenced } from '../../system/scripts/ingest.mjs';
+import { aiRestrictionHits, applyLatestOnly, htmlToText, inferKind, isJunk, sanitiseName, toFenced } from '../../system/scripts/ingest.mjs';
 
 const MANIFEST = 'vault/40_sources/manifest.jsonl';
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
@@ -25,6 +25,7 @@ function setup() {
     box.cleanup();
   };
   cpSync(join(FIXTURES, 'ingest'), inbox, { recursive: true });
+  rmSync(join(inbox, 'no-ai.md')); // the AI-notice test copies it on its own
   writeFileSync(join(inbox, '.DS_Store'), 'junk');
   writeFileSync(join(inbox, '~$lock.docx'), 'junk');
   writeFileSync(join(inbox, 'Thumbs.db'), 'junk');
@@ -373,5 +374,106 @@ test('F15: the manifest keeps the file name, not the folder path, unless --origi
   } finally {
     p.cleanup();
     box.cleanup();
+  }
+});
+
+test('C10: a file that says it must not be used with AI tools is copied and flagged', () => {
+  const p = makeProject();
+  try {
+    const f = p.path('no-ai.md');
+    cpSync(join(FIXTURES, 'ingest', 'no-ai.md'), f);
+    const plain = p.path('plain.md');
+    writeFileSync(plain, '# Plain\n\nNothing special here.\n');
+    const r = runScript('ingest.mjs', [f, plain, '--json'], p);
+    assert.equal(r.status, 0, r.stderr);
+    const out = r.json();
+    const flagged = out.files.find((x) => /no-ai.md$/.test(x.path));
+    const clean = out.files.find((x) => /plain.md$/.test(x.path));
+    assert.equal(flagged.status, 'new', 'the raw copy is still made');
+    assert.equal(flagged.ai_notice, true);
+    assert.match(flagged.ai_notice_text, /must not be used with generative AI tools/);
+    assert.equal(clean.ai_notice, undefined);
+    // the manifest keeps its usual keys
+    assert.ok(!manifestLines(p).some((e) => 'ai_notice' in e));
+  } finally {
+    p.cleanup();
+  }
+  const q = makeProject();
+  try {
+    const g = q.path('no-ai.md');
+    cpSync(join(FIXTURES, 'ingest', 'no-ai.md'), g);
+    const human = runScript('ingest.mjs', [g], q);
+    assert.match(human.stdout, /This file says it must not be used with AI tools/);
+  } finally {
+    q.cleanup();
+  }
+});
+
+test('C10: aiRestrictionHits finds the usual phrasings and nothing else', () => {
+  assert.ok(aiRestrictionHits('These notes may not be used with AI.').length === 1);
+  assert.ok(aiRestrictionHits('The data must not be uploaded to any AI chatbot.').length === 1);
+  assert.ok(aiRestrictionHits('Generative AI tools are not permitted for this brief.').length === 1);
+  assert.deepEqual(aiRestrictionHits('A normal reading about market entry and pricing.'), []);
+  assert.deepEqual(aiRestrictionHits(''), []);
+  assert.deepEqual(aiRestrictionHits(null), []);
+});
+
+test('C10: the AI term is anchored, so airline, aims and aircraft are not flagged', () => {
+  for (const ok of [
+    'Do not share this case outside the airline industry panel.',
+    'These figures may not be used for aims other than the course.',
+    'This data should not be used in aircraft maintenance decisions.',
+    'Do not use it for aid projects.',
+    'Never paste it into an ai thing.',
+  ]) assert.deepEqual(aiRestrictionHits(ok), [], ok);
+});
+
+test('C10: aiRestrictionHits also finds training, prohibition and chatbot phrasings', () => {
+  for (const bad of [
+    'This text may not be used for training AI models.',
+    'Use of ChatGPT is prohibited.',
+    'Do not enter this into any chatbot.',
+    'This brief must not be uploaded to ChatGPT.',
+    'Do not use generative AI tools for the assignment.',
+    'The use of A.I. tools is strictly forbidden.',
+  ]) assert.equal(aiRestrictionHits(bad).length, 1, bad);
+});
+
+test('C10: --ai-pending flags a saved file with no note, keeps the answer in state/local, and the manifest stays plain', () => {
+  const p = makeProject();
+  try {
+    const f = p.path('no-ai.md');
+    cpSync(join(FIXTURES, 'ingest', 'no-ai.md'), f);
+    const plain = p.path('plain.md');
+    writeFileSync(plain, '# Plain\n\nNothing special here.\n');
+    assert.equal(runScript('ingest.mjs', [f, plain], p).status, 0);
+    // a later session: the flag is worked out again from the files
+    const first = runScript('ingest.mjs', ['--ai-pending', '--json'], p);
+    assert.equal(first.status, 0, first.stderr);
+    const a = first.json();
+    assert.equal(a.flagged.length, 1);
+    assert.equal(a.flagged[0].ai_notice, true);
+    assert.match(a.flagged[0].ai_notice_text, /must not be used with generative AI tools/);
+    assert.equal(a.flagged[0].decision, null);
+    assert.equal(a.undecided, 1);
+    assert.ok(!manifestLines(p).some((e) => 'ai_notice' in e));
+    // the answer is saved once, on this computer only
+    const d = runScript('ingest.mjs', ['--ai-decide', a.flagged[0].id, 'held'], p);
+    assert.equal(d.status, 0, d.stderr);
+    assert.ok(existsSync(p.path('state', 'local', 'ai-decisions.json')));
+    const b = runScript('ingest.mjs', ['--ai-pending', '--json'], p).json();
+    assert.equal(b.flagged[0].decision, 'held');
+    assert.equal(b.undecided, 0);
+    assert.equal(b.held, 1);
+    // a note for the file ends the check
+    const sha256 = manifestLines(p).find((e) => /no-ai/.test(e.stored)).sha256;
+    mkdirSync(p.path('vault', '40_sources', 'notes'), { recursive: true });
+    writeFileSync(p.path('vault', '40_sources', 'notes', 'Briefing.md'), `---\nsha256: ${sha256}\n---\nNote\n`);
+    assert.equal(runScript('ingest.mjs', ['--ai-pending', '--json'], p).json().flagged.length, 0);
+    // bad input
+    assert.equal(runScript('ingest.mjs', ['--ai-decide', 'zzzzzzzz', 'held'], p).status, 2);
+    assert.equal(runScript('ingest.mjs', ['--ai-decide', sha256, 'maybe'], p).status, 2);
+  } finally {
+    p.cleanup();
   }
 });

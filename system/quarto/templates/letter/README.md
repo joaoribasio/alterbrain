@@ -48,3 +48,7 @@ If a letter spills onto a second page, shorten it. Do not shrink the font.
 Colours and fonts come from your brand file (`vault/80_me/brand/_brand.yml`). Without one, the default navy and Arial are used.
 
 Options you can add under `format: alterbrain-letter-typst:` in the front matter: `fontsize` (default `10.5pt`) and `margin` (default 2.5 cm on the sides, 2.2 cm top and bottom).
+
+## Template description
+
+`template.yml` in this folder describes the built-in letter template: its style, limits and house rules. Your own templates (for example from your school) go in `vault/80_me/templates/`, and are made with `/template`. When one is attached to a course, project or document, it is used instead of this one.

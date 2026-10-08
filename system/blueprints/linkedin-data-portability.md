@@ -101,8 +101,8 @@ What it cannot do: look at anyone else's profile, search LinkedIn, or tell you w
 7. Run the first `status`, then `snapshot --keys-only`, then `snapshot`, then `changes`. "Not ready yet" right after the token is normal: tell the user to try again later today or tomorrow, and add a task for it (step 10).
 8. Write the source notes the way `/ingest` does (`node system/scripts/ingest-pending.mjs` lists the files that need one). Add one line to `vault/30_wiki/log.md`. Do not create wiki pages from a contact list.
 9. Write or update the one summary note `vault/20_areas/career/LinkedIn data.md` (`type: "topic"`, `status: "active"`, `sources` listing the source notes). Keep it short: counts, the date each part was taken ("Connections as of <date>"), the latest headline and positions, what changed this week, and the honest limits. Do **not** make a note per connection. Make or update a `60_people/` note only when the user asks about one person, with business facts only, each with a source and date.
-10. Reminder: add a task with `node system/scripts/tasks.mjs add "Refresh my LinkedIn data (say: refresh my LinkedIn data)" --tag linkedin-data --due <date>`. Take the date from `node system/scripts/date.mjs --plus 7`, or the next chosen weekday. After every `changes` run, tick the old task and add the next one. Optional: run `changes` on a schedule with the laptop blueprint. The job is read-only.
-11. Record the build in `state/built.json`.
+10. Reminder: add a task with `node system/scripts/tasks.mjs add "Refresh my LinkedIn data (say: refresh my LinkedIn data)" --tag linkedin-data --due <date>`. Take the date from `node system/scripts/date.mjs --plus 7`, or the next chosen weekday. After every `changes` run, tick the old task and add the next one. Optional: run `changes` on a schedule with the laptop blueprint. The job is read-only. If the user schedules it, write the routine note `vault/90_routines/LinkedIn data refresh.md` (`runs: "/my-linkedin-data"`, `may: "draft only"`) as `/build` describes under "Routine notes": the body is the exact instruction the host runs and ends with the `record` step, and the note stays `paused` until the schedule exists on the host (and, for a cloud or server host, until the run can push its note change). Every scheduled job is a routine note; point the user to it ("check my routines").
+11. Record the build in `state/built.json`, listing the routine note in its paths if one was made.
 
 ## How to test
 
@@ -116,7 +116,7 @@ What it cannot do: look at anyone else's profile, search LinkedIn, or tell you w
 
 ## How to undo
 
-1. Run `/remove-skill my-linkedin-data`.
+1. Run `/remove-skill my-linkedin-data`. If you scheduled `changes`, it offers to pause the routine note `LinkedIn data refresh` in `vault/90_routines/` (recommended) or delete it; delete the schedule on your host too (the Claude app's Scheduled tasks or Routines page, or your server's scheduler), or it keeps running.
 2. Delete the `LINKEDIN_DMA_TOKEN` line from `.env.local`.
 3. Take back LinkedIn's permission: in the Developer Portal open your app and delete it, or remove the app under the permitted services in your LinkedIn settings. That should stop the token working at once [Unverified: LinkedIn's menu names and the exact effect were not checked].
 4. Delete the folder `state/local/linkedin-dma/` (cursor, local events, any messages).

@@ -164,12 +164,20 @@ export function hasTopLevelKey(frontMatter, key) {
 export function stageExtensions(typeKey, srcDir) {
   const type = TYPES[typeKey];
   const from = join(TEMPLATES_DIR, type.template, '_extensions');
+  if (!existsSync(from)) throw new Error(`The template files for "${typeKey}" are missing: ${from}`);
+  return stageExtensionsFrom(from, srcDir);
+}
+
+/**
+ * Copy every folder in `from` (a template's _extensions folder) into <srcDir>/_extensions. A folder that is already
+ * there is never overwritten. cleanup() removes exactly what was added. A missing `from` adds nothing.
+ */
+export function stageExtensionsFrom(from, srcDir) {
   const added = [];
   const extRoot = join(srcDir, '_extensions');
   const createdRoot = !existsSync(extRoot);
-  if (!existsSync(from)) throw new Error(`The template files for "${typeKey}" are missing: ${from}`);
-  mkdirSync(extRoot, { recursive: true });
-  for (const e of readdirSync(from, { withFileTypes: true })) {
+  if (existsSync(from)) mkdirSync(extRoot, { recursive: true });
+  for (const e of existsSync(from) ? readdirSync(from, { withFileTypes: true }) : []) {
     if (!e.isDirectory()) continue;
     const dest = join(extRoot, e.name);
     if (existsSync(dest)) continue; // the user's own copy wins
@@ -208,4 +216,81 @@ export function isDirectory(p) {
 
 export function readTextSafe(file) {
   try { return readFileSync(file, 'utf8'); } catch { return ''; }
+}
+
+// ---------------------------------------------------------------- formats named by the document itself
+
+/** Names under `contributes: formats:` in an _extension.yml text (the keys, for example pdf, typst, html). */
+export function contributedFormats(yamlText) {
+  const lines = String(yamlText).split(/\r?\n/);
+  const indentOf = (l) => l.length - l.trimStart().length;
+  const live = (l) => l.trim() !== '' && !l.trim().startsWith('#');
+  const out = [];
+  let i = lines.findIndex((l) => /^contributes[ \t]*:/.test(l));
+  if (i === -1) return out;
+  i++;
+  while (i < lines.length && !(live(lines[i]) && /^[ \t]+formats[ \t]*:/.test(lines[i]))) {
+    if (live(lines[i]) && indentOf(lines[i]) === 0) return out; // left the contributes block
+    i++;
+  }
+  if (i >= lines.length) return out;
+  const base = indentOf(lines[i]);
+  let level = -1;
+  for (i++; i < lines.length; i++) {
+    if (!live(lines[i])) continue;
+    const ind = indentOf(lines[i]);
+    if (ind <= base) break;
+    if (level === -1) level = ind;
+    const m = ind === level ? /^\s*["']?([A-Za-z0-9_.-]+)["']?[ \t]*:/.exec(lines[i]) : null;
+    if (m) out.push(m[1]);
+  }
+  return out;
+}
+
+/**
+ * The Quarto format names that the extensions in `extRoot` (a folder of extensions, such as <project>/_extensions)
+ * provide. An extension in a folder called "rsm" that contributes a "pdf" format is used as "rsm-pdf". Looks at
+ * _extensions/<name>/ and _extensions/<owner>/<name>/. Returns a Set; empty when the folder is missing.
+ */
+export function extensionFormats(extRoot) {
+  const names = new Set();
+  if (!extRoot || !isDirectory(extRoot)) return names;
+  const dirs = [];
+  for (const e of readdirSync(extRoot, { withFileTypes: true })) {
+    if (!e.isDirectory()) continue;
+    const d = join(extRoot, e.name);
+    dirs.push(d);
+    for (const e2 of readdirSync(d, { withFileTypes: true })) if (e2.isDirectory()) dirs.push(join(d, e2.name));
+  }
+  for (const d of dirs) {
+    const file = ['_extension.yml', '_extension.yaml'].map((n) => join(d, n)).find((p) => existsSync(p));
+    if (!file) continue;
+    const yml = readTextSafe(file);
+    const name = basename(d); // Quarto names an extension after its folder
+    for (const key of contributedFormats(yml)) if (key !== 'common') names.add(`${name}-${key}`);
+  }
+  return names;
+}
+
+/** The format names a document's front matter asks for (`format: x`, or the keys under `format:`), in order. */
+export function documentFormats(frontMatter) {
+  const lines = String(frontMatter).split(/\r?\n/);
+  const i = lines.findIndex((l) => /^format[ \t]*:/.test(l));
+  if (i === -1) return [];
+  const clean = (v) => v.replace(/[ \t]+#.*$/, '').trim().replace(/^["']|["']$/g, '');
+  const rest = clean(lines[i].replace(/^format[ \t]*:/, ''));
+  if (rest) return /^[A-Za-z0-9_.-]+$/.test(rest) ? [rest] : [];
+  const out = [];
+  let level = -1;
+  for (let j = i + 1; j < lines.length; j++) {
+    const l = lines[j];
+    if (!l.trim() || l.trim().startsWith('#')) continue;
+    const ind = l.length - l.trimStart().length;
+    if (ind === 0) break;
+    if (level === -1) level = ind;
+    if (ind !== level) continue;
+    const m = /^\s*["']?([A-Za-z0-9_.-]+)["']?[ \t]*:/.exec(l);
+    if (m) out.push(m[1]);
+  }
+  return out;
 }

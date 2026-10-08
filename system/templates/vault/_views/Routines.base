@@ -1,0 +1,41 @@
+filters:
+  and:
+    - 'type == "routine"'
+properties:
+  status:
+    displayName: "Status"
+  schedule:
+    displayName: "Schedule"
+  host:
+    displayName: "Host"
+  last_run:
+    displayName: "Last run"
+  last_result:
+    displayName: "Last result"
+views:
+  - type: table
+    name: "Routines"
+    order:
+      - file.name
+      - status
+      - schedule
+      - host
+      - last_run
+      - last_result
+    sort:
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: "Active"
+    filters:
+      and:
+        - 'status == "active"'
+    order:
+      - file.name
+      - schedule
+      - host
+      - last_run
+      - last_result
+    sort:
+      - property: last_run
+        direction: ASC

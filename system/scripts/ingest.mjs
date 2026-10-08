@@ -29,6 +29,11 @@
 //   ALTERBRAIN_MAX_ZIP_FILES=n   most files one zip may hold (default 5000)
 //   ALTERBRAIN_NO_ZIP_TOOL=1     pretend this computer has no tool that opens zips (used by tests)
 //
+// A file whose text says it must not be used with AI tools gets ai_notice and ai_notice_text in its per-file result (--json
+// and the human summary). It is still copied; the /ingest skill asks the user before any note is written.
+// The manifest keeps no such field, so --ai-pending works it out again for files that still have no note, and
+// --ai-decide <id> held|use keeps the user's answer in state/local/ai-decisions.json (never tracked by git).
+//
 // Safety: files that look like secrets are never copied into the vault (a vault is saved and backed up online).
 // A file whose NAME looks like one (.env, *.pem, id_rsa, credentials*.json, a password export) is skipped, and a file
 // whose TEXT holds a password or key is removed again right after the copy. The record keeps only the file name
@@ -60,6 +65,7 @@ import { rootPath, toRel, isMainModule } from '../lib/paths.mjs';
 import { appendLine, ensureDir, sha256File, today, writeText } from '../lib/fsx.mjs';
 import { cmpVersion } from '../lib/proc.mjs';
 import { findSecret } from '../hooks/block_secrets.mjs';
+import { pendingEntries } from './ingest-pending.mjs';
 
 export const KINDS = ['pdf', 'web', 'email', 'doc', 'slides', 'sheet', 'transcript', 'other'];
 const MAX_RAW_BYTES = () => Number(process.env.ALTERBRAIN_MAX_RAW_BYTES) || 100 * 1024 * 1024;
@@ -125,6 +131,124 @@ function secretIn(rawAbs, ext, textAbs, textStatus) {
     if (hit && hit.level === 'high') return hit;
   }
   return null;
+}
+
+// ---------------------------------------------------------------- AI restriction notice
+// A file that says it must not be used with AI tools is still copied (the raw copy is only a copy). The per-file
+// result carries ai_notice and ai_notice_text so the /ingest skill can ask the user before any note is written.
+// The AI term is anchored on both sides (no "airline", "aims", "aircraft" or "aid"); a bare "AI" must be capitals (see AI_TOKEN_CS).
+const AI_TERM = String.raw`(?<![A-Za-z])(?:AI|A\.I\.|artificial[- ]intelligence|ChatGPT|GPT-?\d*|Copilot|chatbots?|LLMs?|(?:large\s+)?language\s+models?)(?![A-Za-z])`;
+const AI_NEG = String.raw`(?:(?:must|may|should|can|shall|will)\s*not|cannot|can't|never|do\s+not|don't)`;
+const AI_ACT = String.raw`(?:upload(?:ed)?|enter(?:ed)?|pasted?|shared?|fed|feed|input|submit(?:ted)?|put|used?)`;
+const AI_USE_PREP = String.raw`(?:with|in|for|by|to\s+train|for\s+training)`;
+const AI_DET = String.raw`(?:any\s+|an?\s+|the\s+)?(?:generative\s+)?`;
+export const AI_RESTRICTION_PATTERNS = [
+  new RegExp(String.raw`\b${AI_NEG}\s+be\s+used\s+${AI_USE_PREP}\s+${AI_DET}${AI_TERM}`, 'i'),
+  new RegExp(String.raw`\bnot\s+(?:to\s+)?be\s+used\s+${AI_USE_PREP}\s+${AI_DET}${AI_TERM}`, 'i'),
+  new RegExp(String.raw`\b${AI_NEG}\s+be\s+${AI_ACT}\s+(?:(?:in)?to|with|on)\s+${AI_DET}${AI_TERM}`, 'i'),
+  new RegExp(String.raw`${AI_TERM}(?:\s+[\w-]+){0,3}\s+(?:is|are)\s+(?:strictly\s+)?(?:not\s+(?:permitted|allowed)|prohibited|forbidden|banned)`, 'i'),
+  new RegExp(String.raw`\buse\s+of\s+${AI_DET}${AI_TERM}[^.\n]{0,40}\b(?:is|are)\s+(?:strictly\s+)?(?:not\s+(?:permitted|allowed)|prohibited|forbidden|banned)`, 'i'),
+  new RegExp(String.raw`\b${AI_NEG}\b[^.\n]{0,60}\b${AI_ACT}\b[^.\n]{0,60}${AI_TERM}`, 'i'),
+];
+// The patterns run case-insensitively; a match counts only if its AI term is a real one (a lower-case "ai" is not).
+const AI_TOKEN_CS = /(?<![A-Za-z])(?:AI|A\.I\.)(?![A-Za-z])/;
+const AI_TOKEN_CI = /artificial[- ]intelligence|chatgpt|gpt-?\d*|copilot|chatbots?|\bllms?\b|language\s+models?/i;
+
+/** Sentences of `text` that say the file must not be used with AI tools (empty array when none). */
+export function aiRestrictionHits(text) {
+  const src = String(text ?? '');
+  const hits = [];
+  for (const re of AI_RESTRICTION_PATTERNS) {
+    const g = new RegExp(re.source, 'gi');
+    let m;
+    while ((m = g.exec(src))) {
+      if (m[0] === '') g.lastIndex++;
+      if (!AI_TOKEN_CS.test(m[0]) && !AI_TOKEN_CI.test(m[0])) continue;
+      let a = m.index;
+      let b = m.index + m[0].length;
+      while (a > 0 && !/[.!?\n]/.test(src[a - 1])) a--;
+      while (b < src.length && !/[.!?\n]/.test(src[b])) b++;
+      if (src[b] && src[b] !== '\n') b++;
+      const sentence = src.slice(a, b).replace(/\s+/g, ' ').trim().slice(0, 300);
+      if (sentence && !hits.includes(sentence)) hits.push(sentence);
+      break;
+    }
+  }
+  return hits;
+}
+
+/** The hits for a stored file: its extracted text, else a small plain-text raw copy. Never throws. */
+function aiNoticeIn(rawAbs, ext, textAbs, textStatus) {
+  try {
+    if (textStatus === 'done') return aiRestrictionHits(readFileSync(textAbs, 'utf8'));
+    if (SCANNABLE_RAW.has(ext) && statSync(rawAbs).size <= 8 * 1024 * 1024) return aiRestrictionHits(readFileSync(rawAbs, 'utf8'));
+  } catch {
+    /* no notice */
+  }
+  return [];
+}
+
+// ---- Files already copied: the flag is worked out again from the files, and the user's answer is kept on this computer.
+// The manifest never holds ai_notice, so /ingest pending asks this instead of trusting the earlier run's output.
+// The answer ("held" or "use", by sha256) is in state/local/ai-decisions.json, which git never tracks.
+export const aiDecisionsFile = (root = rootPath()) => join(root, 'state', 'local', 'ai-decisions.json');
+
+export function readAiDecisions(root = rootPath()) {
+  try {
+    const d = JSON.parse(readFileSync(aiDecisionsFile(root), 'utf8'));
+    return d && typeof d === 'object' && !Array.isArray(d) ? d : {};
+  } catch {
+    return {};
+  }
+}
+
+function manifestEntries(root) {
+  const f = join(root, 'vault', '40_sources', 'manifest.jsonl');
+  if (!existsSync(f)) return [];
+  const out = [];
+  for (const l of readFileSync(f, 'utf8').split(/\r?\n/)) {
+    try {
+      const e = JSON.parse(l);
+      if (e && e.sha256) out.push(e);
+    } catch {
+      /* skip a bad line */
+    }
+  }
+  return out;
+}
+
+/** Saves the user's decision for one file (full sha256 or the 8-character id). Returns the entry, or throws a plain sentence. */
+export function recordAiDecision(which, decision, root = rootPath()) {
+  if (decision !== 'held' && decision !== 'use') throw new Error('The decision must be "held" or "use".');
+  const key = String(which || '').toLowerCase();
+  const found = key.length >= 8 ? manifestEntries(root).filter((e) => e.sha256 === key || e.sha256.startsWith(key)) : [];
+  const shas = [...new Set(found.map((e) => e.sha256))];
+  if (shas.length !== 1) throw new Error(shas.length ? 'That id matches more than one file. Give more of it.' : 'I do not know that file. Give the id from the pending list.');
+  const all = readAiDecisions(root);
+  all[shas[0]] = decision;
+  writeText(aiDecisionsFile(root), JSON.stringify(all, null, 2) + '\n');
+  return found[0];
+}
+
+/**
+ * Among the saved files that have no source note yet, the ones whose text says they must not be used with AI tools.
+ * `decision` is null until the user has answered; "held" files are not counted as still to write.
+ */
+export function aiPendingCheck(root = rootPath()) {
+  const decisions = readAiDecisions(root);
+  const byId = new Map(manifestEntries(root).map((e) => [e.id, e]));
+  const flagged = [];
+  for (const p of pendingEntries(root)) {
+    const e = byId.get(p.id);
+    if (!e) continue;
+    const rawAbs = join(root, ...String(e.stored || '').split('/'));
+    const textAbs = e.text ? join(root, ...String(e.text).split('/')) : null;
+    const hits = e.stored ? aiNoticeIn(rawAbs, e.ext || extname(e.stored).toLowerCase(), textAbs, e.text_status) : [];
+    if (!hits.length) continue;
+    flagged.push({ id: e.id, sha256: e.sha256, stored: e.stored, ai_notice: true, ai_notice_text: hits[0], decision: decisions[e.sha256] ?? null });
+  }
+  const count = (d) => flagged.filter((f) => f.decision === d).length;
+  return { flagged, undecided: count(null), held: count('held'), use: count('use') };
 }
 
 // ---------------------------------------------------------------- names
@@ -911,7 +1035,9 @@ export async function ingest(paths, { latestOnly = false, kind = null, origin = 
       };
       appendLine(manifestFile(), JSON.stringify(entry));
       known.set(sha, entry);
-      records.push({ path: shown, status: 'new', ...entry, ...zipField(f) });
+      const aiHits = aiNoticeIn(rawAbs, ext, textAbs, text.status);
+      const aiField = aiHits.length ? { ai_notice: true, ai_notice_text: aiHits[0] } : {};
+      records.push({ path: shown, status: 'new', ...entry, ...aiField, ...zipField(f) });
     } catch (e) {
       for (const c of created) {
         try {
@@ -1014,17 +1140,28 @@ const USAGE = `ingest: copies files into your vault with provenance (the raw cop
   --kind          one of: ${KINDS.join(', ')} (default: guessed from the file type)
   --origin        where the files came from (default: the file name only, or "<zip name>/<path inside>")
   --course        the course these files belong to, written on each new record as "course"
-  --json          machine-readable output`;
+  --json          machine-readable output
+
+  node system/scripts/ingest.mjs --ai-pending [--json]
+                  among saved files with no note yet, the ones that say they must not be used with AI tools
+  node system/scripts/ingest.mjs --ai-decide <id> held|use
+                  keeps your answer for one such file on this computer only (state/local/), so you are asked once`;
 
 export async function run(argv) {
   const paths = [];
   const opts = {};
   let json = false;
+  let aiPending = false;
+  let aiDecide = null;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const [flag, inline] = a.startsWith('--') && a.includes('=') ? [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)] : [a, undefined];
     if (flag === '--json') json = true;
     else if (flag === '--latest-only') opts.latestOnly = true;
+    else if (flag === '--ai-pending') aiPending = true;
+    else if (flag === '--ai-decide') {
+      aiDecide = [argv[++i], argv[++i]];
+    }
     else if (flag === '--help') {
       console.log(USAGE);
       return 0;
@@ -1039,6 +1176,26 @@ export async function run(argv) {
       console.error(`I do not know the option ${flag}.\n\n${USAGE}`);
       return 2;
     } else paths.push(a);
+  }
+  if (aiPending && !aiDecide && paths.length === 0) {
+    const r = aiPendingCheck();
+    if (json) console.log(JSON.stringify(r, null, 2));
+    else if (r.flagged.length === 0) console.log('None of the saved files without a note says it must not be used with AI tools.');
+    else {
+      for (const f of r.flagged) console.log(`  ? ${f.id} ${basename(f.stored)}: "${f.ai_notice_text}" (${f.decision ?? 'not decided yet'})`);
+      console.log(`Not decided: ${r.undecided}. Held: ${r.held}. Use anyway: ${r.use}.`);
+    }
+    return 0;
+  }
+  if (aiDecide) {
+    try {
+      const e = recordAiDecision(aiDecide[0], aiDecide[1]);
+      console.log(`Saved on this computer only: ${basename(e.stored)} is ${aiDecide[1] === 'held' ? 'held, no note will be written' : 'to be used, at your decision'}.`);
+      return 0;
+    } catch (e) {
+      console.error(e.message);
+      return 2;
+    }
   }
   if (paths.length === 0) {
     console.error(`Tell me which file, folder or zip to ingest.\n\n${USAGE}`);
@@ -1071,6 +1228,7 @@ export async function run(argv) {
   if (c.local_only) console.log(`  ${plural(c.local_only, 'file')} too big for git, kept on this computer only.`);
   for (const r of summary.files) {
     if (r.status === 'new') console.log(`  + ${r.stored}${r.zip ? ` (from ${r.origin})` : ''}`);
+    if (r.status === 'new' && r.ai_notice) console.log(`    ? ${basename(r.stored)}: This file says it must not be used with AI tools: "${r.ai_notice_text}"`);
     else if (r.status === 'duplicate') console.log(`  = ${basename(r.path)} (already in your vault as ${r.id})`);
     else if (r.status === 'skipped' && r.reason !== 'junk') console.log(`  - ${basename(r.path)} (${r.reason === 'older-version' ? 'older version' : r.reason})`);
     else if (r.status === 'error') console.log(`  ! ${r.zip && basename(r.path) === r.zip ? r.zip : r.path}: ${r.reason}`);

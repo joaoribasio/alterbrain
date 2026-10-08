@@ -89,3 +89,7 @@ Colours and fonts come from `vault/80_me/brand/_brand.yml`. The main colour is u
 2. If you are over, cut words first. Then shrink figures. Change spacing and margins only if the brief allows it. Never change the font size if the brief sets it.
 3. Ask your course whether the title block, references and appendices count. The tool counts every page of the PDF.
 4. Check that your brand font is installed (`node system/quarto/tools/fonts.mjs`). A substitute font changes the length.
+
+## Template description
+
+`template.yml` in this folder describes the built-in report template: its style, limits and house rules. Your own templates (for example from your school) go in `vault/80_me/templates/`, and are made with `/template`. When one is attached to a course, project or document, it is used instead of this one.

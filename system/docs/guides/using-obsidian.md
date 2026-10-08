@@ -17,6 +17,13 @@ Obsidian is a free app for reading and editing your notes. Alterbrain writes the
    - **Git**: an extra backup for edits you make in Obsidian. On a computer it works with Alterbrain's own safety checks (big files go to Git LFS, and private notes are never uploaded unscrambled if you turned on [encryption](encrypting-private-notes.md)).
 5. Open **Home** from the file list on the left.
 
+### Word, PowerPoint and Excel files in the file list
+
+Alterbrain's setup turns on Obsidian's "Detect all file extensions" option, so the Word, PowerPoint and Excel files you work on (a report, a deck, a model) show up in the file list next to your notes. Obsidian does not open them; click one and it opens in the program on your computer.
+
+- **If you set Obsidian up before this option existed,** say "set up Obsidian again". Then close Obsidian and open the vault once more so it picks the setting up.
+- [Unverified] Obsidian publishes no list of its settings file, so the exact name of this option comes from community plugin sources. If the files do not appear after you reopen the vault, open Settings, then Files and links, and switch on "Detect all file extensions" yourself.
+
 ## Find your way around
 
 | Folder | What's inside |
@@ -27,9 +34,9 @@ Obsidian is a free app for reading and editing your notes. Alterbrain writes the
 | `30_wiki` | Knowledge Alterbrain maintains: concepts, frameworks, companies |
 | `40_sources` | Your imported files and a note about each |
 | `50_learning` | Study cards |
-| `60_people` | People you work with (business info only) |
+| `60_people` | Your contact book: people you work with (business info only). A **Contacts** view on Home shows who to follow up with (see [Networking](networking.md)) |
 | `70_journal` | Daily, weekly and decision notes |
-| `80_me` | Your profile, fact sheet, voice and document style |
+| `80_me` | Your profile, fact sheet, voice, document style and your own templates |
 
 ## Everyday use
 

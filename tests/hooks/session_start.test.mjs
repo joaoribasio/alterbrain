@@ -243,3 +243,25 @@ test('F22: .mcp.json is not saved to git, and a stale one is rebuilt for this fo
   start(q);
   assert.equal(q.read('.mcp.json'), '{"mcpServers":{}}\n');
 });
+
+test('an update line from the weekly check comes after the outbox and proposal lines, and the digest stays within 25 lines', async () => {
+  const { composeDigest } = await import('../../system/hooks/session_start.mjs');
+  const p = makeProject();
+  const line = "Alterbrain v9.9.9 is available. Say 'update Alterbrain' when you're not mid-assignment.";
+  const old = process.env.CLAUDE_PROJECT_DIR;
+  process.env.CLAUDE_PROJECT_DIR = p.root;
+  try {
+    const lines = composeDigest({ source: 'startup', model: 'sonnet' }, { updateLine: line }).text.split('\n');
+    assert.ok(lines.includes(line));
+    assert.ok(lines.indexOf(line) > lines.findIndex((l) => l.startsWith('Proposals:')));
+    assert.ok(!composeDigest({ source: 'startup', model: 'sonnet' }).text.includes('is available'), 'no line without a check result');
+    const many = Array.from({ length: 60 }, (_, i) => `- [ ] Task number ${i} #ab/reply 📅 2020-01-${String((i % 28) + 1).padStart(2, '0')}`);
+    p.write('vault/00_inbox/Tasks.md', tasksFile(many));
+    const full = composeDigest({ source: 'startup', model: 'claude-opus-5' }, { updateLine: line }).text.split('\n');
+    assert.ok(full.length <= 25, `${full.length} lines`);
+  } finally {
+    if (old === undefined) delete process.env.CLAUDE_PROJECT_DIR;
+    else process.env.CLAUDE_PROJECT_DIR = old;
+    p.cleanup();
+  }
+});

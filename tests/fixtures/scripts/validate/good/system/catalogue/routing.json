@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "classes": {
-    "deterministic": { "model": "script", "effort": null, "examples": ["copy", "hash"] },
-    "triage": { "model": "haiku", "effort": "low", "examples": ["classify"] },
-    "work": { "model": "sonnet", "effort": "medium", "examples": ["draft"] },
-    "review": { "model": "sonnet", "effort": "high", "examples": ["verify"] },
-    "judgement": { "model": "opus", "effort": "high", "examples": ["devil's advocate"] }
+    "deterministic": { "model": "script", "effort": null, "helper": null, "examples": ["copy", "hash"] },
+    "triage": { "model": "haiku", "effort": "low", "helper": "helper-triage", "examples": ["classify"] },
+    "work": { "model": "sonnet", "effort": "medium", "helper": "helper-draft", "examples": ["draft"] },
+    "review": { "model": "sonnet", "effort": "high", "helper": "helper-review", "examples": ["verify"] },
+    "judgement": { "model": "opus", "effort": "high", "helper": "helper-judgement", "examples": ["devil's advocate"] }
   },
   "caps": { "pro": 3, "max": 8 }
 }

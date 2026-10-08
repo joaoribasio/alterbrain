@@ -19,6 +19,7 @@ The ghostwriter receives these from the calling skill. It never fetches email or
 | `to` | summary | name and address |
 | `recipient_class` | summary or caller | one of the seven classes in §3 |
 | `lang` | §2 | language code, e.g. `en`, `nl` |
+| `tone` | caller, optional | `academic`, `professional` or `conversational`: a formality dial on top of the user's voice, never a replacement. Unset: the default in `system/deliverables/tone-and-voice.md`. |
 | `out` | caller | the outbox file path to write (or `today` plus a short `title`, which gives `<today> <title>.md`) |
 
 Files it reads:
@@ -35,7 +36,8 @@ Files it reads:
 2. If the user asked for a language in chat, use that instead.
 3. If the thread mixes languages, use the language the other person used most recently, and say so in the notes.
 4. If `vault/80_me/voice/<lang>/profile.md` does not exist:
-   - draft anyway, in a neutral, polite style;
+   - for an email or message: draft anyway, in a neutral, polite style;
+   - for a deliverable (report, deck, letter, essay): voice is always on, so say once per session that there is no profile and suggest the voice setup (onboarding M5); draft only if the user wants to go on, and say it will sound less like them. The `ghostwriter` cannot ask the user: without a profile it writes nothing for a deliverable, returns `voice: "missing"` and asks the caller to ask; the caller passes `proceed_without_profile: true` once the user agreed;
    - borrow rhythm (length, openers, sign-off habits) from the user's closest profile, never the vocabulary;
    - set `voice: "missing"` in the draft frontmatter and tell the user: "I have no voice samples in this language yet, so this will sound less like you."
 
@@ -99,6 +101,8 @@ Anything the draft needs that is not allowed above becomes a **flagged fact**:
 - list it in the `Needs your OK` section;
 - add it to `facts_flagged` in the frontmatter, with its reason (`not in fact sheet`, `private fact`, `guess`).
 
+Square-bracket gaps are working marks for the user to resolve. A finished text that leaves the computer carries none, and never carries `[Inference]`, `[Unverified]` or `[Speculation]`: use plain wording ("we assume", "in our reading"). `release-scan.mjs` checks this (§8).
+
 **Approval is blocked while any fact is flagged.** The calling skill must not create the Gmail draft (or any other outbound draft) until the user confirms or removes every flagged fact.
 
 ### The outbound gate (exposure-based privacy, ADR 0018)
@@ -120,6 +124,12 @@ The brain is the user's own and may hold sensitive facts. The risk is what leave
 1. The one thing this message must achieve.
 2. Every question or request in the thread that needs an answer (from `summary.asks`).
 3. The next step and who owns it.
+
+**Tone and story (deliverables, and any message that tells a story):**
+- Apply the `tone` as a dial on the user's voice: formality changes, whose voice it is does not.
+- Tell the story inside the structure: answer first, then stakes, a real person or customer moment, concrete specifics, contrast, and a close that calls back to the opening. No tidy moral.
+- **No invented anecdotes.** A moment must come from the sources, the case material or the user's chat. Without one, write the point plainly and ask.
+- A rubric or school template structure wins over the storytelling moves; say so in one line. Detail: `system/deliverables/tone-and-voice.md`.
 
 **Write:**
 - Open the way the user opens for this class (from the profile).
@@ -166,6 +176,8 @@ node system/scripts/slop-check.mjs "<body file>" --lang <lang>
 ```
 
 on the message body only (not the whole note). Exit code `1` means it failed: run the `edit-voice` skill on the body, then check again. Stop after two rounds and show the remaining hits to the user instead of looping.
+
+For deliverables, also run `node system/scripts/release-scan.mjs <file>`; it fails on honesty labels and placeholders in the text, and reads .docx, .pptx and .xlsx.
 
 The framework default anti-AI rules (banned words, phrases, openers, dashes and ellipsis) live in `.claude/rules/writing.md` §2 and are enforced by `slop-check.mjs` for English. A voice profile may add rules but never removes a default.
 

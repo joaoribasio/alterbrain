@@ -5,6 +5,7 @@
     "deterministic": {
       "model": "script",
       "effort": null,
+      "helper": null,
       "examples": [
         "copy a file",
         "hash a file",
@@ -16,6 +17,7 @@
     "triage": {
       "model": "haiku",
       "effort": "low",
+      "helper": "helper-triage",
       "examples": [
         "classify",
         "tag",
@@ -27,6 +29,7 @@
     "work": {
       "model": "sonnet",
       "effort": "medium",
+      "helper": "helper-draft",
       "examples": [
         "drafts",
         "explanations",
@@ -38,6 +41,7 @@
     "review": {
       "model": "sonnet",
       "effort": "high",
+      "helper": "helper-review",
       "examples": [
         "verification",
         "critique lenses",
@@ -48,6 +52,7 @@
     "judgement": {
       "model": "opus",
       "effort": "high",
+      "helper": "helper-judgement",
       "examples": [
         "thesis options",
         "devil's advocate",

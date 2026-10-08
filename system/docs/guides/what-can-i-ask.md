@@ -19,6 +19,8 @@ Ask in your own words. These examples show the range. Type `/menu` for the live 
 - "Give me three possible main arguments for this case."
 - "Critique my draft like a tough grader."
 - "Turn it into a PDF that fits in 6 pages."
+- "My grade came back. Here is the feedback." (Alterbrain saves it word for word and updates what it knows about how that lecturer grades.)
+- "Check it over before I upload it." (The delivery gate: cover, file names, every page, numbers, size.)
 
 ## If you work
 - "I'm starting a project to move our reporting to a new tool. Set it up."
@@ -39,9 +41,21 @@ Ask in your own words. These examples show the range. Type `/menu` for the live 
 - "Which applications need something from me this week?"
 
 ## Documents
+- "Critique this deck." Or a report, workbook, memo, CV or cover letter. A panel of blind reviewers reads it and you choose which changes to apply. Say "quick" for two or three reviewers (cheaper on Pro) or "full" for the whole panel.
+- "Use my school's template." Give Alterbrain the PowerPoint or Word file (or the Quarto folder your school provides) and say which course it is for. See [Templates](templates.md).
+- "Which template does this report use?"
+- "Make this a presenting deck: minimal text, the content in the speaker notes." See [Presenting](presenting.md).
+- "Make me a rehearsal pack for this deck." (Speaker notes in your voice, a timing plan, the ten likeliest questions with answers, a one-page cheat sheet.)
 - "Turn this note into a PDF with my colours."
 - "Apply Porter's Five Forces to the Dutch grocery market."
 - "Check this text for phrases that sound like AI."
+
+## People
+- "Add this person. Here is their email signature." Or a LinkedIn profile you share, a business card photo, or "I just met Sam at the Rotterdam alumni evening".
+- "Who should I follow up with?"
+- "Log my call with Sam. Follow up in three weeks."
+- "Draft a thank-you to Sam." (A draft in your voice; nothing is sent.)
+- "Find out what Sam's company does." (Only when you ask, from public sources.) See [Networking](networking.md).
 
 ## Your notes and files
 - "Add this PDF to my sources." (Drag the file into the chat.)
@@ -66,4 +80,4 @@ Ask in your own words. These examples show the range. Type `/menu` for the live 
 
 ## Answers with sources
 
-When Alterbrain answers from your notes, it shows where each point came from, like `[Source: [[Lecture 3]] | 2026-10-01 | confidence: high]`. Anything it is not sure about is marked `[Inference]` or `[Unverified]`.
+When Alterbrain answers from your notes, it shows where each point came from, like `[Source: [[Lecture 3]] | 2026-10-01 | confidence: high]`. Anything it is not sure about is marked `[Inference]` or `[Unverified]`. Those marks stay in the chat and in your working notes: a report, deck, workbook or message you hand in never carries them, and Alterbrain checks that before you upload.

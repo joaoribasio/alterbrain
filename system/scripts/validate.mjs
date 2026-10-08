@@ -2,8 +2,9 @@
 //
 //   node system/scripts/validate.mjs [--json] [--release] [--write-manifest [--sign-key <ed25519-private-key.pem>]]
 //
-// Checks: skill and agent frontmatter, blueprint sections, routing.json,
-// mcp.json (the catalogue), the upgrade scripts in system/scripts/migrations/, the release notes they need in
+// Checks: skill and agent frontmatter, blueprint sections, routing.json (and the named helper of each class),
+// the helper lint (skill, pack or deliverable text that asks a generic subagent for a model or effort without naming a helper),
+// mcp.json (the catalogue), the upgrade scripts and guided upgrades (NNNN-*.md) in system/scripts/migrations/, the release notes they need in
 // CHANGELOG.md ("### Upgrades" and "### Moved"), the documents the migration policy cites (an ADR, the SPEC) and
 // .claude/settings.json (valid JSON).
 // --write-manifest regenerates system/manifest.json (development and release tooling).
@@ -13,7 +14,7 @@
 // Output with --json: { ok, errors: [], warnings: [], checked: {...} }
 // Exit codes: 0 no errors (warnings are fine), 1 errors found, 2 wrong usage.
 import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { projectRoot, isMainModule } from '../lib/paths.mjs';
 import { splitFrontmatter } from '../lib/frontmatter.mjs';
@@ -214,6 +215,88 @@ function checkSkills(root, r) {
   return count;
 }
 
+// ---------------------------------------------------------------- helper lint (model routing, SPEC section 6)
+const SUBAGENT_RE = /\b(sub-?agents?|general-purpose agents?|helpers?)\b/i;
+const MODEL_OR_EFFORT_RE = /\b(haiku|sonnet|opus|fable|effort)\b/i;
+const NAMED_HELPER_RE = /(?<![\w-])(helper-triage|helper-draft|helper-review|helper-judgement|researcher|ghostwriter|mail-reader|lens)(?![\w-])/i;
+
+/** Paragraphs, list items and table rows outside code fences, each with the line it starts on. */
+export function textUnits(text) {
+  const units = [];
+  let fenced = false;
+  let current = null;
+  const flush = () => {
+    if (current) units.push(current);
+    current = null;
+  };
+  String(text).split(/\r?\n/).forEach((line, i) => {
+    if (/^\s*(```|~~~)/.test(line)) {
+      flush();
+      fenced = !fenced;
+      return;
+    }
+    if (fenced) return;
+    if (!line.trim()) return flush();
+    const item = /^\s*([-*+]|\d+[.)])\s/.test(line);
+    const row = /^\s*\|/.test(line);
+    if (item || row || /^#{1,6}\s/.test(line) || !current) {
+      flush();
+      current = { line: i + 1, text: line };
+    } else current.text += ` ${line.trim()}`;
+    if (row) flush();
+  });
+  flush();
+  return units;
+}
+
+/** A unit that asks for a generic subagent with a model or effort, and names no helper. */
+export function asksGenericSubagent(unitText) {
+  return SUBAGENT_RE.test(unitText) && MODEL_OR_EFFORT_RE.test(unitText) && !NAMED_HELPER_RE.test(unitText);
+}
+
+function markdownFiles(dir, depth = 6) {
+  const out = [];
+  for (const e of listDir(dir)) {
+    const full = join(dir, e.name);
+    if (e.isDirectory() && depth > 0) out.push(...markdownFiles(full, depth - 1));
+    else if (e.isFile() && e.name.toLowerCase().endsWith('.md')) out.push(full);
+  }
+  return out;
+}
+
+/**
+ * Framework skills, packs and deliverable rules must call the named helpers (helper-triage, helper-draft, helper-review,
+ * helper-judgement), not "a haiku subagent". An error for framework text, a warning for a person's own my-* skills.
+ */
+function checkHelperLint(root, r) {
+  const targets = [];
+  for (const e of listDir(join(root, '.claude', 'skills'))) {
+    if (!e.isDirectory() || VENDORED_SKILLS.has(e.name)) continue;
+    const own = e.name.startsWith('my-');
+    for (const file of markdownFiles(join(root, '.claude', 'skills', e.name))) targets.push({ file, own });
+  }
+  for (const dirRel of [['system', 'packs'], ['system', 'deliverables']]) {
+    for (const file of markdownFiles(join(root, ...dirRel))) targets.push({ file, own: false });
+  }
+  for (const { file, own } of targets) {
+    let text;
+    try {
+      text = readText(file);
+    } catch {
+      continue;
+    }
+    const where = file.slice(root.length + 1).split(sep).join('/');
+    // Front matter is configuration, not instructions: blank it out so line numbers stay true.
+    if (splitFrontmatter(text).raw) text = text.replace(/^﻿?---[\s\S]*?\r?\n---/, (m) => m.replace(/[^\n]/g, ''));
+    for (const unit of textUnits(text)) {
+      if (!asksGenericSubagent(unit.text)) continue;
+      const msg = `line ${unit.line} asks for a subagent with a model or effort but names no helper. Name one: helper-triage (haiku, low), helper-draft (sonnet, medium), helper-review (sonnet, high) or helper-judgement (opus, high), and leave the model out.`;
+      if (own) r.warn(where, msg);
+      else r.error(where, msg);
+    }
+  }
+}
+
 // ---------------------------------------------------------------- agents
 function toolList(v) {
   if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean);
@@ -306,6 +389,25 @@ function checkBlueprints(root, r) {
 }
 
 // ---------------------------------------------------------------- routing
+const HELPERS = ['helper-triage', 'helper-draft', 'helper-review', 'helper-judgement'];
+
+/** A class's named helper must exist as an agent whose model and effort are the class's. */
+function checkRoutingHelper(root, r, rel, name, cls) {
+  if (typeof cls.helper !== 'string' || !NAME_RE.test(cls.helper)) {
+    r.error(rel, `class "${name}": helper must be an agent name such as "helper-triage".`);
+    return;
+  }
+  const file = join(root, '.claude', 'agents', `${cls.helper}.md`);
+  if (!existsSync(file)) {
+    r.error(rel, `class "${name}": helper "${cls.helper}" has no agent file at .claude/agents/${cls.helper}.md.`);
+    return;
+  }
+  const { data } = splitFrontmatter(readText(file));
+  if (data.model !== cls.model || data.effort !== cls.effort) {
+    r.error(rel, `class "${name}": helper "${cls.helper}" runs on ${data.model}/${data.effort} but the class says ${cls.model}/${cls.effort}. They must match.`);
+  }
+}
+
 function checkRouting(root, r) {
   const rel = 'system/catalogue/routing.json';
   const file = join(root, 'system', 'catalogue', 'routing.json');
@@ -338,6 +440,8 @@ function checkRouting(root, r) {
         else if (EFFORTS_WARN.includes(cls.effort)) r.warn(rel, `class "${name}": effort "${cls.effort}" is expensive.`);
       }
       if (cls.examples !== undefined && !Array.isArray(cls.examples)) r.error(rel, `class "${name}": examples must be a list.`);
+      if (cls.helper !== undefined && cls.helper !== null) checkRoutingHelper(root, r, rel, name, cls);
+      else if (cls.helper === null && name !== 'deterministic') r.error(rel, `class "${name}": helper must name an agent (${HELPERS.join(', ')}); only "deterministic" has none.`);
     }
   }
   const caps = data.caps;
@@ -373,7 +477,8 @@ function isPinned(entry) {
   const args = Array.isArray(entry.args) ? entry.args.map(String) : [];
   const pkgs = args.filter((a) => !a.startsWith('-'));
   if (pkgs.some((a) => /@latest$/i.test(a))) return false;
-  return pkgs.some((a) => /(?:@|==|~=)v?\d/.test(a));
+  // A git source pinned to a full commit is exact too (git+https://...@<40 hex>).
+  return pkgs.some((a) => /(?:@|==|~=)v?\d/.test(a) || /^git\+.+@[0-9a-f]{40}$/i.test(a));
 }
 
 function checkCatalogue(root, r) {
@@ -461,7 +566,39 @@ function checkCatalogueMarkdown(root, r, entries) {
 
 // ---------------------------------------------------------------- upgrade scripts (migrations)
 const MIGRATION_NAME_RE = /^(\d{4})-[a-z0-9]+(-[a-z0-9]+)*\.mjs$/;
+const GUIDED_NAME_RE = /^(\d{4})-[a-z0-9]+(-[a-z0-9]+)*\.md$/;
+const GUIDED_SECTIONS = ['Who this is for', 'Evaluate', 'Propose', 'Apply', 'If skipped', 'Never'];
 const MIGRATION_LINE_RE = /^\/\/\s*ab-migration:\s*\S/;
+
+/**
+ * A guided upgrade (system/scripts/migrations/NNNN-short-name.md): instructions the person's own Claude follows after an
+ * update. Front matter type/id/summary/since, then the six sections in order. No test file is required.
+ */
+function checkGuidedMigration(r, where, fileName, text) {
+  const stem = fileName.replace(/\.md$/, '');
+  const { data, body, raw } = splitFrontmatter(text);
+  if (!raw) {
+    r.error(where, 'a guided upgrade must start with front matter: type, id, summary and since.');
+    return;
+  }
+  if (data.type !== 'guided-migration') r.error(where, 'type must be "guided-migration".');
+  if (data.id !== stem) r.error(where, `id must be "${stem}" (the file name without .md).`);
+  const summary = typeof data.summary === 'string' ? data.summary.trim() : '';
+  if (!summary) r.error(where, 'summary is missing: one plain sentence that is true for everyone who reads it.');
+  else if (!summary.endsWith('.') || /[.!?]\s+\S/.test(summary)) r.error(where, 'summary must be one sentence that ends with a full stop.');
+  if (typeof data.since !== 'string' || !/^\d+\.\d+\.\d+$/.test(data.since)) r.error(where, 'since must be the release number that ships it, for example "0.2.0".');
+  const found = headings(body, 2);
+  let last = -1;
+  for (const want of GUIDED_SECTIONS) {
+    const idx = found.findIndex((h) => h.toLowerCase() === want.toLowerCase());
+    if (idx === -1) r.error(where, `missing section "## ${want}". A guided upgrade has, in order: ${GUIDED_SECTIONS.join(', ')}.`);
+    else {
+      if (idx < last) r.error(where, `section "## ${want}" is out of order. Use: ${GUIDED_SECTIONS.join(', ')}.`);
+      last = Math.max(last, idx);
+    }
+  }
+  if (!hasH1(body)) r.warn(where, 'no "# Title" line.');
+}
 
 /**
  * system/scripts/migrations/NNNN-short-name.mjs (policy: .claude/rules/framework-dev.md, "Changing user data or config").
@@ -477,6 +614,14 @@ function checkMigrations(root, r) {
   for (const e of listDir(dir).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
     if (!e.isFile()) continue;
     const where = `system/scripts/migrations/${e.name}`;
+    if (e.name.endsWith('.md') && e.name.toLowerCase() !== 'readme.md') {
+      count++;
+      const g = e.name.match(GUIDED_NAME_RE);
+      if (!g) r.error(where, 'the file name must look like 0001-short-name.md: four digits, a dash, then lower-case words joined by dashes.');
+      else byNumber.set(g[1], [...(byNumber.get(g[1]) || []), e.name]);
+      checkGuidedMigration(r, where, e.name, readText(join(dir, e.name)));
+      continue;
+    }
     if (!e.name.endsWith('.mjs')) {
       if (e.name.toLowerCase() !== 'readme.md') r.warn(where, 'only .mjs files are run as upgrades, so this file is never run.');
       continue;
@@ -571,7 +716,7 @@ function previousRelease(root) {
  */
 function checkReleaseNotes(root, r, release) {
   const dir = join(root, 'system', 'scripts', 'migrations');
-  const stems = listDir(dir).filter((e) => e.isFile() && MIGRATION_NAME_RE.test(e.name)).map((e) => e.name.replace(/\.mjs$/, '')).sort();
+  const stems = listDir(dir).filter((e) => e.isFile() && (MIGRATION_NAME_RE.test(e.name) || GUIDED_NAME_RE.test(e.name))).map((e) => e.name.replace(/\.(mjs|md)$/, '')).sort();
   const previous = previousRelease(root);
   const removed = previous
     ? previous.paths.filter((p) => !NOT_LISTED_AS_MOVED.test(p) && p !== 'system/manifest.json' && !existsSync(join(root, ...p.split('/')))).sort()
@@ -650,7 +795,7 @@ function checkReleaseDocs(root, r, release) {
     }
   }
   const spec = join(root, 'docs', 'SPEC.md');
-  const hasScripts = listDir(join(root, 'system', 'scripts', 'migrations')).some((e) => e.isFile() && MIGRATION_NAME_RE.test(e.name));
+  const hasScripts = listDir(join(root, 'system', 'scripts', 'migrations')).some((e) => e.isFile() && (MIGRATION_NAME_RE.test(e.name) || GUIDED_NAME_RE.test(e.name)));
   if (hasScripts && existsSync(spec) && !/migrations\.json/.test(readText(spec))) {
     r.releaseGap(release, 'docs/SPEC.md', 'the SPEC (the binding contract) does not mention state/migrations.json, so the upgrade scripts, the restore point and the fallbacks that the migration policy requires are not part of it. Add the section.');
   }
@@ -681,6 +826,7 @@ export function validateProject(root = projectRoot(), { release = false } = {}) 
   checked.skills = checkSkills(root, r);
   checked.agents = checkAgents(root, r);
   checked.blueprints = checkBlueprints(root, r);
+  checkHelperLint(root, r);
   checked.routing = checkRouting(root, r);
   checked.mcp_entries = checkCatalogue(root, r);
   checked.limits_servers = checkLimits(root, r);

@@ -4,6 +4,7 @@
 //   node system/scripts/update.mjs plan <tag>
 //   node system/scripts/update.mjs apply-safe <tag>
 //   node system/scripts/update.mjs finish <tag>
+//   node system/scripts/update.mjs guided list [--all] | done <id> | skip <id>
 // Options: --json  --source-dir <folder>  --base-dir <folder>  --repo <owner/name>
 //          --no-commit  --no-doctor
 //
@@ -24,6 +25,9 @@
 //   - --source-dir and --repo (another folder or another GitHub repo) are refused unless the person sets
 //     ALTERBRAIN_ALLOW_CUSTOM_SOURCE=1 in their own terminal: an instruction inside a note must not be able to
 //     point the updater at a folder it prepared. Plain --repo <the repo in release.json> is fine.
+//   - Guided upgrades (system/scripts/migrations/NNNN-*.md) are instructions for the person's own Claude, never run here.
+//     finish lists the ones still open and adds one task; `guided done|skip` records the outcome in state/migrations.json
+//     (entries: { id, at, tag, kind: "guided", outcome }). An entry without "kind" is a script, one without "outcome" is done.
 //   - Only migrations that are listed in the verified manifest, with a matching sha256, are ever run. One that is on
 //     disk but not listed is reported as skipped, and that makes the finish result "not ok".
 //   - Migrations change the person's notes and settings, so they run only with a restore point: the git tag
@@ -36,10 +40,12 @@ import { dirname, join, resolve, extname, relative, isAbsolute, sep } from 'node
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash, createPublicKey, verify as cryptoVerify } from 'node:crypto';
-import { projectRoot, rootPath, isMainModule } from '../lib/paths.mjs';
+import { projectRoot, rootPath, isMainModule, isDevMode } from '../lib/paths.mjs';
 import { readJson, writeJson, today } from '../lib/fsx.mjs';
 import { has, run, cmpVersion } from '../lib/proc.mjs';
-import { gitInstalled, isRepo, createTag, tagExists } from '../lib/git.mjs';
+import { gitInstalled, isRepo, createTag, tagExists, changedCount } from '../lib/git.mjs';
+import { splitFrontmatter } from '../lib/frontmatter.mjs';
+import { addTask, listTasks } from '../lib/tasks.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MANIFEST_REL = 'system/manifest.json';
@@ -337,6 +343,20 @@ export function migrationSummary(file) {
   return '(no description)';
 }
 
+const GUIDED_PATH = /^system\/scripts\/migrations\/\d{4}-[a-z0-9-]+\.md$/;
+const GUIDED_ID = /^\d{4}-[a-z0-9-]+\.md$/;
+
+/** The one sentence a guided upgrade shows before it asks: the "summary" key of its front matter. */
+export function guidedSummary(file) {
+  try {
+    const summary = splitFrontmatter(readFileSync(file, 'utf8')).data.summary;
+    if (typeof summary === 'string' && summary.trim()) return summary.trim();
+  } catch {
+    /* fall through */
+  }
+  return '(no description)';
+}
+
 const migrationId = (path) => path.slice(path.lastIndexOf('/') + 1);
 
 /** state/migrations.json: { schema: 1, applied: [{ id, at, tag, baseline? }] }. A missing or unreadable file is an empty record. */
@@ -357,9 +377,41 @@ function baselineMigrations(record) {
   if (record.applied.length > 0) return [];
   const installed = normaliseManifest(readJson(rootPath('system', 'manifest.json'), {}));
   return [...installed.files]
-    .filter(([path, entry]) => MIGRATION_PATH.test(path) && fileMatchesSha(rootPath(...path.split('/')), path, entry.sha256))
+    .filter(([path, entry]) => (MIGRATION_PATH.test(path) || GUIDED_PATH.test(path)) && fileMatchesSha(rootPath(...path.split('/')), path, entry.sha256))
     .map(([path]) => migrationId(path))
     .sort();
+}
+
+/** Record the upgrades a fresh install came with as done (baseline), once, before anything else is written to the record. */
+function materialiseBaseline(record) {
+  const baseline = baselineMigrations(record);
+  if (baseline.length === 0) return baseline;
+  const installedTag = normaliseManifest(readJson(rootPath('system', 'manifest.json'), {})).tag || null;
+  for (const id of baseline) {
+    const at = new Date().toISOString();
+    record.applied.push(GUIDED_ID.test(id) ? { id, at, tag: installedTag, kind: 'guided', outcome: 'done', baseline: true } : { id, at, tag: installedTag, baseline: true });
+  }
+  writeJson(rootPath('state', 'migrations.json'), record);
+  return baseline;
+}
+
+/**
+ * Guided upgrades that still need an answer: listed in `listed` (a manifest's files map), the file read by `fileFor`
+ * matches the listed checksum, and the record has no entry for the id (done or skipped) and it is not a baseline.
+ * With `all`, recorded ones are included, with their outcome.
+ */
+function guidedRows(listed, fileFor, record, baseline, { all = false } = {}) {
+  const rows = [];
+  for (const path of [...listed.keys()].sort()) {
+    if (!GUIDED_PATH.test(path)) continue;
+    const file = fileFor(path);
+    if (!file || !fileMatchesSha(file, path, listed.get(path).sha256)) continue;
+    const id = migrationId(path);
+    const entry = record.applied.find((a) => a.id === id);
+    const status = entry ? (entry.outcome === 'skipped' ? 'skipped' : 'done') : baseline.includes(id) ? 'done' : 'pending';
+    if (status === 'pending' || all) rows.push({ id, summary: guidedSummary(file), status, ...(entry ? { at: entry.at || null } : {}) });
+  }
+  return rows;
 }
 
 /** The restore point for this update: the git tag apply-safe makes before it changes anything. */
@@ -510,13 +562,22 @@ export async function plan(tag, opts) {
     pending.push({ id, summary: migrationSummary(existsSync(staged) ? staged : rootPath(...path.split('/'))) });
   }
 
+  const guided = guidedRows(
+    next.files,
+    (path) => {
+      const staged = join(dir, 'new', ...path.split('/'));
+      return files.some((f) => f.path === path && f.action === 'rejected') ? null : existsSync(staged) ? staged : rootPath(...path.split('/'));
+    },
+    record, baseline,
+  ).map(({ id, summary }) => ({ id, summary }));
+
   const summary = {};
   for (const f of files) summary[f.action] = (summary[f.action] || 0) + 1;
   const result = {
     schema: 1, ok: errors.length === 0, tag, created: new Date().toISOString(),
     from: { version: rel.version || null, tag: rel.tag || null },
     to: { version: fetched.parsed.version || null, tag: fetched.parsed.tag || tag },
-    source: src.label, stage_dir: dir, changelog: Boolean(changelog), signature, summary, errors, files, migrations_pending: pending, migrations_baseline: baseline,
+    source: src.label, stage_dir: dir, changelog: Boolean(changelog), signature, summary, errors, files, migrations_pending: pending, migrations_baseline: baseline.filter((id) => id.endsWith('.mjs')), guided_pending: guided,
     code_changes: files.filter((f) => f.class === 'code' && ['replace', 'add'].includes(f.action)).map((f) => ({ path: f.path, action: f.action })),
   };
   writeJson(join(dir, 'plan.json'), result);
@@ -543,6 +604,31 @@ function runGitAuto(args) {
   const script = existsSync(rootPath('system', 'scripts', 'git-auto.mjs')) ? rootPath('system', 'scripts', 'git-auto.mjs') : join(HERE, 'git-auto.mjs');
   return spawnSync(process.execPath, [script, ...args], { cwd: projectRoot(), encoding: 'utf8', env: { ...process.env, CLAUDE_PROJECT_DIR: projectRoot() }, windowsHide: true, timeout: 120_000 });
 }
+
+/**
+ * Save everything with the automatic save and say whether that worked. Not working while the folder holds unsaved
+ * changes means those changes are not covered by any restore point. A clean folder needs no save: the tag is enough. Only the state before the attempt counts, because a failed save
+ * itself adds a task to the notes.
+ */
+function safetySave() {
+  const root = projectRoot();
+  const dirtyBefore = changedCount(root) > 0;
+  const res = runGitAuto(['commit', '--json']);
+  const failed = res.error || res.status !== 0;
+  // A skipped save exits 0. Outside developer mode it means automatic saving is switched off, so unsaved changes are not
+  // saved and no tag can cover them. In developer mode skipping is expected.
+  let status = null;
+  try {
+    status = JSON.parse(String(res.stdout || '').trim()).status;
+  } catch {
+    /* an unreadable answer counts as no answer */
+  }
+  const switchedOff = !failed && dirtyBefore && status === 'skipped' && !isDevMode();
+  return { ok: !(failed && dirtyBefore) && !switchedOff, failed: Boolean(failed), dirty: dirtyBefore, switched_off: switchedOff };
+}
+
+const SAVE_FAILED_MESSAGE = 'Your latest work could not be saved, so a restore point would not cover it and I changed nothing. Run /health-check, which offers to clear a half-finished rebase or merge, then try again.';
+const SAVE_OFF_MESSAGE = 'Automatic saving is switched off in config/brain.json and you have unsaved changes, so a restore point would not cover them and I changed nothing. Save your work yourself, or switch automatic saving on, then try again.';
 
 export function applySafe(tag, opts = {}) {
   const p = loadPlan(tag);
@@ -573,17 +659,21 @@ export function applySafe(tag, opts = {}) {
   } else if (!isRepo(projectRoot())) {
     notes.push('There is no restore point, because this folder is not saved with Git.');
   } else {
-    if (!opts.noCommit) runGitAuto(['commit']);
+    if (!opts.noCommit) {
+      const sv = safetySave();
+      if (!sv.ok) return { ok: false, save_failed: true, tag, safety_tag: null, notes, error: sv.switched_off ? SAVE_OFF_MESSAGE : SAVE_FAILED_MESSAGE };
+    }
     const t = createTag(projectRoot(), `pre-update-${tag}`);
     if (t.ok) safetyTag = `pre-update-${tag}`;
     else notes.push(`There is no restore point, because the safety tag could not be created (${t.error || 'unknown reason'}).`);
   }
   // The upgrades listed in the plan rewrite the person's notes and settings. Without a restore point they do not run,
   // and neither does anything else: stop now, while no file has been touched, rather than half-way.
-  if (!safetyTag && Array.isArray(p.migrations_pending) && p.migrations_pending.length > 0) {
+  const writesNotes = (Array.isArray(p.migrations_pending) && p.migrations_pending.length > 0) || (Array.isArray(p.guided_pending) && p.guided_pending.length > 0);
+  if (!safetyTag && writesNotes) {
     return {
-      ok: false, no_restore_point: true, tag, safety_tag: null, notes,
-      error: 'I could not save a restore point, and this update has upgrades to your notes and settings, so I changed nothing. Run /health-check to see what is wrong with Git, then try the update again.',
+      ok: false, no_restore_point: true, tag, safety_tag: null, notes, guided_pending: Array.isArray(p.guided_pending) ? p.guided_pending : [],
+      error: 'I could not save a restore point, and this update has upgrades to your notes and settings (some of them questions I would ask you later), so I changed nothing. Run /health-check to see what is wrong with Git, then try the update again.',
     };
   }
 
@@ -667,7 +757,7 @@ export function finish(tag, opts = {}) {
   const ran = [];
   const skipped = [];
   const notes = {};
-  const baseline = baselineMigrations(record);
+  const baseline = baselineMigrations(record).filter((id) => id.endsWith('.mjs'));
   const names = existsSync(migDir) ? readdirSync(migDir).filter((n) => n.endsWith('.mjs')).sort() : [];
   // Work out first what will run. A script that is not in the verified manifest (or does not match it) is never run.
   const todo = [];
@@ -678,18 +768,16 @@ export function finish(tag, opts = {}) {
     else todo.push(name);
   }
   // Upgrades rewrite notes and settings, so they run only with a restore point. Nothing has been written yet.
-  if (todo.length > 0 && !safetyTag) {
+  // Guided upgrades count too: they are run later by Claude and rewrite notes, so the restore point must exist first.
+  const guidedWaiting = guidedRows(listed, (path) => rootPath(...path.split('/')), record, baselineMigrations(record)).map(({ id, summary }) => ({ id, summary }));
+  if ((todo.length > 0 || guidedWaiting.length > 0) && !safetyTag) {
     return {
-      ok: false, no_restore_point: true, tag, safety_tag: null, migrations_pending: todo,
+      ok: false, no_restore_point: true, tag, safety_tag: null, migrations_pending: todo, guided_pending: guidedWaiting,
       error: 'I have no restore point, so I did not change your notes or settings. Run /health-check to see what is wrong with Git, then finish the update again.',
     };
   }
   // A fresh install is already in the new shape: record the scripts it came with as done, without running them.
-  if (baseline.length > 0) {
-    const installedTag = normaliseManifest(readJson(rootPath('system', 'manifest.json'), {})).tag || null;
-    for (const id of baseline) record.applied.push({ id, at: new Date().toISOString(), tag: installedTag, baseline: true });
-    writeJson(doneFile, record);
-  }
+  materialiseBaseline(record);
   for (const name of todo) {
     const res = spawnSync(process.execPath, [join(migDir, name)], {
       cwd: root, encoding: 'utf8', timeout: 300_000, windowsHide: true,
@@ -710,6 +798,18 @@ export function finish(tag, opts = {}) {
   mkdirSync(dirname(rootPath(...MANIFEST_REL.split('/'))), { recursive: true });
   writeFileSync(rootPath(...MANIFEST_REL.split('/')), manifestText);
 
+  // 2b. Guided upgrades still open: listed in the new manifest, file matching, no answer recorded. Never run here.
+  const guidedOpen = guidedRows(listed, (path) => rootPath(...path.split('/')), record, []).map(({ id, summary }) => ({ id, summary }));
+  if (guidedOpen.length > 0) {
+    try {
+      const n = guidedOpen.length;
+      const already = listTasks().some((x) => x.line.includes('#ab/update-alterbrain') && /upgrade questions? for you/.test(x.line));
+      if (!already) addTask({ text: `Alterbrain has ${n} upgrade question${n === 1 ? '' : 's'} for you. Say "run the pending upgrades".`, tag: 'update-alterbrain' });
+    } catch {
+      /* the list is still in the result */
+    }
+  }
+
   // 3. Health check.
   let doctor = { skipped: true };
   if (!opts.noDoctor) {
@@ -725,10 +825,23 @@ export function finish(tag, opts = {}) {
   }
 
   // 4. Save the result.
-  if (!opts.noCommit && gitInstalled() && isRepo(root)) runGitAuto(['commit']);
+  let saveFailed = false;
+  if (!opts.noCommit && gitInstalled() && isRepo(root)) {
+    // Automatic saving switched off by the person is their choice: not a failed save (apply-safe already refused to tag unsaved work).
+    const sv = safetySave();
+    saveFailed = !sv.ok && !sv.switched_off;
+  }
+  if (saveFailed) {
+    try {
+      addTask({ text: 'The update finished, but the final save failed, so your latest work is not backed up. Run /health-check, which offers to clear a half-finished rebase or merge.', tag: 'git', priority: 'high' });
+    } catch {
+      /* the message below still reaches the person */
+    }
+  }
 
   const out = {
-    ok: skipped.length === 0 && (!doctor.skipped ? doctor.ok : true), tag, safety_tag: safetyTag, migrations_run: ran, migration_notes: notes, migrations_skipped: skipped, doctor,
+    ok: !saveFailed && skipped.length === 0 && (!doctor.skipped ? doctor.ok : true), tag, safety_tag: safetyTag, migrations_run: ran, migration_notes: notes, migrations_skipped: skipped, guided_pending: guidedOpen, doctor,
+    ...(saveFailed ? { save_failed: true, error: 'The update finished, but the final save failed, so your latest work is not backed up. Run /health-check, which offers to clear a half-finished rebase or merge.' } : {}),
     still_to_merge: (p.files || []).filter((f) => f.action === 'propose-merge').map((f) => f.path),
     finished: today(),
   };
@@ -737,17 +850,68 @@ export function finish(tag, opts = {}) {
 }
 
 // ---------------------------------------------------------------------------
+// guided upgrades: list, done, skip
+// ---------------------------------------------------------------------------
+
+function installedListed() {
+  return normaliseManifest(readJson(rootPath('system', 'manifest.json'), {})).files;
+}
+
+export function guidedList({ all = false } = {}) {
+  const record = readMigrationRecord();
+  const rows = guidedRows(installedListed(), (path) => rootPath(...path.split('/')), record, baselineMigrations(record), { all });
+  return { ok: true, pending: rows.filter((r) => r.status === 'pending').length, guided: rows };
+}
+
+/**
+ * A restore point before a guided upgrade writes to the person's notes. The update's own tag (pre-update-<tag>) counts
+ * when it still exists; otherwise everything is saved and a new tag is made. Without working Git it says so and makes none.
+ */
+export function guidedSavepoint(opts = {}) {
+  const root = projectRoot();
+  const tag = (readJson(rootPath('system', 'release.json'), {}) || {}).tag || null;
+  if (tag && TAG_RE.test(tag) && hasRestorePoint(tag)) return { ok: true, restore_point: `pre-update-${tag}`, created: false };
+  if (!gitInstalled() || !isRepo(root)) {
+    return { ok: false, restore_point: null, error: 'There is no restore point, because Git is not working in this folder, so I will not change your notes.' };
+  }
+  const sv = opts.noCommit ? { ok: true } : safetySave();
+  if (!sv.ok) return { ok: false, restore_point: null, error: sv.switched_off ? 'Automatic saving is switched off in config/brain.json and you have unsaved changes, so a restore point would not cover them and I will not change your notes. Save your work yourself, or switch automatic saving on, then try again.' : 'Your latest work could not be saved, so a restore point would not cover it and I will not change your notes. Run /health-check, which offers to clear a half-finished rebase or merge, then try again.' };
+  const name = `pre-guided-${tag && TAG_RE.test(tag) ? tag + '-' : ''}${today()}-${Date.now().toString(36)}`;
+  const t = createTag(root, name);
+  if (!t.ok) return { ok: false, restore_point: null, error: `There is no restore point, because the safety tag could not be created (${t.error || 'unknown reason'}), so I will not change your notes.` };
+  return { ok: true, restore_point: name, created: true };
+}
+
+/** Record the answer to one guided upgrade. Refuses an id that is not a listed file whose checksum matches. */
+export function guidedRecord(rawId, outcome) {
+  const id = String(rawId || '').endsWith('.md') ? String(rawId) : `${rawId}.md`;
+  const path = `system/scripts/migrations/${id}`;
+  const entry = GUIDED_ID.test(id) ? installedListed().get(path) : null;
+  if (!entry || !fileMatchesSha(rootPath(...path.split('/')), path, entry.sha256)) {
+    return { ok: false, error: `"${rawId}" is not an upgrade question that came with this release, so nothing was recorded.` };
+  }
+  const record = readMigrationRecord();
+  materialiseBaseline(record);
+  const tag = (readJson(rootPath('system', 'release.json'), {}) || {}).tag || null;
+  record.applied = record.applied.filter((a) => a.id !== id);
+  record.applied.push({ id, at: new Date().toISOString(), tag, kind: 'guided', outcome });
+  writeJson(rootPath('state', 'migrations.json'), record);
+  return { ok: true, id, outcome };
+}
+
+// ---------------------------------------------------------------------------
 // command line
 // ---------------------------------------------------------------------------
 
 function parseArgs(argv) {
-  const opts = { json: false, noCommit: false, noDoctor: false };
+  const opts = { json: false, noCommit: false, noDoctor: false, all: false };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--json') opts.json = true;
     else if (a === '--no-commit') opts.noCommit = true;
     else if (a === '--no-doctor') opts.noDoctor = true;
+    else if (a === '--all') opts.all = true;
     else if (a === '--source-dir') opts.sourceDir = argv[++i];
     else if (a === '--base-dir') opts.baseDir = argv[++i];
     else if (a === '--repo') opts.repo = argv[++i];
@@ -786,6 +950,11 @@ function printPlan(r) {
     for (const m of r.migrations_pending) console.log(`  - ${m.summary}`);
     console.log('  A restore point is saved first. If an upgrade does not apply to you, it finds nothing to change.');
   }
+  if (r.guided_pending && r.guided_pending.length) {
+    console.log('\nUpgrades I will ask you about after the update:');
+    for (const m of r.guided_pending) console.log(`  - ${m.summary}`);
+    console.log('  Nothing changes until you say yes, and you can skip any of them.');
+  }
   if (r.signature === 'verified') console.log('\nThe release manifest signature is verified.');
   else if (r.signature === 'unsigned') console.log('\nThis release is not signed, so only its checksums were checked. Apply it only if you trust where it came from.');
   const same = (r.summary.unchanged || 0);
@@ -796,8 +965,30 @@ function printPlan(r) {
 
 async function main(argv) {
   const opts = parseArgs(argv);
-  const usage = 'Usage: node system/scripts/update.mjs check | plan <tag> | apply-safe <tag> | finish <tag>  [--json] [--source-dir <folder>] [--base-dir <folder>] [--repo <owner/name>] [--no-commit] [--no-doctor]';
+  const usage = 'Usage: node system/scripts/update.mjs check | plan <tag> | apply-safe <tag> | finish <tag> | guided list [--all] | guided savepoint | guided done <id> | guided skip <id>  [--json] [--source-dir <folder>] [--base-dir <folder>] [--repo <owner/name>] [--no-commit] [--no-doctor]';
   const needsTag = ['plan', 'apply-safe', 'finish'];
+  if (opts && opts.command === 'guided') {
+    const sub = opts.tag;
+    const okShape = ((sub === 'list' || sub === 'savepoint') && opts.extra.length === 0 && !(sub === 'savepoint' && opts.all)) || ((sub === 'done' || sub === 'skip') && opts.extra.length === 1 && !opts.all);
+    if (!okShape || opts.sourceDir || opts.baseDir || opts.repo) {
+      console.error(usage);
+      return 2;
+    }
+    try {
+      const res = sub === 'savepoint' ? guidedSavepoint(opts) : sub === 'list' ? guidedList({ all: opts.all }) : guidedRecord(opts.extra[0], sub === 'done' ? 'done' : 'skipped');
+      if (opts.json) console.log(JSON.stringify(res));
+      else if (!res.ok) console.error(res.error);
+      else if (sub === 'savepoint') console.log(`Restore point: ${res.restore_point}.`);
+      else if (sub === 'list') {
+        if (res.guided.length === 0) console.log(opts.all ? 'No upgrade questions came with this release.' : 'No upgrade questions are waiting.');
+        for (const g of res.guided) console.log(`- ${g.id} (${g.status}): ${g.summary}`);
+      } else console.log(`Recorded ${res.id} as ${res.outcome === 'done' ? 'done' : 'skipped'}.`);
+      return res.ok ? 0 : 1;
+    } catch (e) {
+      console.error(`Could not read or write the upgrade record: ${e.message || e}`);
+      return 1;
+    }
+  }
   if (!opts || !['check', ...needsTag].includes(opts.command) || opts.extra.length
     || (opts.command === 'check' && opts.tag) || (needsTag.includes(opts.command) && !(opts.tag && TAG_RE.test(opts.tag)))) {
     console.error(usage);
@@ -851,12 +1042,12 @@ async function main(argv) {
     }
     const r = finish(opts.tag, opts);
     return emit(r, () => {
-      if (r.error) {
+      if (r.error && !r.save_failed) {
         console.log(`! ${r.error}${r.detail ? `\n  ${r.detail}` : ''}`);
         if (r.migrations_run && r.migrations_run.length) console.log(`  Already done: ${r.migrations_run.join(', ')}`);
         return;
       }
-      console.log(`Update ${opts.tag} finished.`);
+      console.log(r.save_failed ? `Update ${opts.tag} is installed.` : `Update ${opts.tag} finished.`);
       if (r.migrations_run.length) {
         if (r.safety_tag) console.log(`Your restore point is the git tag ${r.safety_tag}.`);
         console.log('Upgrades run:');
@@ -865,9 +1056,14 @@ async function main(argv) {
           for (const line of String((r.migration_notes || {})[id] || '').split(/\r?\n/).filter(Boolean)) console.log(`      ${line}`);
         }
       }
+      if (r.guided_pending && r.guided_pending.length) {
+        console.log(`${r.guided_pending.length} upgrade question(s) are waiting for you. Say "run the pending upgrades" when you are ready:`);
+        for (const g of r.guided_pending) console.log(`  - ${g.summary}`);
+      }
       for (const id of r.migrations_skipped) console.log(`Skipped upgrade ${id}: it is not part of this release, so it was not run.`);
       console.log(r.doctor.skipped ? 'Health check skipped.' : r.doctor.ok ? 'Health check passed.' : 'Health check found problems: run node system/scripts/doctor.mjs to see them.');
       if (r.still_to_merge.length) console.log(`${r.still_to_merge.length} edited file(s) still need a merge.`);
+      if (r.save_failed) console.log(`! ${r.error}`);
     });
   } catch (e) {
     const res = { ok: false, error: `Could not finish: ${e.message || e}` };

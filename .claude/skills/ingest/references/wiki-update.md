@@ -22,7 +22,9 @@ List the two to six ideas, frameworks, companies or industries the source covers
 - Create at most five new pages per source. Link smaller ideas from an existing page instead.
 - Add `[[wikilinks]]` to related pages that exist. Do not link to pages that do not exist.
 
-**Every addition cites the source note.** Anything you inferred is labelled `[Inference]`. Anything you could not check is labelled `[Unverified]`.
+**Every addition cites the source note.** Anything you inferred is labelled `[Inference]`. Anything you could not check is labelled `[Unverified]`. (Wiki pages are working notes: the labels stay here, and are reworded plainly when text from a page goes into a deliverable.)
+
+**Who writes.** The main session writes every wiki page, the index and the log. A helper (`helper-draft`) writes source notes only, never wiki pages, `index.md` or `log.md`, and no two writers share a target page. Never build a wiki page from a source flagged `ai_notice` before the user has decided.
 
 ## 3. Append to the log
 
@@ -59,4 +61,4 @@ List the two to six ideas, frameworks, companies or industries the source covers
 
 ## 5. Check
 
-Before you report, confirm for every page you touched: it appears in the index, it cites the source note, and the source note lists it under `## Wiki pages`.
+Before you report, spot-check one helper-written source note against its text (bulk imports), confirm for every page you touched: it appears in the index, it cites the source note, and the source note lists it under `## Wiki pages`.

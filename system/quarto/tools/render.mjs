@@ -10,8 +10,15 @@
 //   --name <name>        File name without extension. Default: the source file name.
 //   --max-pages <n>      Report a problem when a PDF is longer than this.
 //   --pdf                For a deck: also save a PDF (needs Microsoft Edge or Google Chrome).
-//   --format <name>      Advanced: use another Quarto format, for example pptx for a PowerPoint file.
-//   --brand <file>       Use this brand file. Default: vault/80_me/brand/_brand.yml, else the built-in one.
+//   --format <name>      Advanced: use another Quarto format, for example pptx for a PowerPoint file. Without it, a format the
+//                        document names itself (format: x) is used when an extension next to it (or in the template) provides it;
+//                        a name nothing provides stops with a plain message. A document that names none gets the Typst default.
+//   --brand <file>       Use this brand file. Default: the template's brand, else vault/80_me/brand/_brand.yml, else the built-in one.
+//   --template <folder>  Use this template folder (template.yml, optional brand, reference document, citation style and
+//                        Quarto extension). Only what the document does not set itself is added. Find the folder with
+//                        "node system/scripts/template.mjs resolve --kind <kind> --for <source>".
+//   --reference-doc <f>  Word or PowerPoint file whose styles the .docx or .pptx output uses (beats the template's).
+//   --csl <file>         Citation style file (beats the template's). "apa" or an empty value changes nothing.
 //   --keep               Keep the temporary files (for debugging).
 //   --json               Machine-readable result.
 //
@@ -22,12 +29,13 @@ import {
   copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, extname, join, resolve } from 'node:path';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-  IS_WINDOWS, TEMPLATES_DIR, TYPES, chooseBrand, findQuarto, frontMatterText, hasTopLevelKey, moveFile,
-  readTextSafe, relativeForQuarto, repoRoot, runQuarto, stageExtensions, uniquePath,
+  IS_WINDOWS, TEMPLATES_DIR, TYPES, chooseBrand, documentFormats, extensionFormats, findQuarto, frontMatterText, hasTopLevelKey, moveFile,
+  readTextSafe, relativeForQuarto, repoRoot, runQuarto, stageExtensions, stageExtensionsFrom, uniquePath,
 } from './lib.mjs';
+import { checkTemplate, readTemplate } from '../../lib/templates.mjs';
 import { countPages, checkLimit } from './pagecount.mjs';
 import { today } from '../../lib/fsx.mjs';
 import { explain } from './explain.mjs';
@@ -35,6 +43,12 @@ import { checkFonts, fontsInBrand, installedFonts } from './fonts.mjs';
 import { isMainModule } from '../../lib/paths.mjs';
 
 // ---------------------------------------------------------------- helpers
+
+/** Is `file` inside `dir`? */
+function isInside(dir, file) {
+  const rel = relative(resolve(dir), resolve(file));
+  return !!rel && !rel.startsWith('..') && !isAbsolute(rel);
+}
 
 /** Remove characters Windows does not allow in file names. */
 export function safeName(name) {
@@ -61,6 +75,62 @@ export function injectFrontMatter(text, lines) {
     return t.slice(0, first) + lines.join(nl) + nl + t.slice(first);
   }
   return ['---', ...lines, '---', '', t].join(nl);
+}
+
+/**
+ * The front matter lines a template, a citation style or a reference document add. A key the author already set is never
+ * touched. Paths are written relative to the source folder. "apa" and an empty csl add nothing (the report template
+ * already formats references in APA).
+ */
+export function templateLines(fm, { srcDir, csl = '', referenceDoc = '', outExt = 'pdf' } = {}) {
+  const lines = [];
+  if (csl && csl !== 'apa' && !hasTopLevelKey(fm, 'csl') && existsSync(csl)) lines.push(`csl: "${relativeForQuarto(srcDir, csl)}"`);
+  if ((outExt === 'docx' || outExt === 'pptx') && referenceDoc && !hasTopLevelKey(fm, 'reference-doc') && existsSync(referenceDoc)) {
+    lines.push(`reference-doc: "${relativeForQuarto(srcDir, referenceDoc)}"`);
+  }
+  return lines;
+}
+
+/** Load a template folder for render: its fields as paths. Returns { ok, error, dir, data }. */
+export function loadTemplateFolder(folder) {
+  const dir = resolve(folder);
+  const { data, errors } = readTemplate(dir);
+  if (!data) return { ok: false, error: errors[0], dir };
+  const problems = checkTemplate(dir, { builtin: dir.toLowerCase().startsWith(TEMPLATES_DIR.toLowerCase()) });
+  if (problems.length) return { ok: false, error: `The template "${dir}" has a problem: ${problems[0]}`, dir };
+  const pick = (v) => (typeof v === 'string' && v.trim() ? join(dir, v.trim()) : '');
+  const csl = typeof data.csl === 'string' ? data.csl.trim() : '';
+  return {
+    ok: true, dir, data,
+    brand: pick(data.brand), referenceDoc: pick(data.reference_doc), csl: csl === 'apa' ? 'apa' : pick(csl),
+    format: typeof data.format === 'string' ? data.format.trim() : '',
+    extensions: typeof data.quarto_extension === 'string' && data.quarto_extension.trim() ? join(dir, '_extensions') : '',
+  };
+}
+
+const QUARTO_FORMATS = [
+  'html', 'pdf', 'typst', 'docx', 'pptx', 'revealjs', 'beamer', 'latex', 'odt', 'epub', 'gfm', 'commonmark', 'markdown', 'md',
+  'ipynb', 'rtf', 'asciidoc', 'plain', 'native', 'dashboard', 'jats', 'tei', 'docbook', 'opml', 'org', 'rst', 'texinfo',
+  'slidy', 'slideous', 'dzslides', 's5', 'ms', 'man', 'fb2', 'icml', 'mediawiki', 'textile', 'xwiki', 'zimwiki',
+  'jira', 'haddock', 'context', 'djot', 'bibtex', 'biblatex', 'csljson', 'openxml', 'html5', 'hugo-md',
+];
+
+/**
+ * The format a document asks for in its own front matter, if an extension provides it. Looks in <srcDir>/_extensions and in
+ * the template's extensions folder. Returns { format } when one is provided, { missing } when the document names an extension
+ * format that nothing provides (so Quarto could not build it), else {} (no format, one of ours, or one Quarto has built in).
+ */
+export function documentFormat(fm, { srcDir, templateExtensions = '' } = {}) {
+  const names = documentFormats(fm);
+  if (!names.length) return {};
+  const provided = new Set([...extensionFormats(join(srcDir, '_extensions')), ...extensionFormats(templateExtensions)]);
+  const found = names.find((n) => provided.has(n));
+  if (found) return { format: found };
+  const known = new Set([...Object.values(TYPES).map((t) => t.format), ...QUARTO_FORMATS]);
+  // Only a hyphenated name can be an extension format (<extension>-<base>). Quarto accepts many other Pandoc formats
+  // (commonmark_x, epub3, chunkedhtml, gfm-raw_html) and reports an unknown one itself, so those are left to it.
+  const other = names.find((n) => !known.has(n) && n.includes('-') && !known.has(n.split('-')[0]));
+  return other ? { missing: other } : {};
 }
 
 /** Which of our types does this source seem to be, judging by its `format:` line? */
@@ -210,7 +280,7 @@ function plainFailure(res) {
 export function renderDocument(opts) {
   const root = repoRoot();
   const result = {
-    ok: false, type: opts.type, source: opts.source, output: null, pdf: null, pages: null, maxPages: opts.maxPages ?? null,
+    ok: false, type: opts.type, format: null, source: opts.source, output: null, pdf: null, pages: null, maxPages: opts.maxPages ?? null,
     withinLimit: null, outDir: null, notes: [], problems: [], technical: '',
   };
   const fail = (message, fix) => { result.problems.push({ level: 'error', message, fix: fix || '' }); return result; };
@@ -223,11 +293,16 @@ export function renderDocument(opts) {
     return fail('Quarto, the program that makes the document, is not installed.', 'Install it from quarto.org (Windows: winget install --id Posit.Quarto -e).');
   }
 
+  let tpl = null;
+  if (opts.template) {
+    tpl = loadTemplateFolder(opts.template);
+    if (!tpl.ok) return fail(tpl.error, 'Run "node system/scripts/template.mjs check <folder>" for the list of problems.');
+  }
   const srcDir = dirname(source);
   const srcExt = extname(source).toLowerCase();
   const stem = basename(source, extname(source));
-  const format = opts.format || type.format;
-  const outExt = extensionFor(format);
+  let format = opts.format || (tpl && tpl.format) || type.format;
+  let outExt = extensionFor(format);
   const cleanup = [];
   const cleanAll = () => { for (const fn of cleanup.reverse()) { try { fn(); } catch { /* ignore */ } } };
 
@@ -256,6 +331,18 @@ export function renderDocument(opts) {
     cleanup.push(() => rmSync(renderFile, { force: true }));
     // 2. Brand, bibliography and (Word, PowerPoint) reference style: add only what the author did not set.
     let fm = frontMatterText(text);
+    // A format the document names itself wins over our default, when an extension next to it (or in the template) provides it.
+    if (!opts.format) {
+      const pick = documentFormat(fm, { srcDir, templateExtensions: tpl?.extensions || '' });
+      if (pick.format) {
+        format = pick.format;
+        outExt = extensionFor(format);
+        result.notes.push({ level: 'info', message: `Used the document's own format "${format}", from the extension next to it.`, fix: '' });
+      } else if (pick.missing) {
+        return fail(`The document asks for the format "${pick.missing}", but no extension next to it provides that format.`, `Put the extension in an _extensions folder next to the document (the one that gives "${pick.missing}"), or take the format: line out to use ${format}.`);
+      }
+    }
+    result.format = format;
     const localBrand = existsSync(join(srcDir, '_brand.yml'));
     const brandLine = /^brand[ \t]*:[ \t]*["']?_brand\.yml["']?[ \t]*\r?\n/m;
     if (!localBrand && fm && brandLine.test(fm)) {
@@ -265,7 +352,7 @@ export function renderDocument(opts) {
       fm = frontMatterText(text);
     }
     const lines = [];
-    const brandFile = chooseBrand({ explicit: opts.brand, root });
+    const brandFile = opts.brand || !(tpl && tpl.brand) ? chooseBrand({ explicit: opts.brand, root }) : tpl.brand;
     let usedBrand = localBrand ? join(srcDir, '_brand.yml') : null;
     if (!hasTopLevelKey(fm, 'brand') && !localBrand && existsSync(brandFile)) {
       lines.push(`brand: "${relativeForQuarto(srcDir, brandFile)}"`);
@@ -274,10 +361,20 @@ export function renderDocument(opts) {
     if (opts.type === 'report' && !hasTopLevelKey(fm, 'bibliography') && existsSync(join(srcDir, 'references.bib'))) {
       lines.push('bibliography: references.bib');
     }
-    if ((outExt === 'docx' || outExt === 'pptx') && !hasTopLevelKey(fm, 'reference-doc')) {
-      const ref = join(dirname(brandFile), `reference.${outExt}`);
-      if (existsSync(ref)) lines.push(`reference-doc: "${relativeForQuarto(srcDir, ref)}"`);
+    // Reference document: --reference-doc, then the template's, then reference.docx/.pptx beside the brand file.
+    const referenceDoc = opts.referenceDoc ? resolve(opts.referenceDoc) : tpl?.referenceDoc || join(dirname(brandFile), `reference.${outExt}`);
+    // Typst refuses files outside the project root, so a citation style from another folder is copied in under a
+    // temporary name (removed afterwards) and the front matter points at the copy.
+    let csl = opts.csl ? resolve(opts.csl) : tpl?.csl || '';
+    if (csl && csl !== 'apa' && existsSync(csl) && !hasTopLevelKey(fm, 'csl') && !isInside(srcDir, csl)) {
+      const stagedCsl = join(srcDir, `${stem}.render-style.csl`);
+      copyFileSync(csl, stagedCsl);
+      cleanup.push(() => rmSync(stagedCsl, { force: true }));
+      csl = stagedCsl;
     }
+    const tl = templateLines(fm, { srcDir, csl, referenceDoc, outExt });
+    lines.push(...tl);
+    if (tpl) result.notes.push({ level: 'info', message: `Template: ${basename(tpl.dir)}.`, fix: '' });
     writeFileSync(renderFile, injectFrontMatter(text, lines), 'utf8');
 
     // A missing brand font is not an error, but the page count can shift, so say so.
@@ -297,6 +394,8 @@ export function renderDocument(opts) {
     }
 
     // 3. Template extensions next to the source.
+    const stagedTpl = stageExtensionsFrom(tpl?.extensions || '', srcDir);
+    cleanup.push(() => stagedTpl.cleanup());
     const staged = stageExtensions(opts.type, srcDir);
     cleanup.push(() => staged.cleanup());
     const filesDir = join(srcDir, `${stem}.render_files`);
@@ -384,7 +483,7 @@ function usage() {
     [
       'Usage:',
       '  node system/quarto/tools/render.mjs <source.qmd|source.md> --type cv|cv-ats|letter|report|deck [--out <folder>]',
-      '       [--name <name>] [--max-pages <n>] [--release] [--pdf] [--format <name>] [--brand <file>] [--keep] [--json]',
+      '       [--name <name>] [--max-pages <n>] [--release] [--pdf] [--format <name>] [--brand <file>] [--template <folder>] [--reference-doc <file>] [--csl <file>] [--keep] [--json]',
       '  node system/quarto/tools/render.mjs scaffold <type> <folder> [--name <file name>] [--json]',
       '  node system/quarto/tools/render.mjs types',
     ].join('\n'),
@@ -437,7 +536,7 @@ function main(argv) {
   }
 
   const positional = [];
-  const valueFlags = new Set(['--type', '--out', '--name', '--max-pages', '--format', '--brand']);
+  const valueFlags = new Set(['--type', '--out', '--name', '--max-pages', '--format', '--brand', '--template', '--reference-doc', '--csl']);
   for (let i = 0; i < args.length; i++) {
     if (valueFlags.has(args[i])) { i++; continue; }
     if (args[i].startsWith('--')) continue;
@@ -447,6 +546,10 @@ function main(argv) {
   const source = positional[0];
   let type = flag('--type');
   if (!type && existsSync(source)) type = guessType(readFileSync(source, 'utf8'));
+  if (!type && flag('--template')) {
+    const base = readTemplate(resolve(flag('--template'))).data?.base;
+    if (base && TYPES[base]) type = base;
+  }
   if (!type) {
     console.error('Which kind of document is this? Add --type cv, cv-ats, letter, report or deck.');
     return 2;
@@ -456,7 +559,7 @@ function main(argv) {
 
   const result = renderDocument({
     source, type, out: flag('--out'), name: flag('--name'), maxPages: maxPagesRaw ? Number(maxPagesRaw) : null,
-    pdf: args.includes('--pdf'), format: flag('--format'), brand: flag('--brand'), keep: args.includes('--keep'), release: args.includes('--release'),
+    pdf: args.includes('--pdf'), format: flag('--format'), brand: flag('--brand'), template: flag('--template'), referenceDoc: flag('--reference-doc'), csl: flag('--csl'), keep: args.includes('--keep'), release: args.includes('--release'),
   });
   if (json) console.log(JSON.stringify(result, null, 2));
   else printHuman(result);

@@ -2,6 +2,8 @@
 
 Status: accepted (2026-10-08, product owner)
 
+Amendment (ADR 0027): the six lens briefs moved a second time, before release, to `.claude/skills/critique/references/lenses/` (ADR 0026), and the reviewers run on the named helpers `helper-review` and `helper-judgement` instead of the `lens` agent. Programme-note migration 0003 is now a guided migration, not a script. The decisions below are otherwise unchanged.
+
 ## Context
 Alterbrain started as an MBA pilot. The core, the skills, the onboarding and the wording assumed one reader: an MBA student in the Netherlands who takes courses inside one programme at one school and looks for a job there. That reader is the first user, not the only one. People who learn and work differ in ways that change what the framework should ask and do:
 
@@ -25,7 +27,7 @@ The product owner decided on 2026-10-08 to make the core useful to anyone who le
 - **No new learner packs now.** Packs for undergraduates, online learners or professionals are not built ahead of demand. Real users will ask; self-build drafts a pack on request with `/propose`.
 
 ## Consequences
-- Moved paths: the six lens briefs to `.claude/skills/assignment/references/lenses/`, four note templates (`assignment`, `rubric`, `decisions`, `critique`) to `system/templates/notes/`, the course procedure to `.claude/skills/course/references/course-setup.md`, and the Netherlands job guides from `system/packs/mba/jobs-nl/` to `system/packs/country-nl/`. The CHANGELOG lists each under `### Moved`.
+- Moved paths: the six lens briefs to `.claude/skills/assignment/references/lenses/` (then on to `.claude/skills/critique/references/lenses/`, see the amendment above), four note templates (`assignment`, `rubric`, `decisions`, `critique`) to `system/templates/notes/`, the course procedure to `.claude/skills/course/references/course-setup.md`, and the Netherlands job guides from `system/packs/mba/jobs-nl/` to `system/packs/country-nl/`. The CHANGELOG lists each under `### Moved`.
 - Existing users do not change shape by accident. Migration 0002 (`learner-and-packs`) records `mba` and switches on the packs they already use; 0003 (`programme-note`) makes a programme note from the old `school` block and links their courses; 0004 reports `my-*` skills, helpers and identity notes that point to moved files; 0005 reports edits to framework files that now have a new place. Both of the first two only add: the old keys stay.
 - Fallbacks, read until a later release removes them by migration (ADR 0024): no `learner` means `mba` when `packs` lists `mba` or a `school` block exists; `packs` missing means `core` only; `school.name` and `school.programme` serve as display text only when there is no programme note, and are never copied into a new course note; the `school` property of an older course note is a display fallback next to `programme` and `provider`; the pack for `jobs.country` is found without a `country-*` entry in `packs`. The SPEC lists each with the file that reads it and its test.
 - The always-loaded context grew. `system/core.md` is 7,900 bytes, under the 7,918 it had before this change (the folder map and rule 6 gained lines and other wording was trimmed), but the empty identity templates together with it measure about 11.4 KB against the 8 KB the SPEC states. The cap is not enforced by a test. The SPEC flags the mismatch for the owner and proposes a figure (section 5).

@@ -19,6 +19,7 @@ See how Alterbrain is set up, in plain words, and change anything you like.
 - "I'm not studying any more", "I started an MBA", "I'm taking online courses now".
 - "I do a business degree, add the frameworks", "turn off the MBA frameworks".
 - "Encrypt my private notes", "is my backup encrypted?".
+- "Use my school's slide template by default", "make my report tone more formal".
 
 ## Before you start
 
@@ -77,6 +78,8 @@ See how Alterbrain is set up, in plain words, and change anything you like.
    | School, programme or term | These now live in the programme note (`vault/20_areas/programmes/<Programme name>.md`), not in `config/brain.json`. Show the note, change only what the user names, and follow "The programme note" in `.claude/skills/course/references/course-setup.md`. Say once: courses keep what they copied; `/course review` offers to update the courses that took the programme's AI rule. No programme note yet (an older install): offer to make one the same way. Never write the `school` block. |
    | Identity, tone, profile, voice, career, brand, import | Re-run the onboarding module: `/onboard M1` … `/onboard M9` (see the table in `.claude/skills/onboard/SKILL.md`). It shows what is saved and changes only what the user wants. |
    | Re-do a module from scratch | `node system/scripts/onboard-progress.mjs reset <id>`, then `/onboard <id>`. Ask first: "This starts that step from the beginning. Your current files stay until we replace them. OK?" |
+   | Default document template | Hand over to `/template attach --default`, which sets the default template for a kind of document (deck, report, memo, letter, CV) in `config/brain.json` under `templates.defaults`. Do not edit that key here. The more specific attachments (deliverable, project, course, programme) are `/template attach` too. |
+   | Tone for a programme, course or project | Tone is a formality dial on top of the user's own voice: `academic`, `professional` or `conversational`. Show the current value and the recommended default for their kind (MBA and professional work: professional; degree, online and other course work: academic). **Ask before writing.** On a yes, write only the `tone` key in the frontmatter of that note (the programme note in `vault/20_areas/programmes/`, the course note, or the project note), replacing that one line or adding it, and keep the rest. Say once that it can be overridden for a single deliverable. |
    | Model or effort of a built `my-*` skill | Edit its frontmatter; run `node system/scripts/validate.mjs`. |
 
 3. **After a tools change** (on or off): run `node system/scripts/mcp-gen.mjs`, then say: "Close this session and open the project again so the change takes effect."
@@ -91,6 +94,7 @@ See how Alterbrain is set up, in plain words, and change anything you like.
 ## Outputs
 
 - Edited keys in `config/brain.json` (including `privacy.encryption`, written by `vault-key.mjs`), `config/autonomy.json`, `config/mcp.selected.json`; regenerated `.mcp.json`.
+- A `tone` line in a programme, course or project note, when the user asked for one.
 - Edited keys in `config/brain.json` also include `learner` and `packs`, from the learner question, and `packs` alone from the frameworks switch. The programme note is edited in `vault/20_areas/programmes/`.
 - Files changed by re-run onboarding modules (see each module's "Files written").
 - For a new course: handed to `/course`, which writes the course note and its Material list.

@@ -58,7 +58,7 @@ This is the hardest option in this set. Choose it only if a spare home computer 
 7. Guide the user to sign in to Claude Code with their own account. You never see or store credentials.
 8. Run jobs with `claude --bg` sessions or the documented scheduling route for servers. If you cannot confirm a scheduling route, say so and propose a simple alternative with the user's approval.
 9. Add a daily self-check: the job writes a heartbeat line to `state/local/heartbeat.log`. If it is missing for two days, `/health-check` raises a `#ab/automation` task.
-10. Record the build in `state/built.json`.
+10. Give every job a routine note (`vault/90_routines/<Name>.md`, `host: "server"`), written as `/build` describes under "Routine notes"; the heartbeat in step 9 supports it, and the routine's last run shows when it stopped. Point the user to the note. Record the build in `state/built.json`.
 
 ## How to test
 
@@ -68,4 +68,4 @@ This is the hardest option in this set. Choose it only if a spare home computer 
 
 ## How to undo
 
-Terminate the instance in Oracle's console, remove it from Tailscale, sign out of Claude Code on it, and delete the job entries from `state/built.json`.
+Terminate the instance in Oracle's console, remove it from Tailscale, sign out of Claude Code on it, pause or delete the jobs' routine notes in `vault/90_routines/`, and delete the job entries from `state/built.json`.

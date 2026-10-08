@@ -1,0 +1,20 @@
+schema: 1
+name: "deck-tie-b"
+slug: "deck-tie-b"
+kind: "deck"
+style: "reading-deck"
+base: "deck"
+format: ""
+outputs: [pdf]
+brand: ""
+reference_doc: ""
+quarto_extension: ""
+csl: ""
+max_upload_mb: null
+page_limit: null
+font_size_pt: null
+fonts: []
+house_rules:
+  - "Example house rule."
+structure: []
+source: "custom"

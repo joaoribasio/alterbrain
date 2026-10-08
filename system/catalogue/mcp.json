@@ -325,7 +325,7 @@
       "tos_risk": "medium",
       "writes": false,
       "channel": null,
-      "notes": "Uses unofficial Yahoo data, which may break or be limited. For learning and case work only, never for trading decisions. Pinned to a commit because the repo has no release tags. Alterbrain gives no investment advice.",
+      "notes": "Uses unofficial Yahoo data, which may break or be limited. For learning and case work only, never for trading decisions. Pinned to a commit because the repo has no release tags. PyPI also has yahoo-finance-mcp 0.1.2 (https://pypi.org/project/yahoo-finance-mcp/0.1.2/). Its PyPI page lists no link to the repository, and its code was not compared with the pinned commit, so it is not used [Unverified: whether it comes from the same author]. Alterbrain gives no investment advice.",
       "verified": "2026-10-07"
     },
     {

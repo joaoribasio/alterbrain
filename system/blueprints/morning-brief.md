@@ -53,9 +53,9 @@ The note is saved as `vault/70_journal/daily/YYYY-MM-DD.md`. It is a summary onl
    - give it a read-only prompt;
    - **prune the connectors list** to only what the brief needs;
    - do not include any tool whose name contains send, reply, post, submit or create_event;
-   - note that the run cannot push notes back unless you set that up deliberately. Ask the user how the note should reach their vault.
+   - note that the run works on a throwaway copy and cannot push notes back unless you set that up deliberately. Ask the user how the note should reach their vault. The same applies to the routine note's `record` step: until the run can push, keep the note `paused` (otherwise a `host: "cloud"` note looks overdue), and say that the Routines page shows the real last run.
 6. Add a link to the latest brief on `Home.md` only if the user agrees.
-7. Record the build in `state/built.json`.
+7. Write the routine note (`vault/90_routines/Morning brief.md`, `runs: "/my-morning-brief"`, `may: "draft only"`) as `/build` describes under "Routine notes", or enable the framework's suggested "Morning brief" routine with `node system/scripts/routines.mjs enable "Morning brief" --user-asked` once this blueprint is built and the user said yes in chat (without the flag the note is saved inert, as `suggested`). Every scheduled job is a routine note; point the user to it. Record the build in `state/built.json`.
 
 ## How to test
 
@@ -65,4 +65,4 @@ The note is saved as `vault/70_journal/daily/YYYY-MM-DD.md`. It is a summary onl
 
 ## How to undo
 
-Delete the schedule, run `/remove-skill my-morning-brief`, and remove the line from `state/built.json`. Past briefs stay in your journal.
+Delete the schedule, set the routine note `Morning brief` in `vault/90_routines/` to `status: "paused"` (or delete it), run `/remove-skill my-morning-brief`, and remove the line from `state/built.json`. Past briefs stay in your journal.

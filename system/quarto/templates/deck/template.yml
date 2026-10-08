@@ -1,0 +1,27 @@
+# Built-in deck template. Fields are explained in .claude/skills/template/references/new-template.md.
+schema: 1
+name: "Slide deck"
+slug: "deck"
+kind: "deck"
+style: "presenting-deck"
+base: "deck"
+format: ""
+outputs: [html, pdf, pptx]
+brand: ""
+reference_doc: ""
+quarto_extension: ""
+csl: ""
+max_upload_mb: null
+page_limit: null
+font_size_pt: null
+fonts: []
+house_rules:
+  - "Agree the storyline first: slide titles alone tell the story."
+  - "Every title is a full sentence with the takeaway, at most two lines."
+  - "One message per slide; minimal text, the detail goes in the speaker notes."
+  - "Put the executive summary up front and backup in an appendix."
+  - "Chart choice follows the message; highlight the key number and label directly instead of using a legend."
+  - "Data slides carry a source line."
+  - "Use colour-blind-safe contrast and a readable minimum font size."
+structure: []
+source: "built-in"

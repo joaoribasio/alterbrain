@@ -70,7 +70,8 @@ Written for the agent. Do each extra separately. For each: run `/clarify`, write
    - **skip the confirm step only for writing notes**; keep the note limit (default 10) and the four-task cap;
    - if the Adzuna keys are missing, or the data a country check needs cannot be downloaded (for the Netherlands, the sponsor register), add one `#ab/jobs` task saying so and stop.
 3. Schedule it with the user's chosen route. For a cloud routine: prune the connectors to nothing the scan does not need, and no send or post tools at all.
-4. Record in `state/built.json`: name, schedule, date from the system.
+4. Write the routine note `vault/90_routines/Jobs weekly scan.md` (`runs: "/my-jobs-weekly"`, `may: "draft only"`) as `/build` describes under "Routine notes": the body is the exact instruction the host runs and ends with the `record` step, and the note stays `paused` until the schedule exists on the host (and, for a cloud or server host, until the run can push its note change). Every scheduled job is a routine note; point the user to it ("check my routines").
+5. Record in `state/built.json`: name, schedule, date from the system, and the routine note in its paths.
 
 ### 2. Pipeline view
 
@@ -114,7 +115,7 @@ Written for the agent. Do each extra separately. For each: run `/clarify`, write
 
 ### 5. Networking messages
 
-1. Read `vault/60_people/<person>.md` (business facts only; check `dnc` is `false`). If there is no note, create one from `system/templates/notes/person.md` with the source and date for each fact.
+1. Read `vault/60_people/<person>.md` (business facts only; check `dnc` is `false`). If there is no note, create one with `/people` (it follows `.claude/skills/people/references/profile.md`, with the source and date for each fact). `/people draft <name>` does steps 1 to 3 for one person; after the user sends it, log the contact there.
 2. Delegate to the `ghostwriter` agent: `channel: linkedin` or `email`, `recipient_class: professional` (or `recruiter`), the user's real connection to the person, one clear small ask, and `length: short`.
 3. The draft goes to `vault/00_inbox/outbox/` as usual. Never contact anyone. Add one `#ab/jobs` task.
 4. Rules: at most 3 networking drafts a week; no mass messages; no flattery that cannot be backed; no claims about the person you cannot source; ask nothing personal.
@@ -144,7 +145,7 @@ Written for the agent. Do each extra separately. For each: run `/clarify`, write
 
 ## How to undo
 
-- **1:** delete the schedule, run `/remove-skill my-jobs-weekly`, remove its line from `state/built.json`.
+- **1:** run `/remove-skill my-jobs-weekly` (it offers to pause the routine note `Jobs weekly scan` in `vault/90_routines/`, recommended, or delete it), and delete the schedule on your host (the Claude app's Scheduled tasks or Routines page, or your server's scheduler), or it keeps running. Remove its line from `state/built.json`.
 - **2:** remove the extra views from `vault/_views/Applications.base`. Your notes are unchanged.
 - **3:** follow "How to undo" in `system/blueprints/linkedin.md`. Remove the working-rules note if you wish.
 - **4:** delete `state/local/tools/jobspy/` and remove `jobspy` from `jobs.sources` in `config/brain.json`. Past results stay in your notes.

@@ -2,7 +2,7 @@
 
 Goal: a folder with `assignment.md`, `rubric.md` and `decisions.md`, the coursework notice handled, and the deadline in the task list. About ten minutes of questions, one at a time.
 
-Model: the main session (sonnet, medium). No subagents.
+Runs in the main session.
 
 ## 1. Look before you ask
 
@@ -12,9 +12,12 @@ Before each question below, look for the answer in:
 - the course note (`vault/20_areas/courses/<course-slug>/course.md`), especially "Submission rules" and "Grading";
 - the programme note the course links with `programme: "[[...]]"` (`vault/20_areas/programmes/<Programme name>.md`): `grading_scale`, `## Submission conventions`, the programme-wide AI rule. The course note's own section is read first; the programme note answers when that section is empty;
 - source notes for the syllabus or the assignment sheet (`vault/40_sources/notes/`, search with Grep for the course code and words like "assignment", "rubric", "deadline");
+- the course note's default `team`, `team_name`, `team_number`, `tone` and `templates`, and the programme note's `tone`, `templates`, `max_upload_mb` and `csl`;
 - `config/brain.json` `school.name` and `school.programme`, only as a display name when there is no programme note.
 
 When you find an answer, state it and ask the user to confirm instead of asking from scratch ("The syllabus says six pages, 11 pt, 1.15 spacing. Is that right for this one?").
+
+**Two sources that disagree** on a deadline, a weight or a limit (the syllabus and the course site, the course note and the assignment sheet): show both, each with where it comes from, and ask which holds. Never choose silently, and never write either until the user has answered.
 
 ## 2. The course and the title
 
@@ -65,11 +68,11 @@ Use "our" and "we" for a team. The `draft` step places the final text in the rep
 
 Ask only what is still missing. Use free text unless a choice is shown.
 
-1. **Questions, word for word.** "Please paste the questions exactly as the course gives them." Keep them character for character. Do not fix typos. One list item per question. With no course: "...exactly as they were set, or as you want to answer them."
+1. **Questions, word for word.** "Please paste the questions exactly as the course gives them." Keep them character for character. Do not fix typos. One list item per question. With no course: "...exactly as they were set, or as you want to answer them." If the user pastes the whole assignment text (brief, instructions, case question), keep that too, verbatim, for `## Assignment text (as given)` in step 6, and take the questions from it. Never tidy, shorten or reorder what was pasted.
 2. **Case.** Only if the questions refer to a case (a text with facts and exhibits to analyse): "Which file is the case?" If it is not in `vault/40_sources/` yet, run the `ingest` skill on it first. Ask for the case date only if the case text does not state it. For anything that is not a case, skip this question and do not ask for a case date.
 3. **Deadline.** "When is it due? Date and time, if you know them." Then: "Did you see that date on the course site or the syllabus yourself?" (AskUserQuestion: "Yes, I checked it" / "Not yet"). Yes sets `deadline_confirmed: true`.
 4. **Limits.** Pages, words, font size and line spacing. Then two short ones: "Does the cover page count?" and "Do references count?" Use `null` for a limit the course does not set.
-5. **Rubric.** "Please paste the rubric or grading criteria, or tell me which file has them." If there is none, say you will build a working reading from the syllabus, labelled `[Inference]`.
+5. **Rubric.** "Please paste the rubric or grading criteria, or tell me which file has them." If there is none, say you will build a working reading from the syllabus, labelled `[Inference]` (a working note in `rubric.md`; the label never reaches a delivered file).
 6. **Target grade.** Ask once: "What grade are you aiming for?" Ask it in the course's own scale: read `grading_scale` in the programme note, or the course note's Grading section, and name the scale in the question ("The scale is 1 to 10, pass at 5.5."). With no scale on record, ask for the scale in the same question. Store `stop_rule.target_grade` on the 10-point scale, which the stop rule uses:
    - a 1 to 10 scale: the grade as given;
    - a percentage: divide by 10;
@@ -79,7 +82,14 @@ Ask only what is still missing. Use free text unless a choice is shown.
    - a pass/fail course: 7, "a clear pass".
    Show the conversion in one line before you write it ("A is 9 out of 10 here. OK?") and label it `[Inference]` if the course gives no mapping.
 7. **Deliverables.** AskUserQuestion, several allowed: "PDF report" (recommended), "Excel workbook", "Word document", "Slides".
-8. **Team.** AskUserQuestion: "Individual" / "Team". If team: "Would you like to add your teammates' names? This is optional, names only." Store only what they give.
+8. **Team.** AskUserQuestion: "Individual" / "Team". **The team of this assignment is what `assignment.md` holds** (`team`, `team_name`, `team_number`); covers, title slides and file names read it from there. The course note keeps only a default, to pre-fill.
+   - **Individual:** leave `team` empty, whatever the course note holds. Do not ask about a team and do not put the course default on the cover.
+   - **Team, and the course note holds a default:** show it and ask "Same team as before: <names>?" Yes: copy it to `assignment.md`. No: ask for the names, the team name and the number for this assignment and write them to `assignment.md` only. Leave the course default as it is unless the user says to replace it (a new group per assignment is common).
+   - **Team, and the course note has none:** "Would you like to add your teammates' names, the team name and the team number, if there are any? This is optional, names only." Write them to `assignment.md`, then ask once whether they are the course's usual team; on a yes also save them in the course note as the default.
+   - With no course, keep it in `assignment.md` only. If a name is missing, leave it out: a `[Teammate name]` placeholder never ships (the release scan catches it).
+9. **Voice, group work only.** One question: "Should this sound like you, or use a neutral team voice?" **Sound like me (recommended)**: "Uses your voice profile, so it reads like your own work; teammates' sections may sound different." / **A neutral team voice**: "One plain register for everyone; it will not sound like you." Store `voice_mode: "me"` or `"team"`. Individual work is always your voice, so `voice_mode` stays empty. No voice profile in `vault/80_me/voice/<lang>/`: say once that there is none and suggest the voice setup (onboarding M5); carry on only if the user wants to.
+10. **Tone.** Tone is a formality dial on top of your voice: `academic`, `professional` or `conversational`. Find the recommended one: `node system/scripts/template.mjs resolve --kind report --for "<course note path>" --json` and read `tone` and `tone_source` (the course value, else the programme's). If that gives nothing, use the default: `learner.kind` `mba` or `professional` gives professional; `degree`, `online` or `other` gives academic. State it with its source and ask only to confirm ("Tone: academic, from your programme. OK?"). Store it in `tone` only if the user changes it; empty means the course, programme or default applies. A rubric or school template that sets a structure or register wins: say so in one line.
+11. **AI-use log.** Only when the course note has `ai_log: true`, or the course or syllabus requires an AI-use log: offer it once ("The course asks for an AI-use log. Shall I keep one, one dated line per working step?" **Yes, keep one (recommended)**: "You always have the log ready to hand in; it costs one line per step." / **No, I keep it myself**: "Nothing is written for you."). On yes, create `ai-log.md` from `system/templates/notes/ai-log.md` in step 6, and set `ai_log: true` in the course note if it says `false` or lacks the key. The log is kept whenever `ai-log.md` exists, whatever the course flag says. Every later step adds its own line (`SKILL.md` step 5); the log records only what Alterbrain did, and the user's own part only in their words. Offered, never forced.
 
 Do not ask about lenses. Use the defaults from the template and mention them once in the summary.
 
@@ -95,15 +105,17 @@ Before you write anything, check the "Ready when" lines of the checklist: questi
 
 ## 6. Confirm, then write
 
-Show a short summary: folder, title, course (or "no course"), deadline (and whether confirmed), the questions (first words of each), limits, deliverables, team, and the default reviewers and stop rule ("five reviewers available; I stop suggesting rounds when the grade estimate stops moving, target <N> out of 10"). Ask "Shall I set it up?" Then write:
+Show a short summary: folder, title, course (or "no course"), deadline (and whether confirmed), the questions (first words of each), limits, deliverables, team, tone (and voice, for group work), and the default reviewers and stop rule ("five reviewers available; I stop suggesting rounds when the grade estimate stops moving, target <N> out of 10"). Ask "Shall I set it up?" Then write:
 
 1. `assignment.md` from `system/templates/notes/assignment.md`:
    - `created`: today; `course`: `"[[20_areas/courses/<course-slug>/course]]"`, or `""` with no course; `rubric`: `"[[10_projects/<folder>/rubric]]"`;
    - `questions`: a block list, one double-quoted string per question, word for word (escape inner `"` as `\"`);
-   - `stop_rule.target_grade`: the converted target from step 4;
+   - `stop_rule.target_grade`: the converted target from step 4; `team`, `team_name`, `team_number`, `tone` and `voice_mode` from step 4 (empty when not set; `team` is empty for an individual assignment); `templates`, `grade` and `feedback` stay empty;
+   - the pasted assignment text, if any, verbatim under `## Assignment text (as given)`; delete that section when nothing was pasted;
    - `status: "setup"`; fill the body sections; remove the template comment; add the first `## Log` line.
 2. `rubric.md` from `system/templates/notes/rubric.md`: the verbatim text first, then the categories table.
 3. `decisions.md` from `system/templates/notes/decisions.md`, with the example rows removed.
+3a. `ai-log.md` from `system/templates/notes/ai-log.md`, only if step 4.11 said yes.
 4. For a case, and only when there is a course: the case note `vault/20_areas/courses/<course-slug>/cases/<Case title>.md` from `system/packs/mba/templates/case.md`, if it does not exist. Fill what the case text gives; leave the rest for `brief`. A case with no course gets no case note: link its source note under "Sources" in `assignment.md` and keep the case date there.
 5. With a course, add a line linking the folder under "Cases and assignments" in the course note.
 

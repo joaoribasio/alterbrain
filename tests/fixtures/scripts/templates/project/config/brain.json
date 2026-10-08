@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "learner": { "kind": "mba", "detail": "" },
+  "packs": ["core", "mba"],
+  "templates": { "defaults": {} }
+}

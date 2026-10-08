@@ -26,7 +26,7 @@ Written by:
 
 Read by:
 - `system/scripts/onboard-seed.mjs`: copies `system/packs/<id>/frameworks/*.md` into `vault/30_wiki/frameworks/` for every listed pack, never overwrites, ignores ids that are not folder names (lower-case letters, digits and hyphens only) and reports a listed pack whose folder is missing;
-- `/assignment critique`: business seat presets when `mba` is listed and the subject is business;
+- `/critique` and `/assignment critique` (procedure `.claude/skills/critique/references/panel.md`, lens choice `lens-choice.md`): business seat presets from `system/packs/mba/critique-presets.md` when `mba` is listed and the subject is business;
 - `/jobs` and onboarding M6: the country pack;
 - `/menu` and `/reconfigure`: to show what is switched on.
 

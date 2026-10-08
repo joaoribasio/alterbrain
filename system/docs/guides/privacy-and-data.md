@@ -84,6 +84,18 @@ Alterbrain reads an email only when you ask (for example "draft a reply to …")
 
 Notes about other people (`vault/60_people/`) hold **business facts** by default: role, organisation, how you met, each with a source and date. Their sensitive details (health, family, beliefs) are stored only if you explicitly ask. If you do, they stay private and never go into anything that leaves your computer. Mark anyone you don't want contacted with `dnc: true` ("do not contact").
 
+**Your contact book (`/people`).** The same rules hold for the small profile each person note can carry: role, organisation, how you met, when you last spoke, when to follow up and how often. These are business facts. A birthday is stored only if you add it. Alterbrain looks someone up in public sources only when you ask, and never copies a list of people (a class list, an attendee list) into notes except as business facts. If you want a person never to appear in follow-up reminders, write `dnc: true` without quotes. People notes are in the encrypted set if you turned encryption on. A message to a contact is a draft in your voice; nothing is sent. More in [Networking](networking.md).
+
+## Other people's and companies' material
+
+- **Client or company material.** A report, data file or presentation that belongs to an employer or a client may be covered by a confidentiality agreement. When you bring one in, Alterbrain reminds you once to keep a private backup of your own and checks that your repository is private before it is uploaded. Whether your employer's rules allow it in a cloud tool is for you to check; Alterbrain cannot know.
+- **Files that say they must not be used with AI tools.** If a file you import states this, Alterbrain flags it once and writes no note about it until you decide: hold it (nothing is read into your notes) or use it anyway. Your answer stays on your computer only (`state/local/`) and is not uploaded.
+- **Your school's templates.** A school's logo, a branded Word file or a master slide you turn into a template stays in your own vault (`vault/80_me/templates/`), which is private. It is never part of Alterbrain itself. See [Templates](templates.md).
+
+## What goes into a file you hand in
+
+The marks Alterbrain uses in chat to show how sure it is, such as [Inference] and [Unverified], and gaps such as [FACT NEEDED], never go into a report, deck, workbook or message you hand in. They become plain wording ("we assume", "in our reading") or a real fact you supply. A check reads text, Word, PowerPoint, Excel and PDF files for them before you upload.
+
 ## Encrypting your most private notes (optional)
 
 Your repository is private, but anyone who got into your GitHub account could read it. If that worries you, Alterbrain can scramble the notes that matter most before they are uploaded: `fact-sheet.md`, `USER.md`, `MEMORY.md`, your voice files, people notes and the journal, and the PDFs, Word files and pictures you keep in those folders. On your computer they stay normal files and I still read them in every session. A small check that Git runs before every upload also stops Obsidian Git on a computer from sending a private note unscrambled; a phone is not covered. What it does not hide: file names and sizes, notes saved before you turned it on (they stay readable in old versions), audio and video, files outside those folders, and private files of 50 MB or more (those are kept off GitHub altogether). It needs a key file that you must keep safe: lose it and the laptop together and those notes cannot be recovered. Full explanation: [Encrypting your private notes](encrypting-private-notes.md).

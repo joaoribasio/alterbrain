@@ -13,8 +13,8 @@ import { fileURLToPath } from 'node:url';
 import { countPagesInBuffer, checkLimit, countPages } from '../../system/quarto/tools/pagecount.mjs';
 import { explain } from '../../system/quarto/tools/explain.mjs';
 import { fontsInBrand, checkFonts, adviceFor } from '../../system/quarto/tools/fonts.mjs';
-import { TYPES, TEMPLATES_DIR, DEFAULT_BRAND, findQuarto, frontMatterText, hasTopLevelKey, stageExtensions, uniquePath, repoRoot } from '../../system/quarto/tools/lib.mjs';
-import { injectFrontMatter, guessType, safeName, extensionFor, scaffold, renderDocument, countSlides } from '../../system/quarto/tools/render.mjs';
+import { contributedFormats, documentFormats, extensionFormats, TYPES, TEMPLATES_DIR, DEFAULT_BRAND, findQuarto, frontMatterText, hasTopLevelKey, stageExtensions, stageExtensionsFrom, uniquePath, repoRoot } from '../../system/quarto/tools/lib.mjs';
+import { documentFormat, injectFrontMatter, guessType, safeName, extensionFor, scaffold, renderDocument, countSlides, templateLines, loadTemplateFolder } from '../../system/quarto/tools/render.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRATCH = join(repoRoot(), 'state', 'local', 'tmp', 'quarto', 'tests');
@@ -179,6 +179,61 @@ test('stageExtensions copies the template extensions and cleans up exactly what 
     const again = stageExtensions('report', dir);
     again.cleanup();
     assert.ok(existsSync(join(dir, '_extensions', 'alterbrain-report', 'mine.txt')));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('templateLines adds a citation style and a reference document only when the author set none', () => {
+  const dir = scratch('tpl-lines');
+  try {
+    const csl = join(dir, 'harvard.csl');
+    const ref = join(dir, 'ref.docx');
+    writeFileSync(csl, '<style/>');
+    writeFileSync(ref, 'x');
+    const none = templateLines('title: "A"', { srcDir: dir, csl, referenceDoc: ref, outExt: 'docx' });
+    assert.deepEqual(none, ['csl: "harvard.csl"', 'reference-doc: "ref.docx"']);
+    // Already set by the author: nothing is added.
+    assert.deepEqual(templateLines(['csl: mine.csl', 'reference-doc: mine.docx'].join('\n'), { srcDir: dir, csl, referenceDoc: ref, outExt: 'docx' }), []);
+    // A PDF has no reference document; "apa" and empty values add nothing; a missing file adds nothing.
+    assert.deepEqual(templateLines('', { srcDir: dir, csl: 'apa', referenceDoc: ref, outExt: 'pdf' }), []);
+    assert.deepEqual(templateLines('', { srcDir: dir, csl: join(dir, 'gone.csl'), outExt: 'pdf' }), []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('stageExtensionsFrom copies a template extension, never overwrites, and a missing folder adds nothing', () => {
+  const dir = scratch('tpl-ext');
+  try {
+    const from = join(dir, 'tpl', '_extensions');
+    mkdirSync(join(from, 'school-report'), { recursive: true });
+    writeFileSync(join(from, 'school-report', '_extension.yml'), 'title: School');
+    const src = join(dir, 'src');
+    mkdirSync(src);
+    const staged = stageExtensionsFrom(from, src);
+    assert.ok(existsSync(join(src, '_extensions', 'school-report', '_extension.yml')));
+    staged.cleanup();
+    assert.deepEqual(readdirSync(src), []);
+    mkdirSync(join(src, '_extensions', 'school-report'), { recursive: true });
+    writeFileSync(join(src, '_extensions', 'school-report', 'mine.txt'), 'mine');
+    stageExtensionsFrom(from, src).cleanup();
+    assert.ok(existsSync(join(src, '_extensions', 'school-report', 'mine.txt')));
+    assert.ok(!existsSync(join(src, '_extensions', 'school-report', '_extension.yml')), 'the user copy is left alone');
+    const nothing = stageExtensionsFrom(join(dir, 'nope'), join(dir, 'src2'));
+    assert.deepEqual(nothing.added, []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('loadTemplateFolder accepts the built-in templates and explains a broken one', () => {
+  for (const t of ['report', 'deck', 'letter', 'cv']) assert.equal(loadTemplateFolder(join(TEMPLATES_DIR, t)).ok, true, t);
+  const dir = scratch('tpl-bad');
+  try {
+    assert.match(loadTemplateFolder(dir).error, /no template.yml/);
+    writeFileSync(join(dir, 'template.yml'), ['schema: 1', 'name: "X"', 'slug: "x"', 'kind: "deck"', 'source: "custom"', 'brand: "gone.yml"'].join('\n'));
+    assert.match(loadTemplateFolder(dir).error, /has a problem/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -521,4 +576,212 @@ test('fonts: Quarto lists the installed fonts, including the ones it bundles', r
   const fonts = installedFonts();
   assert.ok(fonts && fonts.size > 10);
   assert.ok(fonts.has('libertinus serif') && fonts.has('font awesome 6 free'));
+});
+
+// ------------------------------------------------------------------ template csl from another folder
+
+const MINI_CSL = `<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
+  <info><title>Test style</title><id>http://example.com/test-style</id><updated>2026-01-01T00:00:00+00:00</updated></info>
+  <citation><layout prefix="[" suffix="]" delimiter="; "><text variable="citation-number"/></layout></citation>
+  <bibliography><layout><text variable="citation-number" suffix=". "/><text variable="title"/></layout></bibliography>
+</style>
+`;
+
+test('explain: a file outside the project root is not blamed on the brand file', () => {
+  const items = explain('ERROR: path "../tpl/x/own.csl" would escape the project root\n_brand.yml');
+  assert.equal(items.length, 1);
+  assert.match(items[0].message, /citation style file/);
+  assert.doesNotMatch(items[0].message, /brand/);
+});
+
+test('template csl in another folder is staged into the source folder, used and removed', render, () => {
+  const root = scratch('tplcsl');
+  const dir = join(root, 'doc');
+  const tpl = join(root, 'tpl', 'my-rep');
+  try {
+    scaffold('report', dir);
+    mkdirSync(tpl, { recursive: true });
+    writeFileSync(join(tpl, 'own.csl'), MINI_CSL);
+    writeFileSync(join(tpl, 'template.yml'), [
+      'schema: 1', 'name: "My rep"', 'slug: "my-rep"', 'kind: "report"', 'style: "report"', 'base: "report"', 'format: ""',
+      'outputs: [pdf]', 'brand: ""', 'reference_doc: ""', 'quarto_extension: ""', 'csl: "own.csl"', 'source: "custom"',
+    ].join('\n'));
+    const kept = renderDocument({ source: join(dir, 'report.qmd'), type: 'report', template: tpl, keep: true });
+    assert.equal(kept.ok, true, JSON.stringify(kept.problems) + kept.technical);
+    assert.match(readFileSync(join(dir, 'report.render.qmd'), 'utf8'), /csl: "report\.render-style\.csl"/);
+    rmSync(join(dir, 'report.render.qmd'), { force: true });
+    rmSync(join(dir, 'report.render-style.csl'), { force: true });
+    const r = renderDocument({ source: join(dir, 'report.qmd'), type: 'report', template: tpl });
+    assert.equal(r.ok, true, JSON.stringify(r.problems) + r.technical);
+    assert.ok(!existsSync(join(dir, 'report.render-style.csl')), 'staged style file removed');
+    assert.ok(!existsSync(join(dir, 'report.render.qmd')));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// ------------------------------------------------------------------ pagecount: object streams, written by LuaTeX and pdfTeX
+
+/** A small PDF in the shape LuaTeX and pdfTeX write: a content stream first, then an object stream with the page tree. */
+function objectStreamPdf({ count = 5, kids = 5, newline = '\n' } = {}) {
+  const L = (s) => Buffer.from(s, 'latin1');
+  const content = deflateSync(L('BT /F1 12 Tf (a line that mentions stream' + newline + 'and endstream) Tj ET'));
+  const objects = L(
+    '<< /Resources << /Font << /F1 9 0 R >> >> /Type /Pages /Count ' + count + ' /Kids [' + '10 0 R '.repeat(kids) + '] >> ' +
+      '<< /Type /Page /Parent 1 0 R /Contents 4 0 R >> << /Type /Catalog /Pages 1 0 R >>',
+  );
+  const packed = deflateSync(objects);
+  return Buffer.concat([
+    L('%PDF-1.5' + newline + '4 0 obj' + newline + '<< /Filter /FlateDecode /Length ' + content.length + ' >>' + newline + 'stream' + newline),
+    content,
+    L(newline + 'endstream' + newline + 'endobj' + newline + '5 0 obj' + newline +
+      '<< /Type /ObjStm /N 3 /First 20 /Filter /FlateDecode /Length ' + packed.length + ' >>' + newline + 'stream' + newline),
+    packed,
+    L(newline + 'endstream' + newline + 'endobj' + newline + '%%EOF' + newline),
+  ]);
+}
+
+test('pagecount reads an object stream that follows another stream (LuaTeX, pdfTeX)', () => {
+  assert.equal(countPagesInBuffer(objectStreamPdf({ count: 5 })), 5);
+  assert.equal(countPagesInBuffer(objectStreamPdf({ count: 12 })), 12);
+});
+
+test('pagecount reads object streams in a file with CRLF line breaks', () => {
+  assert.equal(countPagesInBuffer(objectStreamPdf({ count: 7, newline: '\r\n' })), 7);
+});
+
+test('pagecount counts page objects inside an object stream when the tree has no count', () => {
+  const L = (s) => Buffer.from(s, 'latin1');
+  const packed = deflateSync(L('<< /Type /Page /Parent 1 0 R >> << /Type /Page /Parent 1 0 R >> << /Type /Page /Parent 1 0 R >>'));
+  const pdf = Buffer.concat([
+    L('%PDF-1.5\n1 0 obj\n<< /Length 3 >>\nstream\nabc\nendstream\nendobj\n5 0 obj\n<< /Type /ObjStm /N 3 /First 5 /Filter /FlateDecode /Length ' + packed.length + ' >>\nstream\n'),
+    packed,
+    L('\nendstream\nendobj\n%%EOF\n'),
+  ]);
+  assert.equal(countPagesInBuffer(pdf), 3);
+});
+
+test('pagecount still reads a Typst-style PDF with a plain page tree and compressed content', () => {
+  const content = deflateSync(Buffer.from('q 1 0 0 1 0 0 cm Q', 'latin1')).toString('latin1');
+  const pdf = fakePdf(
+    '1 0 obj\n<< /Length ' + content.length + ' /Filter /FlateDecode >>\nstream\n' + content + '\nendstream\nendobj\n' +
+      '2 0 obj\n<< /Type /Pages /Count 4 /Kids [3 0 R] >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R >>\nendobj',
+  );
+  assert.equal(countPagesInBuffer(pdf), 4);
+});
+
+// ------------------------------------------------------------------ a document's own format
+
+/** A synthetic Quarto extension (no school artwork): folder `synth`, contributes docx and typst formats. */
+function writeSynthExtension(dir, { owner = '' } = {}) {
+  const ext = owner ? join(dir, '_extensions', owner, 'synth') : join(dir, '_extensions', 'synth');
+  mkdirSync(ext, { recursive: true });
+  writeFileSync(join(ext, '_extension.yml'), [
+    'title: Synthetic school format', 'author: Test', 'version: 0.0.1', 'contributes:', '  formats:', '    common:', '      toc: false',
+    '    docx:', '      toc: false', '    typst:', '      papersize: a5', '',
+  ].join('\n'));
+  return ext;
+}
+
+test('contributedFormats lists the formats an extension provides and ignores other keys', () => {
+  const yml = 'title: x\ncontributes:\n  formats:\n    common:\n      a: 1\n    pdf:\n      b:\n        c: 2\n    typst:\n      d: 3\nother:\n  formats:\n    nope: 1\n';
+  assert.deepEqual(contributedFormats(yml), ['common', 'pdf', 'typst']);
+  assert.deepEqual(contributedFormats('contributes:\r\n  formats:\r\n    html:\r\n      x: 1\r\n'), ['html']);
+  assert.deepEqual(contributedFormats('title: nothing here'), []);
+});
+
+test('extensionFormats names formats after the extension folder, with or without an owner folder', () => {
+  const dir = scratch('extfmt');
+  const dir2 = scratch('extfmt2');
+  try {
+    writeSynthExtension(dir);
+    assert.deepEqual([...extensionFormats(join(dir, '_extensions'))].sort(), ['synth-docx', 'synth-typst']);
+    writeSynthExtension(dir2, { owner: 'school' });
+    assert.ok(extensionFormats(join(dir2, '_extensions')).has('synth-docx'));
+    assert.equal(extensionFormats(join(dir, 'missing')).size, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir2, { recursive: true, force: true });
+  }
+});
+
+test('documentFormats reads a plain name, a quoted name and a map of formats', () => {
+  assert.deepEqual(documentFormats('title: x\nformat: rsm-pdf\n'), ['rsm-pdf']);
+  assert.deepEqual(documentFormats('format: "rsm-pdf"  # school\n'), ['rsm-pdf']);
+  assert.deepEqual(documentFormats('format:\n  rsm-pdf:\n    toc: true\n  html: default\ntitle: x\n'), ['rsm-pdf', 'html']);
+  assert.deepEqual(documentFormats('format:\r\n  rsm-pdf:\r\n    toc: true\r\n'), ['rsm-pdf']);
+  assert.deepEqual(documentFormats('title: x\n'), []);
+});
+
+test('documentFormat honours a format an extension provides, and flags one nothing provides', () => {
+  const dir = scratch('docfmt');
+  const tplExt = scratch('tplext');
+  try {
+    writeSynthExtension(dir);
+    assert.deepEqual(documentFormat('format: synth-docx\n', { srcDir: dir }), { format: 'synth-docx' });
+    assert.deepEqual(documentFormat('format:\n  synth-typst:\n    toc: true\n', { srcDir: dir }), { format: 'synth-typst' });
+    assert.deepEqual(documentFormat('format: other-pdf\n', { srcDir: dir }), { missing: 'other-pdf' });
+    assert.deepEqual(documentFormat('format: html\n', { srcDir: dir }), {});
+    // Pandoc formats Quarto accepts but we do not list are left to Quarto
+    for (const f of ['commonmark_x', 'markdown_strict', 'epub3', 'chunkedhtml', 'gfm-raw_html']) {
+      assert.deepEqual(documentFormat(`format: ${f}\n`, { srcDir: dir }), {}, f);
+    }
+    assert.deepEqual(documentFormat('format: alterbrain-report-typst\n', { srcDir: dir }), {});
+    assert.deepEqual(documentFormat('title: x\n', { srcDir: dir }), {});
+    // an extension that only the template carries counts too
+    writeSynthExtension(tplExt);
+    assert.deepEqual(documentFormat('format: synth-docx\n', { srcDir: join(dir, 'none'), templateExtensions: join(tplExt, '_extensions') }), { format: 'synth-docx' });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(tplExt, { recursive: true, force: true });
+  }
+});
+
+test('report: a document that names a format from an extension next to it uses that format', render, () => {
+  const dir = scratch('ownfmt');
+  try {
+    writeSynthExtension(dir);
+    writeFileSync(join(dir, 'paper.qmd'), '---\ntitle: "Own format"\nformat: synth-docx\n---\n\nHello.\n');
+    const r = renderDocument({ source: join(dir, 'paper.qmd'), type: 'report' });
+    assert.equal(r.ok, true, JSON.stringify(r.problems) + r.technical);
+    assert.equal(r.format, 'synth-docx');
+    assert.ok(r.output.endsWith(join('_out', 'paper.docx')), r.output);
+    assert.ok(r.notes.some((n) => /own format "synth-docx"/.test(n.message)));
+    assert.ok(existsSync(join(dir, '_extensions', 'synth', '_extension.yml')), 'the extension next to the document is left alone');
+    assert.ok(!existsSync(join(dir, '_extensions', 'alterbrain-report')), 'staged extensions removed');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('report: a document with no format of its own still gets Typst, and --format still wins', render, () => {
+  const dir = scratch('nofmt');
+  try {
+    writeSynthExtension(dir);
+    writeFileSync(join(dir, 'plain.qmd'), '---\ntitle: "Plain"\n---\n\nHello.\n');
+    const a = renderDocument({ source: join(dir, 'plain.qmd'), type: 'report' });
+    assert.equal(a.ok, true, JSON.stringify(a.problems) + a.technical);
+    assert.equal(a.format, 'alterbrain-report-typst');
+    assert.ok(a.output.endsWith('plain.pdf'));
+    writeFileSync(join(dir, 'forced.qmd'), '---\ntitle: "Forced"\nformat: synth-docx\n---\n\nHello.\n');
+    const b = renderDocument({ source: join(dir, 'forced.qmd'), type: 'report', format: 'alterbrain-report-typst' });
+    assert.equal(b.ok, true, JSON.stringify(b.problems) + b.technical);
+    assert.ok(b.output.endsWith('forced.pdf'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('report: a format nothing provides stops with a plain explanation', render, () => {
+  const dir = scratch('nofound');
+  try {
+    writeFileSync(join(dir, 'paper.qmd'), '---\ntitle: "Missing ext"\nformat: nowhere-pdf\n---\n\nHello.\n');
+    const r = renderDocument({ source: join(dir, 'paper.qmd'), type: 'report' });
+    assert.equal(r.ok, false);
+    assert.match(r.problems[0].message, /"nowhere-pdf".*no extension next to it/);
+    assert.ok(!existsSync(join(dir, 'paper.render.qmd')), 'temporary source removed');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

@@ -6,7 +6,7 @@
 - sorting and cleaning sent mail: `mail-reader` agent (haiku / low);
 - statistics: `system/scripts/voice-stats.mjs` (script);
 - choosing exemplars, read-back, blind test: sonnet / medium;
-- **writing the profile: opus / high**, as a subagent (judgement pass).
+- **writing the profile:** the `helper-judgement` agent (opus / high), a judgement pass. If it cannot run (plan limits), the main session writes the profile and says so in one line.
 
 Say at the start: "This one teaches me how you write: your openings, sign-offs, sentence length, the words you'd never use. About 15 minutes."
 
@@ -40,7 +40,7 @@ Say it once, in plain words, before reading anything: "I keep your own writing a
 
 - Stats: `node system/scripts/voice-stats.mjs "state/local/tmp/voice/<lang>/corpus.md" --lang <lang> --out "vault/80_me/voice/<lang>/stats.json"`. It prints JSON and, with `--out`, also saves it (there is no `--json` flag). That file is the baseline `voice-stats --check` reads by default.
 - Exemplars and profile register rows use the seven recipient classes of `system/packs/twin/drafting.md` §3: `faculty`, `school-staff`, `recruiter`, `professional`, `peer`, `close`, `group`.
-- Profile: an **opus / high** subagent fills `system/templates/voice/profile.md` from the exemplars and the baseline stats, and writes `vault/80_me/voice/<lang>/profile.md`.
+- Profile: the `helper-judgement` agent fills `system/templates/voice/profile.md` from the exemplars and the baseline stats, and writes `vault/80_me/voice/<lang>/profile.md`.
 - Read-back (voice-import.md §6), always in this order:
   1. Show what was discovered (sources and gaps, signature habits with tiny quotes, do/never, covered registers), each marked measured or inferred, and let the user correct it.
   2. Write a 120–180-word sample in their voice on a topic they pick (default by kind: opening a class presentation, or a short project update for a professional).

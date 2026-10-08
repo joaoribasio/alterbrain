@@ -40,6 +40,9 @@ If the course note says `ai_policy: "unknown"` and the files hold a syllabus, of
 - A zip inside a zip is stored as an ordinary file and not opened (its `note` says so). Tell the user, and offer to carry on once they have unzipped it.
 - Duplicates keep the course they were first saved with (the manifest is never edited). If a duplicate's `course` differs from the one chosen, say so in one line ("3 files were already in your vault under Marketing, so I left them there") and write no second note for them. A duplicate with no course (an earlier import without one) gets this course on its existing note: `course-setup.md` section 4 adds the line, and you say "7 were already in your vault, so I linked them to <course>". A duplicate that never got a note is written as a new note.
 - Read the counts: new, duplicate, skipped, problems, `text_pending`, `local_only`. Report them in a line.
+- **Files that say they must not be used with AI tools.** A new record with `ai_notice: true` (and the sentence in `ai_notice_text`) is flagged once, in one message for the whole run, listing each file and its sentence. Write no source note for those files until the user decides (`SKILL.md`, step 4), and save the answer with `ingest.mjs --ai-decide <id> held|use` (on this computer only). Raw copies are only copies, so they stay. A file the user holds is listed as "held, not read" and counted apart in the Material heading (`course-setup.md` section 4). `/ingest pending` works the flag out again from the files, so a later session still knows. **A syllabus, course guide or policy that states the course's own AI rule for students is not such a restriction** (`SKILL.md`, step 4): read it for the rule even if it is flagged, and do not hold it. Judge by what the sentence restricts: a rule about students' use of AI in assignments is the course's rule; a rule that the document itself may not be put into AI tools is a restriction.
+- **Client or company material** (a case company's internal data, an employer's files): give the private-backup reminder once for the run (`SKILL.md`, step 4).
+- **Rosters** (class or team lists): business facts only; no birthdays, personal contact details or photos.
 
 ## 4. How many, and how long
 
@@ -50,7 +53,9 @@ After the copy you know the number of new files. Say it, with an estimate labell
 - **More than 50:** "<N> new files. I write about 50 notes per run, so this is <ceil(N/50)> runs of roughly 5 to 10 minutes each [Inference]. I start with the syllabus and assignment pages, then the rest. Do the first run now?" The same two options. For the rest, add one task and tick it when none are left (the way `/ingest pending` does):
   `node system/scripts/tasks.mjs add "Write notes for the rest of the <course> files. Say: /ingest pending (about 50 files each time)" --tag ingest --priority medium`
 
-Order of work: syllabus and course guide first, then assignment pages, then slides and readings in folder order. Work in batches of at most 8 files, as in `SKILL.md` step 5, with one line after each batch ("16 of 50 done"). `/ingest pending` reads `course` from the manifest, so a later run keeps the course.
+Order of work: syllabus and course guide first, then assignment pages, then slides and readings in folder order. Work in batches of at most 8 files, as in `SKILL.md` step 5, with one line after each batch ("16 of 50 done").
+
+**Bulk rules.** Classification goes to `helper-triage`. Source notes go to `helper-draft`, each helper with its own disjoint set of files and the exact note paths it may write; helpers write source notes only. The main session writes the wiki pages, `index.md` and `log.md` and the course note's Material list, so no two writers share a target page. After each batch the main session reads one helper note against its extracted text before continuing. Parallel helpers stay within the `plan_tier` cap (3 on Pro, 8 on Max). `/ingest pending` reads `course` from the manifest, so a later run keeps the course.
 
 ## 5. Write the notes with the course known
 

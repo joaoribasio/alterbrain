@@ -52,7 +52,7 @@ The jobs run through the Claude desktop app's **local scheduled tasks**. They ru
    - it never calls send, post or submit tools (the outbound guard blocks them anyway);
    - on any failure it adds a `#ab/automation` task with `node system/scripts/tasks.mjs add`.
 6. Add a setup task for the human: "Keep the Claude app open and turn on Keep computer awake in the app settings." Do **not** change power settings yourself. Show the user where the setting is and let them do it.
-7. Record the job in `state/built.json` with name, schedule and date. Take the date from the system.
+7. Write the job's routine note (`vault/90_routines/<Name>.md`, `host: "laptop"`) as `/build` describes under "Routine notes", and give the scheduled task the note body as its instruction. Every scheduled job is a routine note: it shows the job in your routine list (say "check my routines") and lets you recreate it on another host. Record the job in `state/built.json` with name, schedule and date (take the date from the system) and list the note in its paths.
 
 ## How to test
 
@@ -62,4 +62,4 @@ The jobs run through the Claude desktop app's **local scheduled tasks**. They ru
 
 ## How to undo
 
-Delete the scheduled task in the desktop app (or ask: "ask Alterbrain: stop the morning job"). Remove its line from `state/built.json`. Nothing else was changed.
+Delete the scheduled task in the desktop app (or ask: "ask Alterbrain: stop the morning job"). Set the job's routine note in `vault/90_routines/` to `status: "paused"`, or delete the note. Remove its line from `state/built.json`. Nothing else was changed.

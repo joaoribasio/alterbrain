@@ -9,6 +9,10 @@ end: ""
 ai_policy: "unknown"
 ai_policy_quote: ""
 grading_scale: ""
+templates: []
+tone: ""
+max_upload_mb: null
+csl: ""
 ---
 # {{title}}
 
@@ -16,6 +20,7 @@ grading_scale: ""
      Procedure: .claude/skills/course/references/course-setup.md, "The programme note". Facts only from documents or the user, never guessed. Leave anything unknown empty.
      status is active or completed. provider is the school or platform, for example Rotterdam School of Management. level is for example MBA, MSc, BSc or certificate. start and end are YYYY-MM-DD. In the Terms table, Start and End hold YYYY-MM-DD only (courses copy them and the session digest reads nothing else); wording such as "Week 40" goes in the Term cell and Start and End stay empty.
      ai_policy is one of: allowed, allowed-with-disclosure, restricted, banned, unknown, none-stated (the same values as a course). ai_policy_quote holds the programme- or school-wide rule word for word. grading_scale is for example "1-10, pass 5.5" or "A-F".
+     templates: slugs of document templates for the whole programme (for example a school report template). tone: academic, professional or conversational, the default for every course here. max_upload_mb: the upload limit of the submission platform, a number or null. csl: the citation style the programme requires ("apa" or a file name in a template), or empty.
      Remove this comment when you fill the note. -->
 
 ## Terms

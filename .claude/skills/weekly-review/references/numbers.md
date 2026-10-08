@@ -18,6 +18,7 @@ The **week** runs Monday to Sunday of the reviewed ISO week. "Next 7 days" means
 | Open proposals | `vault/00_inbox/proposals/*.md` | `status: "open"`. Also list approved or built this week. |
 | Tasks done this week | `vault/00_inbox/Tasks.md` | Lines `- [x]` carrying a done date (`✅ YYYY-MM-DD`) inside the week. If tasks have no done date, count `- [x]` lines not yet archived and say "ticked since the last review". |
 | Tasks open / overdue | same | Lines `- [ ]`. Overdue means `📅` date before today. |
+| Contacts due | `node system/scripts/people.mjs due --within 7 --json` | The number of entries in `due`. Write "none yet" if `vault/60_people/` holds no person notes. Never count by hand. |
 | Captures waiting | `vault/00_inbox/captures/*.md` | `status: "new"`. |
 
 ## Weekly note layout
@@ -41,6 +42,7 @@ week: "2026-W41"
 | Drafts sent / waiting | 3 / 1 |
 | Cards reviewed / due | 24 / 6 |
 | Open proposals | 1 |
+| Contacts due | 2 |
 | Tasks done / open / overdue | 9 / 14 / 2 |
 
 ## What happened

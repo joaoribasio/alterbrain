@@ -177,11 +177,11 @@ There is no `--json` flag: the script always prints JSON, and `--out <file>` als
 
 ---
 
-## 5. Write the profile (opus, high effort)
+## 5. Write the profile (`helper-judgement`)
 
-This is a judgement pass. Run it as an `opus` / `high` subagent call. If the session cannot use opus, use the current model, add `calibrate: "later"` to the profile frontmatter and tell the user.
+This is a judgement pass. Run it on the `helper-judgement` agent (opus, high effort; the helper fixes the model and effort, so pass no override). If it cannot run (plan limits), do the pass in the main session, add `calibrate: "later"` to the profile frontmatter and tell the user in one line.
 
-Give the subagent: the exemplars file, the baseline stats (`vault/80_me/voice/<lang>/stats.json`) and `system/templates/voice/profile.md`. Ask it to fill the template for this language:
+Give the helper these paths: the exemplars file (`vault/80_me/voice/<lang>/exemplars.md`), the baseline stats (`vault/80_me/voice/<lang>/stats.json`) and `system/templates/voice/profile.md`. It may write only `vault/80_me/voice/<lang>/profile.md`. Ask it to fill the template for this language:
 - **in plain words** a non-technical reader recognises ("You open with the point, not with pleasantries.");
 - with **evidence**: each claim points to exemplar IDs or a stat;
 - with a register table per recipient class actually seen in the exemplars;

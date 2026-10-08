@@ -159,3 +159,145 @@ test('no skill or agent combines the course, programme and provider rules for th
   const hits = files.filter((f) => combined.test(readFileSync(f, 'utf8'))).map((f) => f.slice(REPO.length + 1));
   assert.deepEqual(hits, []);
 });
+
+/* ---------------- 5. v0.2.0: team, tone, templates, AI-use log, feedback ---------------- */
+
+test('note templates carry the optional v0.2.0 keys', () => {
+  const course = text('system/templates/notes/course.md');
+  for (const key of ['team: []', 'team_name: ""', 'team_number: ""', 'templates: []', 'tone: ""', 'ai_log: false']) assert.ok(course.includes(key), `course: ${key}`);
+  const prog = text('system/templates/notes/programme.md');
+  for (const key of ['templates: []', 'tone: ""', 'max_upload_mb: null', 'csl: ""']) assert.ok(prog.includes(key), `programme: ${key}`);
+  const project = text('system/templates/notes/project.md');
+  assert.ok(project.includes('templates: []') && project.includes('tone: ""'));
+  const assignment = text('system/templates/notes/assignment.md');
+  for (const key of ['templates: []', 'tone: ""', 'voice_mode: ""', 'grade: ""', 'feedback: ""']) assert.ok(assignment.includes(key), `assignment: ${key}`);
+  assert.match(assignment, /## Assignment text \(as given\)/);
+  assert.match(text('system/templates/notes/feedback.md'), /^---\ntype: "feedback"/);
+  assert.match(text('system/templates/notes/feedback.md'), /## What it tells us/);
+  assert.match(text('system/templates/notes/ai-log.md'), /^---\ntype: "ai-log"/);
+});
+
+test('course setup uses the named helper, records the team once and asks when sources disagree', () => {
+  assert.doesNotMatch(setup, /`haiku` \/ low helper/);
+  assert.match(setup, /`helper-triage`/);
+  assert.match(setup, /The team question and the AI-use log/);
+  assert.match(setup, /`team`, `team_name`, `team_number`/);
+  assert.match(setup, /Two sources that disagree/);
+  assert.match(setup, /`\/assignment feedback`/);
+});
+
+test('the assignment steps follow the v0.2.0 rules', () => {
+  const nw = text('.claude/skills/assignment/workflows/new.md');
+  assert.match(nw, /^Runs in the main session\.$/m);
+  assert.doesNotMatch(nw, /No subagents/);
+  assert.match(nw, /Assignment text \(as given\)/);
+  assert.match(nw, /Never choose silently/);
+  assert.match(nw, /voice_mode/);
+  const brief = text('.claude/skills/assignment/workflows/brief.md');
+  assert.match(brief, /helper-judgement/);
+  assert.doesNotMatch(brief, /model: "opus"/);
+  const crit = text('.claude/skills/assignment/workflows/critique.md');
+  assert.match(crit, /\.claude\/skills\/critique\/references\/panel\.md/);
+  assert.doesNotMatch(crit, /assignment\/references\/lenses/);
+  assert.doesNotMatch(crit, /\bLite\b/);
+  const ship = text('.claude/skills/assignment/workflows/ship.md');
+  assert.match(ship, /delivery-gate\.md/);
+  assert.match(ship, /deliver-check\.mjs/);
+  assert.match(ship, /pages\.mjs/);
+  const fb = text('.claude/skills/assignment/workflows/feedback.md');
+  assert.match(fb, /## How this instructor grades/);
+  assert.match(fb, /\/learn/);
+  const skill = text('.claude/skills/assignment/SKILL.md');
+  assert.ok(skill.split('\n').length <= 250);
+  assert.match(skill, /argument-hint: "new \| brief \| draft \| critique \| ship \| feedback/);
+});
+
+test('the ingest procedure flags AI-restricted files and keeps wiki writing in the main session', () => {
+  const skill = text('.claude/skills/ingest/SKILL.md');
+  assert.match(skill, /ai_notice/);
+  assert.match(skill, /`helper-triage`/);
+  assert.match(skill, /`helper-draft`/);
+  assert.doesNotMatch(skill, /`model: haiku`/);
+  assert.match(skill, /source notes only/);
+  const wiki = text('.claude/skills/ingest/references/wiki-update.md');
+  assert.match(wiki, /The main session writes every wiki page, the index and the log/);
+});
+
+/* ---------------- 6. review fixes: AI-restricted files, ship, feedback, team, AI-use log ---------------- */
+
+test('pending mode asks about AI-restricted files once and keeps the answer off git', () => {
+  const skill = text('.claude/skills/ingest/SKILL.md');
+  const pending = section(skill, '## Pending mode', '## Steps');
+  assert.match(pending, /ingest\.mjs --ai-pending --json/);
+  assert.match(pending, /--ai-decide <id> held/);
+  assert.match(pending, /state\/local\/ai-decisions\.json/);
+  assert.match(pending, /held files do not count as left/);
+  // text the script did not scan (a PDF read with the Read tool) is also checked by Claude
+  assert.match(skill, /Text that was not scanned/);
+  // the decision is never written into a tracked note
+  const formats = text('.claude/skills/ingest/references/note-formats.md');
+  assert.doesNotMatch(formats, /used at the user's decision/);
+  assert.match(formats, /do not mention the file's restriction or the user's decision/);
+  // a syllabus is read for the course rule, and held files are counted apart
+  const cm = text('.claude/skills/ingest/references/course-material.md');
+  assert.match(cm, /A syllabus, course guide or policy that states the course's own AI rule/);
+  assert.match(setup, /read for the AI rule even when `ingest\.mjs` flagged it/);
+  assert.match(setup, /3 held, 159 still to write/);
+});
+
+test('ship scans the source file, views every exported page and handles the AI-use log', () => {
+  const ship = text('.claude/skills/assignment/workflows/ship.md');
+  assert.match(ship, /release-scan\.mjs "<assignment folder>\/report\.qmd"/);
+  assert.match(ship, /front matter/);
+  assert.match(ship, /--source "<assignment folder>\/report\.qmd"/);
+  assert.match(ship, /not checked[^\n]*failure/);
+  assert.match(ship, /every `\.docx`, `\.pptx` and `\.xlsx`[^\n]*pages\.mjs export/);
+  assert.match(ship, /ai-log\.md/);
+  assert.match(ship, /`assignment\.md` \(`team`, `team_name`, `team_number`/);
+  assert.match(ship, /individual assignment[^\n]*never the course's team/);
+});
+
+test('feedback links by full path and is found without the not-shipped rule', () => {
+  const fb = text('.claude/skills/assignment/workflows/feedback.md');
+  assert.doesNotMatch(fb, /\[\[feedback\]\]/);
+  assert.match(fb, /\[\[10_projects\/<folder>\/feedback\]\]/);
+  assert.match(fb, /\{\{title\}\}/);
+  const skill = text('.claude/skills/assignment/SKILL.md');
+  assert.match(skill, /\*\*For `feedback`\*\*[^\n]*`shipped` assignments whose `grade` is empty, most recent first/);
+});
+
+test('critique prepares inputs and uses the panel card format; draft helpers never share report.qmd', () => {
+  const crit = text('.claude/skills/assignment/workflows/critique.md');
+  const s4 = section(crit, '## 4.', '## 5.');
+  assert.match(s4, /panel\.md`? section 2/);
+  assert.match(s4, /_workbook-check\.json/);
+  assert.match(s4, /panel\.md`? section 3/);
+  assert.doesNotMatch(s4, /^```markdown/m, 'the card format lives in panel.md only');
+  assert.doesNotMatch(crit, /Do not read the reviews closely yourself/);
+  const draft = text('.claude/skills/assignment/workflows/draft.md');
+  assert.match(draft, /state\/local\/tmp\/draft-<n>\.qmd/);
+  assert.match(draft, /helpers never write `report\.qmd`/);
+});
+
+test('the team of an assignment is in assignment.md, with a fallback for older notes', () => {
+  const nw = text('.claude/skills/assignment/workflows/new.md');
+  assert.match(nw, /The team of this assignment is what `assignment\.md` holds/);
+  assert.match(nw, /Individual:\*\* leave `team` empty/);
+  assert.match(nw, /write them to `assignment\.md` only/);
+  const tpl = text('system/templates/notes/assignment.md');
+  for (const key of ['team: []', 'team_name: ""', 'team_number: ""']) assert.ok(tpl.includes(key), key);
+  assert.match(tpl, /older assignment note without these keys falls back to the course note's default/);
+  assert.match(text('.claude/skills/assignment/workflows/draft.md'), /has no `team` key: then read the course note's default/);
+});
+
+test('the AI-use log records what Alterbrain did in every step and invents nothing about the user', () => {
+  const skill = text('.claude/skills/assignment/SKILL.md');
+  assert.match(skill, /if `ai-log\.md` exists in the folder, add one dated line for this step/);
+  assert.match(skill, /Never fill in the user's own part/);
+  const nw = text('.claude/skills/assignment/workflows/new.md');
+  assert.match(nw, /kept whenever `ai-log\.md` exists, whatever the course flag says/);
+  assert.match(nw, /set `ai_log: true` in the course note/);
+  const log = text('system/templates/notes/ai-log.md');
+  assert.doesNotMatch(log, /what you did yourself\./);
+  assert.match(log, /only in your words/);
+});

@@ -54,6 +54,29 @@ Importing and summarising readings is not assignment work, so the AI-rules remin
 
 Decide before you hand the files over. Installing the reader afterwards does not help files that are already copied, because Alterbrain skips a file it already holds. A file it cannot read is listed as "not readable yet", and Alterbrain never guesses what is in it. When the reader works, a workbook's note lists each sheet and what its tables hold, using the numbers the sheet shows. [Unverified] Formulas, charts and speaker notes may not come through. For a workbook you can also save each sheet as CSV (File, Save As, CSV) and hand those over.
 
+## Files that say they must not be used with AI tools
+
+Some course files carry a line such as "this material may not be used with AI tools" (a licensed case, a client's data, an exam). Alterbrain makes the untouched copy of every file, but if a file's text says this it **flags that file once and writes no note about it until you decide**:
+
+- **Hold it:** the copy stays in your vault, nothing is read into your notes, and Alterbrain does not ask again.
+- **Use it anyway:** you decide, knowing the rule. The note is written.
+
+The answer is kept on your computer only (`state/local/`), not uploaded. A syllabus sentence that states the course's own AI rule for students is not a file restriction: it becomes the course's AI rule. A PDF whose text could not be read is not checked by the script; if Alterbrain sees such a sentence while reading it, it stops and asks.
+
+Two more reminders at import:
+
+- **Client or company material** (an employer's report, a client's data): keep your own private backup, and check with your employer or client whether it may sit in a cloud tool at all. Alterbrain cannot know that.
+- **A class list or roster:** only business facts (name, role, organisation) are kept, and nothing sensitive about the people on it.
+
+## Bringing in a lot at once
+
+For a big import (a whole term, dozens of files) Alterbrain can use helpers to read the files in parallel, with strict limits so nothing gets muddled:
+
+- Helpers write the **source notes only**, each on its own set of files. No two helpers ever work on the same page.
+- Alterbrain itself writes the wiki pages, the index and the log, so the cross-links stay consistent.
+- It then reads one helper's note against its source as a spot-check before it tells you the import is done. A helper's report of success is never taken as proof.
+- On Pro the number of helpers at once is capped at three.
+
 ## When new material arrives
 
 Everything you study belongs in your vault, and it keeps arriving all term: slides, your own notes from class, a case, a reading, a brief, feedback on a report, the transcript of a recording.

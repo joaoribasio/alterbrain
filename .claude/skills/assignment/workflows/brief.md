@@ -2,7 +2,7 @@
 
 Goal: `brief.md` with a fact base the whole report can stand on, and two or three thesis options (A, B, C) with honest trade-offs. The user picks one. No drafting before that.
 
-Models: research by the `researcher` agent (sonnet, medium); thesis options by a judgement pass (opus, high); the rest in the main session.
+Helpers: research by the `researcher` agent; thesis options by `helper-judgement` (opus, high, set by the helper); the rest in the main session.
 
 ## 1. Check the starting point
 
@@ -49,7 +49,7 @@ Only if the user asked for web research on a topic, change `mode` to `vault-and-
 
 ## 4. Write the fact base
 
-Write `brief.md` in the assignment folder with this front matter and these sections:
+Write `brief.md` in the assignment folder with this front matter and these sections. It is a working note: `[Unverified]` and `[Inference]` labels belong here and are resolved before anything is delivered (`writing-rules.md`, Labels).
 
 ```yaml
 ---
@@ -72,9 +72,9 @@ thesis: ""
 
 If the assignment is a case and has a case note, also fill the case note's "Key facts", "Exhibits", "Traps" and "Course concepts that apply" sections, with citations in the form `[Source: [[note]] | YYYY-MM-DD | confidence: high|medium|low]`. The case note is course knowledge that outlives the assignment. If the assignment is not a case, leave "Exhibits" out of `brief.md` when there are none, and say so in one line.
 
-## 5. Thesis options (judgement pass, opus, high)
+## 5. Thesis options (`helper-judgement`)
 
-Launch a general-purpose subagent with `model: "opus"`. Give it file paths only: `assignment.md`, `rubric.md`, `brief.md`, the course note (if any) and the case text (if any). Prompt:
+Launch the `helper-judgement` agent (no model override; its frontmatter fixes opus and high effort). Give it file paths only: `assignment.md`, `rubric.md`, `brief.md`, the course note (if any) and the case text (if any). Prompt:
 
 ```
 You are helping <what the user is learning, from the "Learning or working on" line of USER.md; "a learner" if empty> choose the central thesis for a graded assignment. Read the files listed. Do not write or edit any file.
@@ -90,7 +90,7 @@ Then recommend one option in three lines, and say what would change your mind.
 If the assignment has a case date, use only facts knowable at that date. Label estimates [Inference] and anything unchecked [Unverified]. Under 1,200 words.
 ```
 
-If the subagent cannot run on opus (plan limits), run the same prompt in the main session and tell the user in one line.
+If `helper-judgement` cannot run (plan limits), run the same prompt in the main session and say so in one line.
 
 Append the result to `brief.md` as `## Thesis options` (A, B, C, then `### Recommendation`).
 

@@ -30,6 +30,7 @@ Every note starts with YAML frontmatter holding at least `type`, `created` (YYYY
 | `application` | `20_areas/career/applications/` | `company`, `role`, `stage`, `source_url`, `deadline` |
 | `draft` | `00_inbox/outbox/` | `channel`, `to`, `lang`, `status`, `facts_used: []`; ghostwriter adds `recipient_class`, `facts_ok`, `facts_flagged`, `slop_check`, `voice` and, for email, `subject`, `in_reply_to`, `thread_id`, `gmail_draft_id` (SPEC and `system/packs/twin/drafting.md` §9) |
 | `proposal` | `00_inbox/proposals/` | SPEC §11 |
+| `routine` | `90_routines/` (created lazily; no folder means no routines) | `status` (`active`, `paused`, `suggested`), `schedule`, `cadence`, `host` (`laptop`, `cloud`, `server`), `runs`, `may` (always `"draft only"`), `data: []`, `model`, `effort`, `last_run`, `last_result` (template `system/templates/notes/routine.md`) |
 | `person` | `60_people/` | `org`, `role`, `source`, `dnc` |
 | `card` | `50_learning/cards/<topic>/` | `topic`, `source`, `box`, `due` |
 | `daily`, `weekly`, `decision` | `70_journal/` | — |
@@ -72,6 +73,7 @@ Always take dates from the session digest ("Today is …") or from `node system/
 
 ## Special notes
 - **Programmes** (`20_areas/programmes/`): programme notes hold programme-wide facts once; a course note repeats only what differs. Courses link to their programme with the `programme` property.
+- **Routines** (`90_routines/`): one note per scheduled job; the body is the exact instruction the host runs. Alterbrain runs no scheduler of its own: the host is a Claude desktop scheduled task, a Claude cloud routine or a server's scheduler. `may` is always `"draft only"`; any other value is invalid. It is a label and an instruction in the body, not a lock: what a run can send is decided by `config/autonomy.json`. Cloud and server runs record on their own copy, so they count as run only if they push the note change. `routines.mjs list`, `overdue` and `show` exit 1 when something needs attention (an overdue routine, a note with wrong values, a note that cannot be read as a routine at all, an unknown name): a finding, not a crash, so read the output. Notes that cannot be read are listed as unreadable with a plain reason, never dropped. `last_run` and `last_result` change only through `node system/scripts/routines.mjs record "<Name>" --result "<one line>"`, never by hand and never for a run that did not happen. List, overdue and suggested routines: `routines.mjs list|overdue|suggest`. Never edit `system/templates/routines/` (framework suggestions) from here.
 - **People** (`60_people/`): business facts by default (role, organisation, how you met, topics). Every fact has a source and date. Respect `dnc: true` (do not contact). Another person's sensitive details (health, family, beliefs, politics, home address) are stored only if the user explicitly asks, go under a `## Private` heading, and never go into outbound text.
 - **Decisions** (`70_journal/decisions/`): write the options and evidence; never fill in the Decision field yourself.
 - **Drafts** (`00_inbox/outbox/`): `status` is `draft` until the user approves. Never mark a draft `sent` unless it really was sent.

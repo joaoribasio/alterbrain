@@ -13,6 +13,12 @@ class_days: []
 term_start: ""
 term_end: ""
 class_days_asked: ""
+team: []
+team_name: ""
+team_number: ""
+templates: []
+tone: ""
+ai_log: false
 ---
 # {{title}}
 
@@ -28,6 +34,9 @@ class_days_asked: ""
      class_days: only when the syllabus has no dates: the weekdays of class, for example ["tue", "thu"]. term_start and term_end: "YYYY-MM-DD", the first and last day of the term, if known.
      Classes on or before the day this note was made (created) are never asked about. Without term_end the reminder stops 16 weeks after term_start (or after created).
      class_days_asked: the date Alterbrain asked which days the class meets, so it does not ask again unprompted. Leave it empty until then.
+     team, team_name, team_number: the team for group work in this course, recorded once and reused for covers, title slides and file names. Names only, and only what you give. Leave empty for individual courses.
+     templates: slugs of document templates that apply to this course (school or lecturer templates). tone: academic, professional or conversational; empty means the programme or the recommended default.
+     ai_log: true when the course requires an AI-use log (offered, never forced); each assignment folder then gets ai-log.md.
      Remove this comment when you fill the note. -->
 
 ## Overview

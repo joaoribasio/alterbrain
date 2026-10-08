@@ -1,6 +1,6 @@
 # Third-party notices
 
-Alterbrain itself is MIT licensed (see `LICENSE`). It includes, adapts or downloads the work of others, listed below with their full licence texts. The commit for each item is the exact version we used. `UPSTREAM-SYNC.md` maps every file to its source.
+Alterbrain itself is licensed under the PolyForm Shield License 1.0.0 from v0.2.0 (see `LICENSE`; v0.1.x were MIT). The third-party files below keep their own licences, whatever Alterbrain's licence is. It includes, adapts or downloads the work of others, listed below with their full licence texts. The commit for each item is the exact version we used. `UPSTREAM-SYNC.md` maps every file to its source.
 
 Contents:
 

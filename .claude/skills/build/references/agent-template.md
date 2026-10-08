@@ -42,4 +42,5 @@ Then one line: `RESULT: PASS` or `RESULT: <n> problems`.
 
 - `tools`: start from `Read, Grep, Glob`. Add `Write` only with one named folder in the role paragraph. Add `WebSearch, WebFetch` only for research. Never mail or messaging send tools.
 - `model` / `effort` from SPEC §6; aliases only, never full model IDs.
+- A skill that delegates to this helper names it (`my-<slug>`); to delegate to a built-in class, name a helper agent (`helper-triage`, `helper-draft`, `helper-review`, `helper-judgement`), never a generic subagent with a model in prose.
 - Keep the body short: role, inputs, output format, Never list.

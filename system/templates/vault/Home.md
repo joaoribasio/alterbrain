@@ -80,6 +80,10 @@ sort by done reverse
 
 ![[Proposals.base]]
 
+## Contacts to follow up
+
+![[Contacts.base]]
+
 ## Study cards due
 
 ![[Cards due.base]]

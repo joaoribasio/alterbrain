@@ -18,6 +18,7 @@ import {
 } from '../lib/git.mjs';
 import { getStatus } from '../lib/vaultkey.mjs';
 import { normaliseManifest, fileMatchesSha } from './update.mjs';
+import { describeDay, overdueRoutines, readRoutines } from '../lib/routines.mjs';
 
 const IS_MAC = process.platform === 'darwin';
 const VAULT_DIRS = ['00_inbox', '10_projects', '20_areas', '30_wiki', '40_sources', '50_learning', '60_people', '70_journal', '80_me'];
@@ -177,6 +178,59 @@ function checkRepoSize(r, root) {
   r.add('repo-size', 'Backup size', v.status, v.detail, v.fix, { machine: true, tip: v.tip });
 }
 
+/**
+ * A half-finished rebase or merge. The automatic save refuses to run until it is cleared, so a save quietly
+ * stops happening. Reported with the one command that undoes it (never a reset).
+ */
+export function gitInProgress(root) {
+  let dir = join(root, '.git');
+  const res = git(['rev-parse', '--git-dir'], { cwd: root });
+  if (res.ok && res.stdout.trim()) dir = resolve(root, res.stdout.trim());
+  if (existsSync(join(dir, 'rebase-merge')) || existsSync(join(dir, 'rebase-apply'))) return 'rebase';
+  if (existsSync(join(dir, 'MERGE_HEAD'))) return 'merge';
+  return null;
+}
+
+function checkGitInProgress(r, root) {
+  if (!gitInstalled() || !isRepo(root)) {
+    r.add('git-in-progress', 'Half-finished save or join', 'skip', 'Needs a Git folder.', null, { machine: true });
+    return;
+  }
+  const kind = gitInProgress(root);
+  if (!kind) {
+    r.add('git-in-progress', 'Half-finished save or join', 'ok', 'Nothing is half-finished.', null, { machine: true });
+    return;
+  }
+  r.add('git-in-progress', 'Half-finished save or join', 'warn',
+    `A ${kind === 'rebase' ? 'rebase (joining your work with the online copy)' : 'merge (joining two versions)'} was started and not finished, so automatic saves are refusing to run until it is cleared.`,
+    `Ask Claude to run /health-check. With your yes it runs: git ${kind} --abort   (it puts things back as they were before the join).`, { machine: true });
+}
+
+/**
+ * The tool that turns PDF pages into pictures (pdftoppm, from Poppler). Without it Claude cannot look at the pages of
+ * a PDF it made. Optional: its absence is a tip, never a failure. ALTERBRAIN_PDFTOPPM (a file path) replaces the
+ * search; it exists for tests.
+ */
+export function findPdftoppm() {
+  if (process.env.ALTERBRAIN_PDFTOPPM !== undefined) return existsSync(process.env.ALTERBRAIN_PDFTOPPM) ? process.env.ALTERBRAIN_PDFTOPPM : null;
+  if (has('pdftoppm')) return 'pdftoppm';
+  if (IS_WINDOWS && process.env.LOCALAPPDATA) {
+    const link = join(process.env.LOCALAPPDATA, 'Microsoft', 'WinGet', 'Links', 'pdftoppm.exe');
+    if (existsSync(link)) return link;
+  }
+  return null;
+}
+
+function checkPdfPages(r) {
+  const found = findPdftoppm();
+  if (found) {
+    r.add('pdf-pages', 'PDF page renderer (Poppler)', 'ok', 'Installed, so I can look at every page of a PDF I make.', null, { machine: true });
+    return;
+  }
+  r.add('pdf-pages', 'PDF page renderer (Poppler)', 'ok', 'Not installed. Optional: without it I cannot look at the pages of a PDF myself, so I cannot check a layout by eye.', null,
+    { machine: true, tip: installHint('winget install --id oschwartz10612.Poppler -e', 'brew install poppler') + '   (then close and reopen Claude)' });
+}
+
 function checkGh(r) {
   if (!has('gh')) {
     r.add('gh', 'GitHub sign-in', 'warn', 'The GitHub tool (gh) is not installed.', installHint('winget install --id GitHub.cli -e', 'brew install gh'), { machine: true });
@@ -282,9 +336,12 @@ function checkObsidian(r, root) {
     const file = join(dir, 'plugins', id, 'main.js');
     if (pin && existsSync(file) && !fileMatchesSha(file, 'main.js', pin)) problems.push(`plugin ${id} does not match its pinned version`);
   }
+  const app = existsSync(join(dir, 'app.json')) ? readJson(join(dir, 'app.json'), null) : null;
+  const showsDocs = !app || typeof app !== 'object' || app.showUnsupportedFiles === true;
   r.add('obsidian-config', 'Obsidian settings', problems.length ? 'warn' : 'ok',
     problems.length ? [...new Set(problems)].join('; ') + '.' : 'Settings and plugins are in place.',
-    'Run: node system/scripts/obsidian-setup.mjs', { machine: true });
+    'Run: node system/scripts/obsidian-setup.mjs',
+    { machine: true, tip: showsDocs ? null : 'Word, PowerPoint and Excel files are hidden in the Obsidian file list. To show them, run: node system/scripts/obsidian-setup.mjs, then close and reopen the vault.' });
 }
 
 function checkClaudeCode(r, release) {
@@ -344,6 +401,39 @@ function checkVault(r, onboarded) {
   r.add('vault', 'Vault folders', bad ? (onboarded ? 'fail' : 'warn') : 'ok',
     bad ? `Missing: ${missing.slice(0, 6).join(', ')}${missing.length > 6 ? ` and ${missing.length - 6} more` : ''}.` : 'All the standard folders are there.',
     onboarded ? 'Open Claude and type: /health-check   (it will put the folders back)' : 'Open Claude in this folder and type: /onboard   (it creates them)', { machine: true });
+}
+
+/** Scheduled jobs (vault/90_routines): list the ones that are late and the notes that are broken. No folder means no routines. */
+export function checkRoutines(r, now = new Date()) {
+  let read;
+  try {
+    read = readRoutines();
+  } catch {
+    r.add('routines', 'Routines', 'skip', 'Could not be read.', null, { machine: true });
+    return;
+  }
+  const { routines } = read;
+  const unreadable = read.unreadable || [];
+  if (!routines.length && !unreadable.length) {
+    r.add('routines', 'Routines', 'ok', 'No routines yet (scheduled jobs are optional).', null, { machine: true });
+    return;
+  }
+  const late = overdueRoutines(routines, now);
+  const bad = routines.filter((x) => !x.valid);
+  const active = routines.filter((x) => x.status === 'active').length;
+  if (!late.length && !bad.length && !unreadable.length) {
+    r.add('routines', 'Routines', 'ok', `${active} active, none overdue.`, null, { machine: true });
+    return;
+  }
+  const parts = [];
+  if (late.length) parts.push(`overdue: ${late.map((x) => `${x.routine.name} (${x.never_run ? `never ran; set up ${describeDay(x.since)}` : `last ran ${describeDay(x.since)}`})`).join(', ')}`);
+  if (bad.length) parts.push(`not valid: ${bad.map((x) => `${x.name} (${x.problems[0]})`).join(', ')}`);
+  if (unreadable.length) parts.push(`cannot be read: ${unreadable.map((x) => `${x.name} (${x.reason})`).join(', ')}`);
+  const fixes = [];
+  if (late.length) fixes.push("Check the Claude app's Routines page (or your server's scheduler) and that the computer was on; say 'check my routines' in Claude to be walked through it.");
+  if (bad.length) fixes.push('Open the note in vault/90_routines and correct the line named above (a routine may only be "draft only").');
+  if (unreadable.length) fixes.push('Open the note named above in vault/90_routines and repair its top block (it starts and ends with a "---" line and has a type: "routine" line), or move the file out of the folder.');
+  r.add('routines', 'Routines', 'warn', parts.join('; ') + '.', fixes.join(' '), { machine: true });
 }
 
 function checkManifest(r, dev) {
@@ -492,16 +582,19 @@ export function runDoctor({ ci = false } = {}) {
   checkRepoSize(r, root);
   checkBigFileHook(r, root, dev);
   checkOversizedFiles(r, root);
+  checkGitInProgress(r, root);
   checkGh(r);
   checkOrigin(r, root, release, dev);
   if (!ci) checkEncryption(r, root);
   checkQuarto(r, release);
+  checkPdfPages(r);
   checkObsidian(r, root);
   checkClaudeCode(r, release);
   checkSettings(r, root, ci);
   const onboarded = isOnboarded();
   checkOnboarding(r);
   checkVault(r, onboarded);
+  checkRoutines(r);
   checkManifest(r, dev);
   checkValidate(r);
   checkMcp(r);

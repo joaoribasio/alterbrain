@@ -29,11 +29,12 @@ Makes a good-looking, correctly sized document from text the user already has, a
    - `vault/80_me/USER.md`, `vault/80_me/fact-sheet.md` and `vault/20_areas/career/career.md` (for a CV or letter);
    - the application note in `vault/20_areas/career/applications/` (for a letter);
    - the source note or `report.qmd` (for a report or deck);
-   - `vault/80_me/brand/_brand.yml`, if it exists (colours and fonts).
-3. **Check the tools once per session.** Run `node system/quarto/tools/fonts.mjs`.
+   - `vault/80_me/brand/_brand.yml`, if it exists (colours and fonts: the user default when no template is set).
+   - `vault/80_me/voice/<lang>/profile.md` (voice). Without one, say so once per session and suggest the voice setup; do not fall back to a neutral house style unless the user wants to go on now.
+3. **Check the tools once per session.** Run `node system/quarto/tools/fonts.mjs`. For a deck, also run `node system/scripts/pages.mjs check` now: the page check in step 7 needs a PDF, so a deck that may be handed over is rendered with `--pdf`. If the PDF page renderer is missing, offer to install it once, here. If the user declines, say in the hand-over which pages you could not view.
    - If it says Quarto is missing, tell the user in one line how to install it (Windows: `winget install --id Posit.Quarto -e`, or quarto.org) and stop.
    - If fonts are missing, say which, and offer the two fixes it prints. Do not continue silently: a substitute font can change the page count.
-4. Field lists for every template are in `references/templates.md`. Read it when you fill a template.
+4. Field lists for every template are in `references/templates.md`. Read it when you fill a template. Tone and voice rules: `system/deliverables/tone-and-voice.md`. Deck and document principles: `system/deliverables/principles.md`.
 
 ## Steps
 
@@ -48,6 +49,8 @@ Makes a good-looking, correctly sized document from text the user already has, a
    | Slides, presentation | `deck` | `deck.qmd` |
 
    A CV with no preference: make both layouts from the same `cv-data.yml`, and say which is for what.
+
+   **Resolve the template silently.** Run `node system/scripts/template.mjs resolve --kind <kind> --for <source> --json` (kind: deck, report, memo, letter, cv, essay, one-pager). Say in one line which template it chose ("Using your school's report template."). Ask only if `tie` is not empty (name the candidates, recommend the one made most recently for this course) or the user asks. The result also gives `style`, `tone`, `csl`, `max_upload_mb`, `page_limit` and `house_rules`. Pass the template folder (`template.dir`) as `--template`. Pass `--csl <resolved csl>` whenever `resolve` returns a `csl` that is a path (the programme's or the template's required style); `--reference-doc` only when the user names a file. If `csl_missing` is true or `warnings` say the required citation style has no file, tell the user in one line ("Your programme requires Chicago, but I have no style file for it, so references use the default style") and offer to add the file to the template folder. Explicit `--csl` from the user wins. Show every `warnings` line that matters to the result (an unknown course or programme link, a missing template). A built-in result with `vault/80_me/brand/_brand.yml` present keeps using that brand file. Template questions: `/template`.
 2. **Choose the folder and start the files.** Use the existing source if there is one. Otherwise:
    - CV: `vault/20_areas/career/cv/`
    - letter: `vault/20_areas/career/applications/<company role>/`
@@ -59,22 +62,23 @@ Makes a good-looking, correctly sized document from text the user already has, a
    - **CV:** edit only `cv-data.yml`. Follow `references/cv-filling.md`: every line comes from `fact-sheet.md`, `USER.md` or `career/` notes. If a fact is missing, leave the line out and ask. Never guess a date, number, title or employer.
    - **Letter:** the `ghostwriter` agent drafts the text from the voice profile and the fact sheet. You place it in `letter.qmd` and fill the data block. Keep it to one page.
    - **Report:** the content is the user's. Check the structure against `references/templates.md` (sections start at `##`, `\$` for dollar signs, `*Source: ...*` notes, citations as `@key`). Add missing keys to `references.bib` only from real source notes in `vault/40_sources/`.
-   - **Deck:** turn the user's note into one idea per slide. Titles state the point. Speaker notes go in `::: {.notes}` blocks. Show the outline (slide titles only) and wait for a yes before writing the file.
+   - **Deck:** storyline first. Show the ghost deck (the slide titles only, each a full-sentence takeaway) and wait for a yes before writing the file (`system/deliverables/principles.md`). The style from `resolve` sets the rules: `reading-deck` slides explain themselves (an "In brief" box, sources, footnotes); `presenting-deck` slides carry minimal text and the content goes in the speaker notes (`::: {.notes}` blocks). A template or rubric structure wins over the general principles; say so in one line.
+   - **Tone and voice (report, deck, memo):** write in the resolved `tone` on top of the user's own voice, with a story inside the structure, as in `system/deliverables/tone-and-voice.md`. No invented anecdotes or facts.
 4. **Confirm, then write.** Give a three-line summary of what will be written and where. When the user says yes, write.
 5. **Render.** Run one command from the project root:
 
-   `node system/quarto/tools/render.mjs <source> --type <type> [--max-pages N] [--pdf] [--name "<name>"]`
+   `node system/quarto/tools/render.mjs <source> --type <type> [--template <folder>] [--max-pages N] [--pdf] [--name "<name>"]`
 
-   - `--max-pages N`: for assignments use `limits.pages`. For a CV use 2 unless the user says otherwise; for a letter use 1.
-   - `--pdf`: only for a deck, when the user wants a PDF as well.
-   - `--format docx` or `--format pptx`: for a Word or PowerPoint copy when the brief lists one. These have a plainer look (they use `vault/80_me/brand/reference.docx` or `reference.pptx` when present). The page count is not available for them, so say so.
+   - `--max-pages N`: for assignments use `limits.pages`. With no assignment limit, use the template's `page_limit` from `resolve`. For a CV use 2 unless the user says otherwise; for a letter use 1.
+   - `--pdf`: for a deck, always when it may be handed over (step 7 views the PDF pages; HTML cannot be viewed page by page) and whenever the user wants a PDF as well.
+   - `--format docx` or `--format pptx`: for a Word or PowerPoint copy when the brief lists one. These have a plainer look (they use the template's reference document, else `vault/80_me/brand/reference.docx` or `reference.pptx` when present). The page count is not available for them, so say so.
    - An Obsidian note ending in `.md` works as the source. The tool converts a copy first and never changes the note.
    - Output goes next to the source in `_out/` (scratch space, replaced each time, not saved to git). For a final version add `--release`: it goes to `releases/<today>/` and every version is kept. If another skill gave you a folder or a file name, pass `--out <folder>` and `--name <name>`.
 6. **Read the result.** The tool prints `Done.`, the file path, and `Info`, `Note` or `Problem` lines.
    - **Problem about length:** follow `references/page-fit.md`. At most three passes, then tell the user honestly where it stands.
    - **Any other Problem:** the lines already explain it in plain English. Try the fix they suggest once. If it is still broken, read `references/troubleshooting.md`. Do not paste technical output at the user. Summarise it in one sentence and say what you will try.
    - **Note about a font:** relay it, with the two fixes.
-7. **Check the document, not just the tool.** For a CV or letter, re-read the filled data against the fact sheet one last time. For a report, check that headings, figure numbers and the reference list look right. If the Read tool can open the PDF, look at the pages. If it cannot, say what you checked and what you could not.
+7. **Look at every page yourself.** Before you call anything ready: render the pages to PNG with `node system/scripts/pages.mjs pdf <file.pdf>` and open each one with the Read tool (for a `.pptx` or `.docx`, export a copy to PDF first with `pages.mjs export`, which uses PowerPoint or Word when installed). Check the cover, the edges, half-empty boxes, fallback fonts, overlaps and legibility. A helper's "viewed all" is never evidence; you look. For a deck, view the PDF made with `--pdf`. If the PDF page renderer is missing or was declined in "Before you start", do not offer again mid-task: say which pages you could not check. For a CV or letter, also re-read the filled data against the fact sheet.
 8. **Hand over.** Tell the user, in plain words:
    - where the file is (full path);
    - the page count against the limit;
@@ -83,6 +87,8 @@ Makes a good-looking, correctly sized document from text the user already has, a
    For a file the user must approve, add a task, unless the skill that called you already adds one (`/jobs apply` and `/assignment ship` do):
    `node system/scripts/tasks.mjs add "Review <document name>" --tag render --link "<vault-relative path to the source>"`
    Nothing is ever sent or uploaded from here.
+
+   **Final version** (the user says it is final, or `/assignment ship`, `/jobs apply`): run the delivery gate, `system/deliverables/delivery-gate.md`, before you hand over. Then offer `/critique` once (not for routine emails or messages). For a deck the user has approved, offer the rehearsal pack once (`system/deliverables/rehearsal.md`).
 
 ## Outputs
 

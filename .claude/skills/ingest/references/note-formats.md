@@ -57,6 +57,8 @@ Rules:
 - For a spreadsheet or CSV, describe what the columns and main numbers are. Do not copy the table.
 - For a transcript, add who spoke only if the file says so.
 - If the text could not be read, write only the frontmatter, a one-line summary from the file name, and `Text status: pending`.
+- A file flagged `ai_notice` by `ingest.mjs` (it says it must not be used with AI tools) gets no note at all until the user decides. If the user chooses to use it, write the note as usual and keep it neutral: do not mention the file's restriction or the user's decision in the note, because notes are tracked by git. The decision lives only in `state/local/` (`ingest.mjs --ai-decide`).
+- A source note is a working note: `[Inference]` and `[Unverified]` labels belong here. Anything quoted from a note into a deliverable is reworded plainly first ("we assume", "in our reading").
 
 ## Citation line (used in the wiki and in answers)
 
@@ -95,4 +97,4 @@ Add `family: "strategy"` and `when_to_use: "one plain sentence"` to the frontmat
 
 ## Company page (30_wiki/companies)
 
-Frontmatter: `type: "company"`, `created`, `status`, `sources`. Body: `## What it does`, `## Facts` (each with a citation and a date, because facts go stale), `## Related`. Never write rumours about staff. Business facts only about named people (role, employer, source, date); their personal details are not recorded unless the user explicitly asks.
+Frontmatter: `type: "company"`, `created`, `status`, `sources`. Body: `## What it does`, `## Facts` (each with a citation and a date, because facts go stale), `## Related`. Never write rumours about staff. Business facts only about named people (role, employer, source, date); their personal details are not recorded unless the user explicitly asks. The same holds for rosters and attendee lists: name, role, organisation and class or programme only.

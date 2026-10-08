@@ -79,3 +79,7 @@ A CV of one to two pages is normal. The sample is two pages in the designed layo
 ## Where this comes from
 
 The designed CV is `quarto-awesomecv-typst` (MIT, Kazuharu Yanagimoto) with small changes. The plain CV was written for Alterbrain. Details: `../../NOTICE.md` and `_extensions/awesomecv/PATCHES.md`.
+
+## Template description
+
+`template.yml` in this folder describes the built-in cv template: its style, limits and house rules. Your own templates (for example from your school) go in `vault/80_me/templates/`, and are made with `/template`. When one is attached to a course, project or document, it is used instead of this one.

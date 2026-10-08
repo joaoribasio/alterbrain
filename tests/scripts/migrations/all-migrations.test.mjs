@@ -4,7 +4,7 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { FIXTURE_NAMES, MIGRATIONS_DIR, cleanup, copyFixture, listMigrations, runMigration, snapshot } from '../../fixtures/migrations/helpers.mjs';
+import { FIXTURE_NAMES, MIGRATIONS_DIR, cleanup, copyFixture, listGuided, listMigrations, runMigration, snapshot } from '../../fixtures/migrations/helpers.mjs';
 
 after(cleanup);
 
@@ -12,6 +12,13 @@ const migrations = listMigrations();
 
 test('there are upgrade scripts to test', () => {
   assert.ok(migrations.length >= 4, migrations.join(', '));
+});
+
+test('guided upgrades (.md) are not scripts: the harness never runs them, and they share the number space', () => {
+  assert.ok(listGuided().length >= 1);
+  assert.ok(migrations.every((n) => n.endsWith('.mjs')));
+  const numbers = [...migrations, ...listGuided()].map((n) => n.slice(0, 4));
+  assert.equal(new Set(numbers).size, numbers.length, 'one number is one file, of either kind');
 });
 
 for (const name of FIXTURE_NAMES) {

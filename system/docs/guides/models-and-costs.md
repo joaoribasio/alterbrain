@@ -17,6 +17,19 @@ Claude comes in three sizes. Alterbrain picks the right one for each job, so you
 
 Plain scripts do mechanical work (copying, counting, converting) and use none of your plan.
 
+## Four named helpers
+
+When Alterbrain hands work to a helper, it picks one of four, one for each kind of work. You never choose them; this is what they are called if you see the name:
+
+| Helper | Model and effort | What it does |
+|---|---|---|
+| `helper-triage` | Haiku, low | Sorting, tagging, pulling out fields. Read-only. |
+| `helper-draft` | Sonnet, medium | Notes, summaries, explanations and edits, written only where Alterbrain tells it. |
+| `helper-review` | Sonnet, high | Blind, read-only checking: the reviewers in a critique, fact-checks, grading against a rubric. |
+| `helper-judgement` | Opus, high | The few hard calls: main arguments, pulling a critique together, your voice profile, safety review of new skills. |
+
+If your plan has no room for the Opus step, Claude does that step itself and tells you. Whatever a helper reports, Claude checks the result itself (it reads the changes and looks at the pages) before it tells you something is done.
+
 Each job also has an **effort** level (low, medium, high): how long the model thinks before answering. Higher effort is better for hard problems and uses more.
 
 ## Pro or Max
@@ -44,6 +57,7 @@ Alterbrain never buys anything for you.
 - Ask for what you need: "one paragraph" uses less than "a full report".
 - Point to the right file instead of "search everything".
 - In assignments, pick fewer critique lenses when time is short.
+- Choose the **quick** critique (two or three reviewers) for most files. The **full** panel (up to seven reviewers plus a final pass on the largest model) costs several times as much of your plan. On Pro, Alterbrain recommends the quick one and tells you the cost before it runs, unless the work is graded and final or due within three days.
 - Turn off scheduled add-ons you don't use.
 - Long sessions add up: start a new session for a new topic.
 - Ask for a usage report: "build the cost report" (an add-on).

@@ -74,8 +74,15 @@ const RULES = [
     fix: () => 'Close the PDF in your viewer (and in any preview pane) and run it again.',
   },
   {
+    re: /would escape the project root/i,
+    level: 'error',
+    message: () => 'A file the document uses (such as the citation style file) sits outside the document folder, so it could not be read.',
+    fix: () => 'Copy the file into the same folder as the document and try again. If a template supplies it, tell Claude so the template tool can be fixed.',
+  },
+  {
     re: /_brand\.yml|field 'brand'/i,
     only: /error|invalid|cannot|could not|attempt to/i,
+    not: /would escape the project root/i,
     level: 'error',
     message: () => 'The brand file (colours and fonts) could not be read.',
     fix: () => 'Open vault/80_me/brand/_brand.yml and check the indentation. Or delete it to use the default look.',
@@ -131,6 +138,7 @@ export function explain(text) {
   const body = String(text || '');
   for (const rule of RULES) {
     if (rule.only && !rule.only.test(body)) continue;
+    if (rule.not && rule.not.test(body)) continue;
     const re = new RegExp(rule.re.source, rule.re.flags.includes('g') ? rule.re.flags : rule.re.flags + 'g');
     let m;
     while ((m = re.exec(body))) {

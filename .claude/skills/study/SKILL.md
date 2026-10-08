@@ -71,8 +71,8 @@ Right answer: box plus 1 (box 5 stays at 5). Wrong answer: back to box 1. The ne
 ### Model routing
 
 - Card writing and explanations: sonnet / medium (this skill).
-- Grading answers in quiz mode: haiku / low is fine. If you delegate grading, send only the question, the correct answer and the user's reply.
-- A deep check of a whole card set is a `review` job (sonnet / high).
+- Grading answers in quiz mode: the `helper-triage` agent (haiku / low) is fine. If you delegate grading, send only the question, the correct answer and the user's reply.
+- A deep check of a whole card set is a `review` job: give it to the `helper-review` agent (sonnet / high, read-only). Read its findings yourself before you tell the user the set is fine.
 
 ## Outputs
 

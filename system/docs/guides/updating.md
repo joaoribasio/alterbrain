@@ -34,6 +34,16 @@ Most updates change none of your notes. When one does, it is a small upgrade to 
 
 A copy of Alterbrain that is new is already in the latest shape. It is not told about upgrades it does not need, and they are never run on it.
 
+## Upgrades that ask you first
+
+Some upgrades need judgement about your own notes, so Alterbrain does not do them alone. An example: turning the school you named in your settings into a programme note and linking your courses to it. These are the upgrades listed as "asks you first".
+
+- The update lists them before you agree, under "Upgrades I will ask you about after the update", and runs none of them.
+- Afterwards you get a task: "Alterbrain has 2 upgrade questions for you." Say "run the pending upgrades" when you are ready (or Alterbrain starts right after the update if you like).
+- For each one, Claude looks at your notes first and tells you what it found. If nothing applies to you, it says so and moves on. Otherwise it proposes what it would do and you choose: **do it now**, **not now** (it asks again next time) or **skip it** (it does not ask again by itself).
+- A restore point is saved before the first change, and only what you approved is changed.
+- A skipped one is never lost. Say "run a skipped upgrade again" whenever you want it back.
+
 ## What is never changed
 
 - Your own `my-…` skills and helpers. If one points to a file that has moved, you get a task. Say "fix the moved paths in my skills" when you want it done.
@@ -63,9 +73,18 @@ Alterbrain makes a restore point with Git before it changes your notes or settin
 - The restore point means nothing is lost. Ask: "Undo the last update."
 - Run `/health-check` and follow its one-line fixes.
 
+## The weekly notice
+
+About once a week, at the start of a session, Alterbrain quietly looks whether a newer version exists. If one does, the start-of-session summary gets one line: "Alterbrain vX is available. Say 'update Alterbrain' when you're not mid-assignment."
+
+- It only tells you. It never installs anything by itself, and updating is still your choice, any time, with `/update-alterbrain`.
+- It asks GitHub only for the newest public version number. Nothing about you or your notes is sent.
+- If you are offline or something goes wrong, it says nothing and tries again next session.
+- To turn it off, ask Claude: "stop the weekly update notice".
+
 ## How often?
 
-When Alterbrain mentions a new version at the start of a session, or about once a month. There's no need to update in the middle of exams.
+When the weekly notice appears, or about once a month. There's no need to update in the middle of exams.
 
 ## Claude itself
 

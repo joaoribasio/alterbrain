@@ -42,7 +42,7 @@ test('a valid project passes with no errors or warnings', () => {
   assert.deepEqual(out.errors, []);
   assert.deepEqual(out.warnings, []);
   assert.equal(out.checked.skills, 1);
-  assert.equal(out.checked.agents, 2);
+  assert.equal(out.checked.agents, 6);
   assert.equal(out.checked.blueprints, 1);
   assert.equal(out.checked.mcp_entries, 5);
 });
@@ -53,7 +53,7 @@ test('human output is readable and exits 0 when fine', () => {
     copyFixture('validate/good', p);
     const r = runScript('validate.mjs', [], p);
     assert.equal(r.status, 0);
-    assert.match(r.stdout, /Checked 1 skill\(s\), 2 agent\(s\)/);
+    assert.match(r.stdout, /Checked 1 skill\(s\), 6 agent\(s\)/);
     assert.match(r.stdout, /All good\./);
   } finally {
     p.cleanup();

@@ -25,11 +25,17 @@
 
 - `course`: link `[[course]]` to the course note, or `""` when there is no course.
 - `title`: the assignment's own name.
-- `questions`: **verbatim** from the handout, one list item each. Never paraphrase.
+- `questions`: **verbatim** from the handout, one list item each. Never paraphrase. Pasted assignment text is kept verbatim under `## Assignment text (as given)`.
+- Sources that disagree on the deadline, a weight or a limit: show both with their sources and ask. Never choose silently.
 - `limits`: `pages`, `font_pt`, `line_spacing`, `words` (use `null` when not given).
 - `deliverables`: from `pdf`, `xlsx`, `docx`, `pptx`.
 - `rubric`: link to `rubric.md` if a rubric exists; otherwise ask "Is there a grading rubric?".
-- `team`: names only if the user gives them.
+- `team`, `team_name`, `team_number`: the team of this assignment, names only if the user gives them, stored in `assignment.md` (empty for individual work). The course note's team is only a default to pre-fill and confirm; "not the same team" is written to `assignment.md` alone. A missing name is left out, never a placeholder.
+- `voice_mode`: group work only, "me" or "team" ("sound like you, or a neutral team voice?"). Empty for individual work.
+- `tone`: `academic`, `professional` or `conversational`; recommended from the course, programme or learner kind, overridable. Empty means the recommended default.
+- `templates`: slugs of document templates for this assignment, only if the user names one; otherwise the resolver picks (deliverable, project, course, programme, default, built-in).
+- AI-use log: when the course requires one (`ai_log` in the course note, or the syllabus says so), offer `ai-log.md`; on yes create it and set `ai_log: true`. Offered, never forced. The log is kept whenever the file exists.
+- `grade` and `feedback`: left empty at set-up; `/assignment feedback` fills them when work comes back.
 - `lenses`: default all five (`devils-advocate`, `premortem`, `board`, `specialists`, `grader`); on Pro suggest three to save usage.
 - `stop_rule`: default `{ target_grade: 9, plateau_rounds: 2 }`. `target_grade` is always on the 10-point scale: convert the user's target with the programme note's `grading_scale`.
 - `ai_policy`: read from the course note (the course value wins over the programme's). With no course there is no policy to check and no notice. The coursework notice itself belongs to `new.md` (step 3), not here. Never write the user's answer to the notice, or the fact that a warning was given, into `assignment.md` or any other tracked file: only `state/local/coursework/<slug>.json` holds it.
@@ -39,6 +45,7 @@
 - Questions are copied verbatim.
 - Deadline and limits are known (deadline may still be unconfirmed, with a task to confirm).
 - Deliverables are listed.
+- The team (if any), tone and, for group work, the voice question are settled.
 - The coursework notice was handled by `new.md` (nothing about it recorded in the vault).
 
 ## Where the brief goes

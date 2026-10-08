@@ -11,14 +11,16 @@ grade_high: null
 plateau: false
 thesis: ""
 ---
-# Critique, round <n>: <Assignment title>
+# Critique, round <n>: <Assignment or deliverable title>
 
-<!-- Template for vault/10_projects/<folder>/critique-<round>.md, written by the consolidation pass
-     (.claude/skills/assignment/references/lenses/consolidation.md). status: open until you decide, then "decided".
-     grade_*: the grader's estimate out of 10 ([Inference]). plateau: true when the stop rule is met.
-     Keep the section order. Drop a section only if it would be empty, and say so in one line. -->
+<!-- Template for the consolidated critique of one review round. Assignments: vault/10_projects/<folder>/critique-<round>.md.
+     Any other deliverable: <deliverable folder>/critique-<YYYY-MM-DD>-<n>.md, replace the assignment key with deliverable: "[[...]]" (optional key).
+     Written by the consolidation pass (.claude/skills/critique/references/lenses/consolidation.md, run by helper-judgement on a full panel,
+     by the main session on a quick panel; procedure .claude/skills/critique/references/panel.md). status: open until you decide, then "decided".
+     grade_*: the grader's estimate out of 10 ([Inference]); leave null when there is no rubric or no grader. plateau: true when the stop rule is met (assignments only).
+     Keep the section order. Drop a section only if it would be empty, and say so in one line. Table rows for lenses that did not run are left out. -->
 
-**Source.** Round <n>: <k> blind, read-only reviewers on `report.qmd` as of <YYYY-MM-DD>. Every claim below was checked against the case, the course material and the workbook before it was acted on. [Inference] marks estimates.
+**Source.** Round <n>: <k> blind, read-only reviewers on <the deliverable, e.g. `report.qmd`> as of <YYYY-MM-DD>. Every claim below was checked against the case, the course material and the workbook before it was acted on. [Inference] marks estimates.
 
 **Result in one line.** <e.g. All reviewers keep thesis B. Two numbers are wrong and one answer comes too late. Grade estimate 8.0 to 8.6.>
 

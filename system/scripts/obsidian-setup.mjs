@@ -31,6 +31,9 @@ export const APP_SETTINGS = {
   alwaysUpdateLinks: true,
   propertiesInDocument: 'visible',
   promptDelete: true,
+  // "Detect all file extensions": Word, PowerPoint and Excel files show in the file list. The key name comes from plugin
+  // sources that set it through Obsidian's own API; Obsidian publishes no app.json reference [Unverified].
+  showUnsupportedFiles: true,
 };
 
 export const DAILY_NOTES_SETTINGS = { folder: '70_journal/daily', format: 'YYYY-MM-DD', template: '' };

@@ -5,9 +5,11 @@
 // proposal counts and warnings (model, Claude Code version, git, dev mode, and, when encryption of private notes is on,
 // a locked or tool-missing copy and an untested key backup; it also keeps git's upload check for private notes in place,
 // quietly, and only speaks when another tool's hook stops it). After the task, outbox and proposal lines it may add up to
+// one line when an active routine is overdue (system/lib/routines.mjs; only if the 25-line cap has room), and up to
 // three "New material?" lines for courses that had class since the user was last asked (system/lib/courses.mjs); they only
 // use the room left after the warnings, and what was said is saved to state/local/course-nudges.json after the digest is
-// delivered, never before. It never throws: a part that fails is simply left out. Fails open on malformed input (no output).
+// delivered, never before. Once a week it may also add one line when a newer public release exists (system/lib/updatecheck.mjs:
+// a short, silent network check that only tells the user and never applies anything). It never throws: a part that fails is simply left out. Fails open on malformed input (no output).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { context, isMainModule, readInput, runHook } from '../lib/hookio.mjs';
@@ -18,6 +20,8 @@ import { listTasks } from '../lib/tasks.mjs';
 import { cmpVersion, run } from '../lib/proc.mjs';
 import { PUSH_HOOK_TEXT, UNLOCK_COMMAND, encryptionContext, ensurePrePushHook, installCommand } from '../lib/vaultkey.mjs';
 import { MAX_NUDGE_LINES, planNudges } from '../lib/courses.mjs';
+import { checkForUpdate } from '../lib/updatecheck.mjs';
+import { routineDigestLine } from '../lib/routines.mjs';
 
 const MAX_LINES = 25;
 const PULL_TIMEOUT_MS = 5000;
@@ -133,7 +137,7 @@ function modelName(input) {
  * `commit()` remembers what the digest said about new course material. Nothing is written until `commit()` is called,
  * so a digest that fails to build or to arrive leaves no trace and the same lines come back next time.
  */
-export function composeDigest(input = {}) {
+export function composeDigest(input = {}, { updateLine = null } = {}) {
   const now = new Date();
   const todayStr = today(now);
   const lines = ['Alterbrain digest (from the SessionStart hook)', describeNow(now)];
@@ -153,6 +157,7 @@ export function composeDigest(input = {}) {
   if (drafts) lines.push(`Outbox: ${drafts} draft${drafts === 1 ? '' : 's'} waiting for the user to review.`);
   const proposals = safe(() => countByStatus(vaultPath('00_inbox', 'proposals'), 'open'), 0);
   if (proposals) lines.push(`Proposals: ${proposals} open, waiting for approval.`);
+  if (updateLine) lines.push(updateLine);
 
   // Optional encryption of private notes (ADR 0019): say so when this copy cannot save them, and once when the key copy is untested.
   const enc = safe(() => encryptionContext(projectRoot()), null);
@@ -194,6 +199,12 @@ export function composeDigest(input = {}) {
   const room = nudgeRoom(lines.length, warningBlock.length);
   const nudge = input && input.source === 'compact' ? null : safe(() => planNudges({ now, maxLines: room }), null);
   if (nudge && nudge.lines.length) lines.push(...nudge.lines);
+  // Overdue routines (vault/90_routines, the registry of scheduled jobs): one line, lowest priority, only when the cap
+  // still has room after the warnings. Not on compact. Cheap file reads; any failure leaves the line out.
+  if (!(input && input.source === 'compact') && lines.length + warningBlock.length < MAX_LINES) {
+    const routineLine = safe(() => routineDigestLine(now), null);
+    if (routineLine) lines.push(routineLine);
+  }
   lines.push(...warningBlock);
 
   const text = lines.slice(0, MAX_LINES).join('\n');
@@ -208,7 +219,14 @@ export function buildDigest(input = {}) {
 async function main() {
   const input = await readInput();
   if (!input) return; // malformed: fail open
-  const built = safe(() => composeDigest(input), null);
+  // The weekly update check runs first: the digest below blocks the event loop while it syncs with git, so the two cannot overlap.
+  let updateLine = null;
+  try {
+    updateLine = (await checkForUpdate({ root: projectRoot(), devMode: safe(isDevMode, false), source: input && input.source })).line;
+  } catch {
+    /* silent: the next session tries again */
+  }
+  const built = safe(() => composeDigest(input, { updateLine }), null);
   if (!built || !built.text) return;
   context(built.text, 'SessionStart');
   built.commit(); // after delivery: what the nudge said is not said again

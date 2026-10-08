@@ -31,7 +31,7 @@ Seven add-ons for `/assignment`, built on request as one self-built skill, `my-a
 
 ## Cost and risk
 
-- **Cost.** A full fact-check runs two extra reviewers (sonnet, high effort); a delta check runs one. A reality check is one research run (sonnet, medium). On the Pro plan, run the full fact-check on the first and final rounds only.
+- **Cost.** A full fact-check runs two extra reviewers (the `helper-review` helper); a delta check runs one. A reality check is one research run (the `researcher` helper). On the Pro plan, run the full fact-check on the first and final rounds only.
 - **Risk: low.** Checkers are blind and read-only. The scripts only read your files, except the model builder, which writes one workbook in the assignment folder. Nothing is sent anywhere.
 - **Hindsight.** The reality check uses facts from after the case date. Its output lives outside the report and is never used to change it.
 - **Coursework rules.** The same coursework notice applies as for `/assignment`.
@@ -55,11 +55,11 @@ Follow the `/build` flow (spec section 11): the proposal is approved, run `/clar
    - measure each section's words and lines against the plan;
    - write `fit-plan.md`: budget against actual per section, cuts ranked by marks at risk per line saved (lowest first), what moves to an appendix or the workbook, and the lines of free space after the cuts;
    - the user approves each cut; record approved cuts as decisions in `decisions.md`. Once the length is approved, write "length frozen" in the review-notes block: from then on, add only into free space and never trim.
-3. **Fact-check** (`workflows/factcheck.md` and `lenses/fact-check.md`):
-   - the brief follows the format of `.claude/skills/assignment/references/lenses/*.md` (front matter `type: "lens"`, `model: "sonnet"`, `effort: "high"`, `word_cap: 1200`; sections Role, What to read, Output format, Word cap, Rules, including blind, read-only, verify every claim, `[Unverified]`, respect `decisions.md`, hindsight rule);
-   - method: split the scope into atomic claims, sentence by sentence (every number, date, rank, quote character by character, attribution, calculation, comparison, figure caption, legend, table cell); status `VERIFIED` (with exact evidence: page or exhibit and quote, `sheet!cell = value`, file and line, or a recomputation), `WRONG` (correct value and evidence), `IMPRECISE`, `UNVERIFIABLE` (which source is needed) or `JUDGEMENT` (defensible or not); the smallest in-place edit for every item that is not verified; no cuts;
+3. **Fact-check** (`workflows/factcheck.md`):
+   - it carries no brief of its own: it uses the core fact-check lens, `.claude/skills/critique/references/lenses/fact-check.md` (single source of truth, also used by `/critique`), run by the `helper-review` helper under `.claude/skills/critique/references/protocol.md`; the workflow only adds the scope line and the file names below;
+   - method (defined in that lens): split the scope into atomic claims, sentence by sentence (every number, date, rank, quote character by character, attribution, calculation, comparison, figure caption, legend, table cell); status `VERIFIED` (with exact evidence: page or exhibit and quote, `sheet!cell = value`, file and line, or a recomputation), `WRONG` (correct value and evidence), `IMPRECISE`, `UNVERIFIABLE` (which source is needed) or `JUDGEMENT` (defensible or not); the smallest in-place edit for every item that is not verified; no cuts;
    - output: the full claims table `| # | Claim | Where | Status | Evidence | Smallest fix |`, then counts by status and the three most important findings;
-   - **full:** split the report into two halves by section; run two `lens` agents in parallel (within the fan-out cap) with the same round card as `/assignment critique` and a scope line; save to `reviews/<round>/factcheck-a.md` and `factcheck-b.md`;
+   - **full:** split the report into two halves by section; run two `helper-review` calls in parallel (within the fan-out cap) with the same round card as `/assignment critique`, the fact-check lens brief and a scope line; save to `reviews/<round>/factcheck-a.md` and `factcheck-b.md`;
    - **delta:** find the last critique's commit with `git log -1 --format=%H -- critique-<round>.md` and the changes with `git diff <sha> -- report.qmd` (read-only git only); the scope is the changed sentences; save to `reviews/<round>/factcheck-delta.md`;
    - the consolidation of the next round reads these files like any other review.
 4. **Number map** (`workflows/numbers.md` and `scripts/check_numbers.py`):
@@ -78,7 +78,8 @@ Follow the `/build` flow (spec section 11): the proposal is approved, run `/clar
    - separate decision quality (what was knowable then) from outcome (luck);
    - write `reality-check.md` in the assignment folder, under 900 words, every unverified item labelled; it never changes the report.
 7. **Class prep** (`workflows/class-prep.md`):
-   - run a `lens` agent (opus, high) with a class-prep brief: read the report, workbook, decisions and the critiques; return the eight to ten hardest questions with answers that use numbers from the report or workbook (with cells), the soft spots to know, and the thesis and key insight in one line each;
+   - run the `helper-judgement` helper with a class-prep brief: read the report, workbook, decisions and the critiques (reuse the latest devil's advocate review when one exists); return the eight to ten hardest questions with answers that use numbers from the report or workbook (with cells), the soft spots to know, and the thesis and key insight in one line each;
+   - for a deck, the rehearsal pack (`system/deliverables/rehearsal.md`) covers this and more (speaker notes, timing plan, cheat sheet): point the user to it instead of building a second version;
    - write `class-prep.md`; if the user gave the class date, add `node system/scripts/tasks.mjs add "Class discussion: <case>" --tag assignment --due <date> --priority medium --link "10_projects/<folder>/class-prep"`.
 8. **Team comments** (`workflows/comments.md` and `scripts/pdf_comments.py`):
    - the script (PEP 723 metadata, `dependencies = ["pymupdf"]`) runs as `uv run .claude/skills/my-assignment-extras/scripts/pdf_comments.py <annotated.pdf>... --source report.qmd --out comments.md`;

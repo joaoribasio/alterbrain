@@ -1,0 +1,20 @@
+schema: 1
+name: "report-plain"
+slug: "report-plain"
+kind: "report"
+style: "reading-deck"
+base: "report"
+format: ""
+outputs: [pdf]
+brand: ""
+reference_doc: ""
+quarto_extension: ""
+csl: "own.csl"
+max_upload_mb: 5
+page_limit: null
+font_size_pt: null
+fonts: []
+house_rules:
+  - "Example house rule."
+structure: []
+source: "custom"

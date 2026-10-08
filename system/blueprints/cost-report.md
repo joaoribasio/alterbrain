@@ -48,7 +48,8 @@ Once a week Alterbrain tells you how much it was used and what any paid extras c
    - add a suggestion only when it is clear, for example "Critique rounds used Opus often: check the stop rule".
 4. If use looks unusual, add one task: `node system/scripts/tasks.mjs add "Check this week's usage" --tag cost`.
 5. Schedule weekly using the laptop or home-machine blueprint.
-6. Record the build in `state/built.json`.
+6. Write the routine note `vault/90_routines/Cost report.md` (`runs: "/my-cost-report"`, `may: "draft only"`) as `/build` describes under "Routine notes": the body is the exact instruction the host runs and ends with the `record` step, and the note stays `paused` until the schedule exists on the host (and, for a cloud or server host, until the run can push its note change). Every scheduled job is a routine note; point the user to it ("check my routines").
+7. Record the build in `state/built.json`, listing the routine note in its paths.
 
 ## How to test
 
@@ -58,4 +59,4 @@ Once a week Alterbrain tells you how much it was used and what any paid extras c
 
 ## How to undo
 
-Delete the schedule and run `/remove-skill my-cost-report`. Old reports stay in your journal.
+Run `/remove-skill my-cost-report`. It offers to pause the routine note `Cost report` in `vault/90_routines/` (recommended: the history stays) or delete it. Delete the schedule on your host too (the Claude app's Scheduled tasks or Routines page, or your server's scheduler), or it keeps running. Old reports stay in your journal.
