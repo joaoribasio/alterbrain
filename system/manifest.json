@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "version": "0.2.1",
-  "tag": "v0.2.1",
+  "version": "0.2.2",
+  "tag": "v0.2.2",
   "files": [
     {
       "path": ".claude/agents/ghostwriter.md",
@@ -701,7 +701,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "2675bbf4a5dd88e127334c8cf9cac3d383377344ea83d3171fc0bbafa644b83d"
+      "sha256": "3aab0464e865edf1a2f8186623e4e146a86b5097714b3771248c565346d56561"
     },
     {
       "path": "CLAUDE.md",
@@ -1691,7 +1691,7 @@
     {
       "path": "system/release.json",
       "class": "code",
-      "sha256": "338e5e45e8cbbb4b725e6cee6a7dcf6eb04a6396e41e8f0d4d5f1c0d535c7a39"
+      "sha256": "615a1772ef7de20a807d5bb7c66493ffd0e11f3b35d028e0484688693ff97ff4"
     },
     {
       "path": "system/scripts/built.mjs",
