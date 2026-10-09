@@ -55,6 +55,15 @@ export function isExcluded(relPath) {
   return false;
 }
 
+/**
+ * Framework files that exist in the repo but are never delivered to, or checked in, a person's own copy: everything under
+ * .github/. A workflow runs on the person's GitHub account, which can reach their private notes, so an update must never
+ * be able to write one (ADR 0031). update.mjs skips these paths and doctor.mjs does not compare them.
+ */
+export function isExcludedFromUpdates(p) {
+  return typeof p === 'string' && /^\.github\//i.test(norm(p));
+}
+
 /** "code" or "text" for a project-relative framework path. */
 export function classify(relPath) {
   const rel = norm(relPath);

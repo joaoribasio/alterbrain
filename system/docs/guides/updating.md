@@ -46,6 +46,8 @@ Some upgrades need judgement about your own notes, so Alterbrain does not do the
 
 ## What is never changed
 
+- The `.github` folder. An update never writes there, because a workflow there runs on your GitHub account, next to your private notes. Alterbrain's own check workflow is not meant to be in your copy at all: it only tests Alterbrain's code and can use your free GitHub Actions minutes on every save. A new copy has it removed during setup, and the upgrade `0008-remove-framework-ci` removes it from an older copy, but only when the file is exactly the one Alterbrain released. If you wrote or changed a workflow yourself, it stays and you get one task: delete the file yourself if you do not need it (in File Explorer or Finder, or on github.com; Claude cannot do it for you), or keep it.
+
 - Your own `my-…` skills and helpers. If one points to a file that has moved, you get a task. Say "fix the moved paths in my skills" when you want it done.
 - Passwords and keys in `.env.local`.
 - The files you changed yourself, unless you approve a merge.

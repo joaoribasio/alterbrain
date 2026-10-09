@@ -255,3 +255,37 @@ test('setFrontmatterLine: does not mistake a key that only starts the same way',
   const note = lf(['---', 'programme_notes: "x"', 'school: "S"', '---', '']);
   assert.equal(setFrontmatterLine(note, 'programme', '"y"', AFTER), lf(['---', 'programme_notes: "x"', 'school: "S"', 'programme: "y"', '---', '']));
 });
+
+// ---------------------------------------------------------------- removeFile, removeDirIfEmpty
+test('removeFile and removeDirIfEmpty: delete a file, keep a folder that holds something, do nothing in a dry run', async () => {
+  const root = project();
+  const dir = join(root, 'a', 'b');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'x.txt'), 'x');
+  writeFileSync(join(dir, 'keep.txt'), 'k');
+  const file = join(root, 'tidy.mjs');
+  writeFileSync(
+    file,
+    `import { runMigration, removeFile, removeDirIfEmpty } from ${JSON.stringify(LIB_URL)};
+import { join } from 'node:path';
+await runMigration(async ({ root, report }) => {
+  const dir = join(root, 'a', 'b');
+  if (removeFile(join(dir, 'x.txt'))) report('Deleted x.');
+  if (removeFile(join(dir, 'x.txt'))) report('Deleted x twice.');
+  if (removeDirIfEmpty(dir)) report('Deleted the folder with a file in it.');
+  if (removeFile(join(dir, 'keep.txt'))) report('Deleted keep.');
+  if (removeDirIfEmpty(dir)) report('Deleted b.');
+  if (removeDirIfEmpty(join(root, 'a'))) report('Deleted a.');
+  if (removeDirIfEmpty(join(root, 'no-such-folder'))) report('Deleted a folder that is not there.');
+});
+`,
+  );
+  const go = (args) => spawnSync(process.execPath, [file, ...args], { cwd: root, encoding: 'utf8', windowsHide: true, env: { ...process.env, CLAUDE_PROJECT_DIR: root } });
+  const dry = go(['--dry-run']);
+  assert.equal(dry.stdout.trim(), 'Nothing to do.');
+  assert.equal(existsSync(join(dir, 'x.txt')), true, 'a dry run deletes nothing');
+  const real = go([]);
+  assert.equal(real.status, 0, real.stderr);
+  assert.deepEqual(real.stdout.trim().split(/\r?\n/), ['Deleted x.', 'Deleted keep.', 'Deleted b.', 'Deleted a.'], 'a folder with something in it is never removed');
+  assert.equal(existsSync(join(root, 'a')), false);
+});

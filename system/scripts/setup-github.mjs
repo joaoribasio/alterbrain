@@ -16,6 +16,7 @@ import {
   git, gitInstalled, lfsInstalled, isRepo, hasCommits, remoteUrl, parseRepoUrl, commitAll, ensurePreCommitHook, PRE_COMMIT_HOOK_TEXT,
 } from '../lib/git.mjs';
 import { findSecret } from '../hooks/block_secrets.mjs';
+import { frameworkCiState, removeFrameworkCi } from '../lib/frameworkci.mjs';
 
 const DEFAULT_NAME = 'my-alterbrain';
 const NAME_RE = /^[A-Za-z0-9._-]{1,100}$/;
@@ -49,6 +50,23 @@ export function judgeOrigin(url, { releaseRepo, login }) {
 }
 
 /**
+ * A new copy still holds the framework's own check workflow (.github/workflows/ci.yml). It only tests Alterbrain's code and
+ * would run on the learner's GitHub account on every save, and updates can never remove it (ADR 0031), so it is deleted here,
+ * in the same step that disconnects the public repo, and only when it is exactly a version Alterbrain released. The deletion is
+ * saved by the next automatic save. Returns a step, or null when there is no workflow.
+ */
+function dropFrameworkCi(root, dry) {
+  const state = frameworkCiState(root);
+  if (state === 'absent') return null;
+  if (state === 'custom') {
+    return { id: 'framework-ci', text: 'Your copy has a check workflow (.github/workflows/ci.yml) that is not an Alterbrain version, so it was left alone.', status: 'skipped' };
+  }
+  const text = "Remove the Alterbrain check workflow (.github/workflows/ci.yml) from your copy. It only tests Alterbrain's own code and would use your GitHub Actions minutes on every save.";
+  if (!dry) removeFrameworkCi(root);
+  return { id: 'framework-ci', text, status: dry ? 'planned' : 'done' };
+}
+
+/**
  * Disconnect the folder from the public Alterbrain repo, without needing GitHub
  * or creating anything. Used when the user skips the backup, so the automatic
  * save never pulls from, or pushes to, the public repo. Any other origin is left alone.
@@ -74,7 +92,11 @@ export function detachPublicOrigin(opts) {
   }
   steps.push({ id: 'record-origin', text: 'Remember where this copy came from in state/release-origin.json.', status: dry ? 'planned' : 'done' });
   steps.push({ id: 'remove-origin', text: 'Disconnect this folder from the public Alterbrain repo, so your notes can never be sent there.', status: dry ? 'planned' : 'done' });
-  if (dry) return { ok: true, dry_run: true, steps, blockers: [] };
+  if (dry) {
+    const plannedCi = dropFrameworkCi(root, true);
+    if (plannedCi) steps.push(plannedCi);
+    return { ok: true, dry_run: true, steps, blockers: [] };
+  }
   const file = rootPath('state', 'release-origin.json');
   const existing = readJson(file, null);
   if (!existing || !existing.url) writeJson(file, { schema: 1, repo: verdict.slug, url, recorded: today() });
@@ -85,6 +107,8 @@ export function detachPublicOrigin(opts) {
     steps[1].fix = fix;
     return { ok: false, dry_run: false, steps, blockers: [{ id: 'remove-origin', text: 'The old connection could not be removed.', fix }] };
   }
+  const ci = dropFrameworkCi(root, false);
+  if (ci) steps.push(ci);
   return { ok: true, dry_run: false, steps, blockers: [] };
 }
 
@@ -163,6 +187,10 @@ export function setupGithub(opts) {
         fail('remove-origin', 'The old connection could not be removed.', rm.stderr || 'Run: git remote remove origin');
         return { ok: false, dry_run: dry, steps, blockers };
       }
+    }
+    if (verdict.kind === 'foreign') {
+      const ci = dropFrameworkCi(root, dry);
+      if (ci) steps.push(ci);
     }
   } else if (verdict.kind === 'own') {
     step('origin-own', `This folder already uses your own repo (${verdict.slug}). Nothing to create.`, 'skipped');

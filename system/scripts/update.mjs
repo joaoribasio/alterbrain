@@ -46,6 +46,7 @@ import { has, run, cmpVersion } from '../lib/proc.mjs';
 import { gitInstalled, isRepo, createTag, tagExists, changedCount } from '../lib/git.mjs';
 import { splitFrontmatter } from '../lib/frontmatter.mjs';
 import { addTask, listTasks } from '../lib/tasks.mjs';
+import { isExcludedFromUpdates } from '../lib/manifest.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MANIFEST_REL = 'system/manifest.json';
@@ -100,10 +101,9 @@ export function isSafeFrameworkPath(p) {
   return true;
 }
 
-/** Framework files that exist in the repo but are not delivered to a person's own copy (their CI settings). */
-export function isExcludedFromUpdates(p) {
-  return typeof p === 'string' && /^\.github\//i.test(p);
-}
+// Framework files that are not delivered to a person's own copy (everything under .github/). Defined in lib/manifest.mjs
+// so doctor.mjs shares it without this script; re-exported here for existing callers.
+export { isExcludedFromUpdates };
 
 /** True when writing to this project-relative path stays inside the project (no symlink or junction leads out). */
 export function staysInsideProject(relPath) {

@@ -18,6 +18,7 @@ import {
 } from '../lib/git.mjs';
 import { getStatus } from '../lib/vaultkey.mjs';
 import { normaliseManifest, fileMatchesSha } from './update.mjs';
+import { isExcludedFromUpdates } from '../lib/manifest.mjs';
 import { describeDay, overdueRoutines, readRoutines } from '../lib/routines.mjs';
 
 const IS_MAC = process.platform === 'darwin';
@@ -448,6 +449,7 @@ function checkManifest(r, dev) {
   let checked = 0;
   for (const [path, e] of m.files) {
     if (e.class !== 'code') continue;
+    if (isExcludedFromUpdates(path)) continue; // not delivered to a copy by updates (ADR 0031), so not compared either
     checked++;
     const abs = rootPath(...path.split('/'));
     if (!existsSync(abs)) missing.push(path);

@@ -1,0 +1,64 @@
+name: CI
+
+# These tests cover the framework code, which learners never edit. Every learner's notes repository is a copy of this one, and
+# each automatic save there is a push, so the checks run only in the framework's own repository (the `if` on the job), and only
+# when something that matters changes: framework code, rules, tests, this workflow, or a file validate.mjs reads (CHANGELOG.md,
+# CLAUDE.md, .gitattributes, .gitignore). A push that changes only notes, settings, progress or docs starts no run at all.
+on:
+  push:
+    paths:
+      - 'system/**'
+      - '.claude/**'
+      - 'tests/**'
+      - '.github/**'
+      - 'CHANGELOG.md'
+      - 'CLAUDE.md'
+      - '.gitattributes'
+      - '.gitignore'
+  pull_request:
+    paths:
+      - 'system/**'
+      - '.claude/**'
+      - 'tests/**'
+      - '.github/**'
+      - 'CHANGELOG.md'
+      - 'CLAUDE.md'
+      - '.gitattributes'
+      - '.gitignore'
+
+# A newer push to the same branch replaces a run that is still going, so quick pushes do not queue duplicate runs.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Nothing here needs to write to the repo: read-only is enough.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check on ${{ matrix.os }}
+    if: github.repository == 'joaoribasio/alterbrain'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The glob form is used because "node --test tests/" fails on Node 22.
+      # One glob runs every *.test.mjs file under tests/ (tests/hooks, tests/scripts, tests/quarto).
+      # The Quarto render tests skip themselves because CI has no Quarto.
+      # CI runs the regular (quick) set. The release tests (the slow ones) skip themselves too; run them by hand before tagging:
+      # ALTERBRAIN_SLOW_TESTS=1 node --test "tests/**/*.test.mjs"
+      - name: Run tests
+        run: node --test "tests/**/*.test.mjs"
+      - name: Validate skills, agents and catalogue
+        run: node system/scripts/validate.mjs
+      - name: Doctor (CI mode)
+        run: node system/scripts/doctor.mjs --ci

@@ -30,7 +30,7 @@ You are editing Alterbrain itself. (This rule loads only for developer folders: 
 
 ## Code (hooks and scripts)
 - Node ≥ 20, ESM `.mjs`, **zero dependencies**. No Python in the core (optional blueprints and the `uvx`-launched MCP servers may use `uv`; it is not installed by default).
-- **Reuse `system/lib/`**: `paths.mjs` (projectRoot, vaultPath, isDevMode, matchGlob), `fsx.mjs` (readJson, writeText, sha256File, today, nowStamp), `frontmatter.mjs`, `proc.mjs` (run, has, IS_WINDOWS), `tasks.mjs` (addTask, listTasks, completeTask), `migrate.mjs` (upgrade scripts: runMigration, readJsonFile, writeFileAtomic, writeJsonAtomic, setFrontmatterLine). Don't re-implement them.
+- **Reuse `system/lib/`**: `paths.mjs` (projectRoot, vaultPath, isDevMode, matchGlob), `fsx.mjs` (readJson, writeText, sha256File, today, nowStamp), `frontmatter.mjs`, `proc.mjs` (run, has, IS_WINDOWS), `tasks.mjs` (addTask, listTasks, completeTask), `migrate.mjs` (upgrade scripts: runMigration, readJsonFile, writeFileAtomic, writeJsonAtomic, removeFile, removeDirIfEmpty, setFrontmatterLine). Don't re-implement them.
 - **Windows first, macOS equal:** `path.join`, `os.tmpdir()`, no bash-only syntax, no symlinks, no `/tmp`, no `python3`, LF line endings.
 - **Hooks:** read JSON from stdin; root from `CLAUDE_PROJECT_DIR`, never cwd; fail open on bad input (exit 0, no output), except `outbound_guard`, which fails closed. Tests in `tests/hooks/`.
 - **Scripts:** plain-language output, `--json` option, exit 0 ok / 1 problems / 2 usage error.
@@ -52,7 +52,7 @@ A release replaces framework files, but the user's data stays as it is. A change
   - is safe to re-run after a partial failure;
   - is self-contained: it never reads templates or other framework text that later releases may change, and it uses `system/lib/migrate.mjs`;
   - changes structure only, never the user's prose, and writes atomically;
-  - touches only `config/`, `vault/` (never `40_sources/raw/`) and `state/` (never `state/local/rate-guard/`), and adds tasks only through `system/lib/tasks.mjs`;
+  - touches only `config/`, `vault/` (never `40_sources/raw/`) and `state/` (never `state/local/rate-guard/`), and adds tasks only through `system/lib/tasks.mjs`. **One narrow exception (ADR 0031):** it may delete `.github/workflows/ci.yml`, and the empty `.github` folders after it, and only when that file is, with line endings normalised to LF, byte-for-byte a version the framework released (the migration carries the sha256 of each). Updates still never write anything under `.github/`, and a migration writes nothing there except that deletion;
   - never writes `.env.local`, `.mcp.json` (except by running `mcp-gen.mjs`), `.claude/settings*.json` or `my-*` skills and agents. It may only report on those;
   - never opens encrypted paths while the copy is locked (exit 1 instead);
   - prints plain UK English sentences about what this run changed, or exactly `Nothing to do.`;

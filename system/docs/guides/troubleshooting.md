@@ -19,6 +19,10 @@ Alterbrain saves and uploads your work after each session. If that fails, it add
 
 See [Git is automatic](git-is-automatic.md).
 
+## GitHub keeps running "CI" or a check on every save
+
+That is Alterbrain's own check workflow (`.github/workflows/ci.yml`) in a copy from before 0.2.3, and it can use your free GitHub Actions minutes. Update with `/update-alterbrain`: the upgrade `0008-remove-framework-ci` deletes it if it is the unchanged Alterbrain file. If you changed the file, it stays and a task tells you to delete or keep it. To remove it by hand, delete `.github/workflows/ci.yml` yourself in File Explorer or Finder (Claude cannot delete it, because Alterbrain protects it as a system file), and let the next automatic save upload that. Nothing in Alterbrain needs it.
+
 ## Big files
 
 Files of 50 MB or more are stored with Git LFS, a free add-on for very large files. Everything smaller is saved as a normal file. A task tagged `#ab/git` says what happened. Nothing is lost in any of these cases: the file is still on your computer.

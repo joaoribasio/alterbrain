@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "version": "0.2.2",
-  "tag": "v0.2.2",
+  "version": "0.2.3",
+  "tag": "v0.2.3",
   "files": [
     {
       "path": ".claude/agents/ghostwriter.md",
@@ -46,7 +46,7 @@
     {
       "path": ".claude/rules/framework-dev.md",
       "class": "text",
-      "sha256": "287c0a56a81bc4756f93bdcd824eea97889ff3e2e818c628238a81576ae5de29"
+      "sha256": "31b557095aa29031b27374c6df4ae9f6ee278a9bfffb37a19d45a2d65f06a7f3"
     },
     {
       "path": ".claude/rules/migrations.md",
@@ -701,7 +701,7 @@
     {
       "path": "CHANGELOG.md",
       "class": "text",
-      "sha256": "3aab0464e865edf1a2f8186623e4e146a86b5097714b3771248c565346d56561"
+      "sha256": "25bdf1b484224dc4ee2ddd7d72b94635c5113892d370f8d3a731dc923b67e89a"
     },
     {
       "path": "CLAUDE.md",
@@ -736,7 +736,7 @@
     {
       "path": "docs/SPEC.md",
       "class": "text",
-      "sha256": "92263b816865bb2b1c838dade120038f2bd1d3db52614be1ce134151e9fb0d00"
+      "sha256": "96092e2c2b5459927f90da20b91548872696eea9da1c1962182c0a3b1f61ce90"
     },
     {
       "path": "docs/adr/0001-clean-repo-and-ported-ideas.md",
@@ -887,6 +887,11 @@
       "path": "docs/adr/0030-routines-registry.md",
       "class": "text",
       "sha256": "0141afb6a136deda0e70a8fa0492700007ee6f805720b977550b0b203f138834"
+    },
+    {
+      "path": "docs/adr/0031-framework-ci-not-in-learner-copies.md",
+      "class": "text",
+      "sha256": "7060cb83aa65ab5433dcddd2d6203ef393e5fc6868b227fa9f348f5bf22111dd"
     },
     {
       "path": "docs/critique-panel-prompts.md",
@@ -1131,12 +1136,12 @@
     {
       "path": "system/docs/guides/troubleshooting.md",
       "class": "text",
-      "sha256": "f81904e24a2bf78a880057658594e9dadab940aaab4b5e1ab58b5a16460ede81"
+      "sha256": "0c59ebe3ce3f4afb0c5225795c51d244eb1d901f014cbdae9315a892f2125d53"
     },
     {
       "path": "system/docs/guides/updating.md",
       "class": "text",
-      "sha256": "a7972ebe3e883229c8c4dc12911bf815224546a271c52bd2a62c3998e5f56785"
+      "sha256": "2659835803e8c56f9a99267944b186d213545c930726e571b7db06308c3b4081"
     },
     {
       "path": "system/docs/guides/using-obsidian.md",
@@ -1189,6 +1194,11 @@
       "sha256": "8f8d937e13542be9f2337af7a776c85a26a92a6740ce1942597a955a563b8e8a"
     },
     {
+      "path": "system/lib/frameworkci.mjs",
+      "class": "code",
+      "sha256": "e51f8619c79ef25e6c7e65e969525cff7248762060fa2c9039df57d542df30c5"
+    },
+    {
       "path": "system/lib/frontmatter.mjs",
       "class": "code",
       "sha256": "57860f5b39451d52ee81514916dd9a5fd416de7435c455b5a44fdaaa5c2008f8"
@@ -1211,12 +1221,12 @@
     {
       "path": "system/lib/manifest.mjs",
       "class": "code",
-      "sha256": "3a2ddc3f7e3d665f498357121e78fe292bb98397eb8d0139990c3f883b811210"
+      "sha256": "8780b3031e842b42a5116e078ae185d355af84a3c851571bbe0fcf0d2a9e92d7"
     },
     {
       "path": "system/lib/migrate.mjs",
       "class": "code",
-      "sha256": "6400c4233478cd24c20b1c825ff188e26d055e206efc5916c259f1d47c3ad5ec"
+      "sha256": "dfd85fc04522973d7bdfb400d2600b4f6a7395483276351286147a62f8ccecdf"
     },
     {
       "path": "system/lib/ooxml.mjs",
@@ -1691,7 +1701,7 @@
     {
       "path": "system/release.json",
       "class": "code",
-      "sha256": "615a1772ef7de20a807d5bb7c66493ffd0e11f3b35d028e0484688693ff97ff4"
+      "sha256": "74e2a8121ce1e59655ccd33903d0697f0c59204f0cb8aea9986318f4dfcfcdb2"
     },
     {
       "path": "system/scripts/built.mjs",
@@ -1716,7 +1726,7 @@
     {
       "path": "system/scripts/doctor.mjs",
       "class": "code",
-      "sha256": "535aba53cc8f3ed0b53276856182b289ed007b913ea572c77a749258646adcf0"
+      "sha256": "6f873b1d9945474cb89b1f44667c7638d2a1f1926ed21863fd9eb9dae9e8ce8a"
     },
     {
       "path": "system/scripts/git-auto.mjs",
@@ -1799,6 +1809,11 @@
       "sha256": "2e040b90bd89c2c5dcbc9c269d56e92cd96549c1e06747252d5e7c5a65a0c385"
     },
     {
+      "path": "system/scripts/migrations/0008-remove-framework-ci.mjs",
+      "class": "code",
+      "sha256": "371782579f434d60ac0ea2f534b4423423e6ec928dfca5c90f43a896a9434c72"
+    },
+    {
       "path": "system/scripts/obsidian-setup.mjs",
       "class": "code",
       "sha256": "d496e284d9e9566486b8e4bf16a511bb5bc993f61fcf8e192c996e17488fce32"
@@ -1851,7 +1866,7 @@
     {
       "path": "system/scripts/setup-github.mjs",
       "class": "code",
-      "sha256": "f243ac37d475388143e84fc0e5509319172b0c27c5fa815e6f92d61dbedfeb37"
+      "sha256": "ffe134acbae6ae6d7ac2333e18e166455ea7fb4d0301833446446531776fd866"
     },
     {
       "path": "system/scripts/slop-check.mjs",
@@ -1871,7 +1886,7 @@
     {
       "path": "system/scripts/update.mjs",
       "class": "code",
-      "sha256": "232c73a7ffc3fe9683be8aa5e08f1fdf4a9b9f0167106d0d8274db66575c19c5"
+      "sha256": "e41c1817d53c63e036d1a38b7d54ab58adb5f362e9f85632b0715802de7322c8"
     },
     {
       "path": "system/scripts/validate.mjs",
@@ -2369,6 +2384,21 @@
       "sha256": "092ec1ce0e3927a141fb2fe0a3f0f42c24c5be6ee681eb2ff3c535ef9713e51a"
     },
     {
+      "path": "tests/fixtures/migrations/framework-ci/v0.2.0-ci.yml",
+      "class": "code",
+      "sha256": "7548625581830e8398fe0fbbc21fe58df2359b8c6d1d4acfc5c46164094b7a02"
+    },
+    {
+      "path": "tests/fixtures/migrations/framework-ci/v0.2.1-ci.yml",
+      "class": "code",
+      "sha256": "696d84d2f777cabdb130134c062955f7e56ed2752b69629e333b25cc566f5f35"
+    },
+    {
+      "path": "tests/fixtures/migrations/framework-ci/v0.2.2-ci.yml",
+      "class": "code",
+      "sha256": "f2ac2f2c45d2ae3cc04b56c73935531b2b8f84aa89edc0aa2388fd7d6d931c5f"
+    },
+    {
       "path": "tests/fixtures/migrations/helpers.mjs",
       "class": "code",
       "sha256": "0fc553e02c4833cbbd26e4b1d3ae8494b544df90cffd6a9c38d8ecc8700924f5"
@@ -2444,6 +2474,11 @@
       "sha256": "4f1afa275c84f9b651da446db5b77067760a57d87e2ae2e696c3509c465793a5"
     },
     {
+      "path": "tests/fixtures/migrations/v0.1.0/.github/workflows/ci.yml",
+      "class": "code",
+      "sha256": "7548625581830e8398fe0fbbc21fe58df2359b8c6d1d4acfc5c46164094b7a02"
+    },
+    {
       "path": "tests/fixtures/migrations/v0.1.0/claude/agents/my-reviewer.md",
       "class": "code",
       "sha256": "f9c3b56d6463438e66278eefbb016971ee42514d990ce882872d3f5aa6e640e1"
@@ -2512,6 +2547,11 @@
       "path": "tests/fixtures/migrations/v0.1.0/vault/40_sources/notes/Strategy Syllabus.md",
       "class": "code",
       "sha256": "faaf862844be31f7943c085a6398f4caebe4b7377016c4746c5e1b4f920781c4"
+    },
+    {
+      "path": "tests/fixtures/migrations/v0.1.1/.github/workflows/ci.yml",
+      "class": "code",
+      "sha256": "7548625581830e8398fe0fbbc21fe58df2359b8c6d1d4acfc5c46164094b7a02"
     },
     {
       "path": "tests/fixtures/migrations/v0.1.1/claude/skills/jobs/SKILL.md",
@@ -3284,6 +3324,11 @@
       "sha256": "10a6f4259d0bdb554bf7a6a81ee610fc2bd4a5af155fe94438076ac416ff4258"
     },
     {
+      "path": "tests/scripts/framework-ci.test.mjs",
+      "class": "code",
+      "sha256": "d15dbc3fc2bc81c6a64228b688105d91ad2165987c7d3b637b4707ecd51db5f9"
+    },
+    {
       "path": "tests/scripts/git-auto-background.test.mjs",
       "class": "code",
       "sha256": "e8b2244bec8f3784dfa1c2607f0bc240b3d23e2a2d9a3b2d9956f95520a0381a"
@@ -3351,7 +3396,7 @@
     {
       "path": "tests/scripts/migrate-lib.test.mjs",
       "class": "code",
-      "sha256": "d856937609301b4eae852dd45c63c6c2b2b2084457d2158b8920c11a77e8c4f6"
+      "sha256": "1fa26f9fb0e15d97a1faf874009c94231c9e0e3200c3d20f369e184e73026bdd"
     },
     {
       "path": "tests/scripts/migrations/0001-remove-canvas.test.mjs",
@@ -3374,9 +3419,19 @@
       "sha256": "88857152d2bf1527a5da63d572dfacd49921216b38d2339f7c31df358fde9e48"
     },
     {
+      "path": "tests/scripts/migrations/0008-remove-framework-ci.test.mjs",
+      "class": "code",
+      "sha256": "8a2acf8ff8d6842c6eb65ddf60a5249abd7d504d49dab207b67cac77f5b54755"
+    },
+    {
       "path": "tests/scripts/migrations/all-migrations.test.mjs",
       "class": "code",
       "sha256": "1b997f4a4a1afd8621da6651f62d5af7889eaf991c5c715cd68bda94d1ab3ccb"
+    },
+    {
+      "path": "tests/scripts/migrations/framework-ci-update.test.mjs",
+      "class": "code",
+      "sha256": "afa1ca0db55a983b8726379c1738447ce9adb351cbe28bef8a760c34042b8688"
     },
     {
       "path": "tests/scripts/migrations/guided.test.mjs",

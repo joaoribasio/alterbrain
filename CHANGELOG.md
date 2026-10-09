@@ -3,6 +3,18 @@
 All notable changes to Alterbrain are listed here. Newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.2.3] - 2026-10-09
+
+### Fixed
+- Copies installed before 0.2.1 kept running the Alterbrain check workflow on GitHub after every automatic save, using up the free Actions minutes of a private notes repository. The fix in 0.2.1 never reached them, because an update cannot replace files in the `.github` folder (on purpose: a workflow runs on your GitHub account, next to your private notes, so an update must not be able to change one). Your copy now carries no Alterbrain check workflow at all. A new copy has it removed when the installer disconnects the public Alterbrain repo, and an existing copy has it removed by an upgrade, but only when the file is exactly one that Alterbrain released. A workflow you changed or wrote yourself is left alone, and you get one task that explains how to delete or keep it.
+- The health check no longer reports "Framework files: changed .github/workflows/ci.yml" after an update, a failure that `/update-alterbrain` could never fix. It now skips every file that updates do not deliver, so a copy with a workflow, without one, or with its own passes.
+
+### Upgrades
+- `0008-remove-framework-ci`: deletes `.github/workflows/ci.yml` from your copy if you never changed it, then the empty `.github` folders. If you changed it, it keeps the file and adds one task. It does nothing in the framework's own repository.
+
+### Corrections
+- The 0.2.1 and 0.2.2 entries said the update replaces the workflow file for you. It did not: updates never write to the `.github` folder, so copies from before 0.2.1 kept the old workflow. 0.2.3 is the release that removes it.
+
 ## [0.2.2] - 2026-10-09
 
 ### Changed

@@ -13,7 +13,7 @@
 // Contract: print one plain sentence for each thing this run changed, or exactly "Nothing to do."; exit 0 when done
 // or when there was nothing to do, 1 when it could not finish (one sentence on standard error), 2 for a wrong
 // command line. "--dry-run" writes nothing and starts each sentence with "Would: ".
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, rmdirSync, writeFileSync } from 'node:fs';
 import { dirname, relative, sep } from 'node:path';
 import { projectRoot } from './paths.mjs';
 import { stripBom } from './fsx.mjs';
@@ -140,6 +140,43 @@ export function writeFileAtomic(abs, text) {
       ? `I could not save ${relOf(abs)} (is it open in another program?). Close it and finish the update again.`
       : `I could not save ${relOf(abs)}. Check that there is free space and that the folder can be written to, then finish the update again.`,
   );
+}
+
+/**
+ * Delete one file. A file that another program holds open (common on Windows) is retried 3 times, 100 ms apart. A file
+ * that is already gone counts as deleted. Returns true when it deleted something. Does nothing in a dry run.
+ */
+export function removeFile(abs) {
+  if (dryRunActive || !existsSync(abs)) return false;
+  let failure = null;
+  for (let attempt = 0; attempt <= RETRIES; attempt++) {
+    try {
+      rmSync(abs, { force: true });
+      return true;
+    } catch (e) {
+      failure = e;
+      if (!RETRY_CODES.has(e && e.code) || attempt === RETRIES) break;
+      sleepSync(RETRY_GAP_MS);
+    }
+  }
+  const busy = RETRY_CODES.has(failure && failure.code);
+  throw new MigrationStop(
+    busy
+      ? `I could not delete ${relOf(abs)} (is it open in another program?). Close it and finish the update again.`
+      : `I could not delete ${relOf(abs)}. Check that the folder can be written to, then finish the update again.`,
+  );
+}
+
+/** Delete a folder only when it is empty. Returns true when it deleted it. Never touches a folder that holds anything. */
+export function removeDirIfEmpty(abs) {
+  if (dryRunActive) return false;
+  try {
+    if (readdirSync(abs).length > 0) return false;
+    rmdirSync(abs); // rmdir refuses a folder that is not empty, so this cannot remove content by mistake
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Save a value as JSON (two-space indent, final newline), atomically. */
